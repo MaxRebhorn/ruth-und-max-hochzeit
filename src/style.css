@@ -21,12 +21,17 @@ a:hover {
 #app {
   position: relative;
   width: 100%;
-  max-width: 640px;
+  max-width: 100%;
   margin: 0 auto;
   background-color: #f6f1e7;
-  box-shadow: 0 0 60px rgba(70, 45, 20, 0.15);
   overflow: hidden;
   min-height: 100vh;
+}
+@media (min-width: 860px) {
+  #app {
+    max-width: 1180px;
+    box-shadow: 0 0 60px rgba(70, 45, 20, 0.15);
+  }
 }
 
 /* Script/handwritten type scale ------------------------------------- */
@@ -41,6 +46,9 @@ a:hover {
 .script-h2 {
   margin: 0 0 6px;
   font: 400 46px/1 Caveat, cursive;
+}
+.script-h2.accent {
+  color: #a8562f;
 }
 .script-lg {
   font: 400 clamp(28px, 7vw, 46px) / 1 Caveat, cursive;
@@ -90,13 +98,26 @@ a:hover {
   opacity: 1;
 }
 .flag-de {
-  background: linear-gradient(#000 0 33.4%, #dd0000 33.4% 66.7%, #ffce00 66.7%);
+  background-color: #ffce00;
+  background-image: linear-gradient(#000 0 33.4%, #dd0000 33.4% 66.7%, transparent 66.7%);
 }
 .flag-en {
-  background: #012169;
+  background-color: #012169;
+  background-image:
+    linear-gradient(to bottom, transparent 42%, #c8102e 42%, #c8102e 58%, transparent 58%),
+    linear-gradient(to right, transparent 42%, #c8102e 42%, #c8102e 58%, transparent 58%),
+    linear-gradient(to bottom, transparent 34%, #fff 34%, #fff 66%, transparent 66%),
+    linear-gradient(to right, transparent 34%, #fff 34%, #fff 66%, transparent 66%),
+    linear-gradient(34deg, transparent 48.4%, #c8102e 48.4%, #c8102e 51.6%, transparent 51.6%),
+    linear-gradient(-34deg, transparent 48.4%, #c8102e 48.4%, #c8102e 51.6%, transparent 51.6%),
+    linear-gradient(34deg, transparent 45%, #fff 45%, #fff 55%, transparent 55%),
+    linear-gradient(-34deg, transparent 45%, #fff 45%, #fff 55%, transparent 55%);
 }
 .flag-sv {
-  background: #006aa7;
+  background-color: #006aa7;
+  background-image:
+    linear-gradient(to bottom, transparent 40%, #fecc00 40%, #fecc00 60%, transparent 60%),
+    linear-gradient(to right, transparent 28%, #fecc00 28%, #fecc00 46%, transparent 46%);
 }
 .hamburger {
   display: flex;
@@ -291,10 +312,60 @@ a:hover {
 .section-wide {
   max-width: none;
 }
+.flower-deco {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.flower-deco-anchor {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+.flower-deco-item {
+  position: absolute;
+  bottom: 0;
+  height: auto;
+  transform-origin: 50% 100%;
+  opacity: 0.92;
+}
+.section > *:not(.flower-deco) {
+  position: relative;
+  z-index: 1;
+}
 .eyebrow {
   margin: 0;
   font: 400 clamp(19px, 5.2vw, 30px) / 1 Caveat, cursive;
   letter-spacing: 0.16em;
+}
+.hero-names-backdrop {
+  margin: 16px 0 0;
+  padding: 10px 0 18px;
+  background: radial-gradient(
+    ellipse 62% 78% at 50% 52%,
+    rgba(168, 205, 228, 0.65) 0%,
+    rgba(168, 205, 228, 0.32) 46%,
+    rgba(168, 205, 228, 0) 74%
+  );
+}
+.hero-name {
+  display: block;
+  font: 400 clamp(44px, 11.6vw, 90px) / 0.95 'Great Vibes', Caveat, cursive;
+}
+.hero-name-1 {
+  transform: translateX(-8%) rotate(-2.5deg);
+}
+.hero-name-2 {
+  margin-top: -4px;
+  margin-left: 20px;
+  transform: translateX(6%) rotate(1.5deg);
+}
+.hero-countdown-eyebrow {
+  margin: 6px 0 0;
+  font: 400 20px/1 Caveat, cursive;
+  opacity: 0.65;
 }
 .countdown {
   display: flex;
@@ -318,22 +389,49 @@ a:hover {
 
 /* Story timeline / photo fan ------------------------------------------ */
 .timeline {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 14px;
   margin-top: 12px;
-  border-left: 2px dashed rgba(91, 42, 16, 0.3);
-  padding-left: 18px;
+  padding: 4px 0;
+}
+.timeline-connector {
+  position: absolute;
+  inset: 8px 0 26px;
+  width: 100%;
+  height: calc(100% - 34px);
+  display: block;
+  pointer-events: none;
+  z-index: 0;
 }
 .timeline-row {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 18px;
   text-align: left;
+  padding-bottom: 14px;
 }
 .timeline-row.is-flip {
   flex-direction: row-reverse;
   text-align: right;
+}
+.timeline-dot {
+  position: absolute;
+  top: 50%;
+  right: 30.5%;
+  width: 13px;
+  height: 13px;
+  margin: -6.5px 0 0 -6.5px;
+  border-radius: 50%;
+  background: #f6f1e7;
+  border: 2.4px solid rgba(91, 42, 16, 0.55);
+}
+.timeline-row.is-flip .timeline-dot {
+  right: auto;
+  left: 30.5%;
 }
 .timeline-year {
   margin: 0;
@@ -416,26 +514,54 @@ a:hover {
 
 /* Ablauf ---------------------------------------------------------------- */
 .ablauf-list {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  margin-top: 12px;
-  text-align: left;
+  gap: 40px;
+  margin-top: 24px;
+  padding-left: 0;
+}
+.ablauf-list::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  bottom: 10%;
+  left: 50%;
+  width: 0;
+  border-left: 2.5px dashed rgba(91, 42, 16, 0.35);
+  transform: translateX(-50%);
 }
 .ablauf-row {
+  position: relative;
   display: flex;
-  gap: 14px;
-  align-items: flex-start;
+  gap: 18px;
+  align-items: center;
+  text-align: left;
 }
-.ablauf-church {
+.ablauf-row.is-flip {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+.ablauf-visual {
   position: relative;
   flex: none;
-  width: 110px;
-  cursor: pointer;
+  width: min(150px, 38%);
+  cursor: default;
 }
-.ablauf-church-img {
+.ablauf-visual-img {
   width: 100%;
   display: block;
+  mix-blend-mode: multiply;
+}
+.ablauf-visual-img[data-doves-trigger] {
+  cursor: pointer;
+}
+.ablauf-visual-extra {
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 70%;
+  transform: translateX(-50%);
   mix-blend-mode: multiply;
 }
 .doves-layer {
@@ -464,13 +590,6 @@ a:hover {
     transform: translate(var(--dx), var(--dy)) scale(1);
     opacity: 0;
   }
-}
-.ablauf-icon {
-  flex: none;
-  width: 34px;
-  text-align: center;
-  font-size: 20px;
-  color: #a8562f;
 }
 .ablauf-time {
   margin: 0;
@@ -530,6 +649,10 @@ a:hover {
   box-shadow: 0 4px 16px rgba(91, 42, 16, 0.1);
   text-align: left;
   margin-top: 14px;
+}
+.card-kuchen {
+  border-color: rgba(243, 220, 147, 1);
+  border-top-width: 9px;
 }
 .stack-form {
   display: flex;
@@ -953,5 +1076,34 @@ a:hover {
   }
   .field-row {
     flex-direction: column;
+  }
+}
+
+@media (min-width: 860px) {
+  .timeline-row,
+  .ablauf-row {
+    justify-content: space-between;
+    padding: 0 4%;
+  }
+  .timeline-text,
+  .ablauf-text {
+    max-width: 46%;
+  }
+  .timeline-connector {
+    inset: 4% 0 8%;
+    height: 88%;
+  }
+  .ablauf-list::before {
+    display: none;
+  }
+  .anfahrt-venues,
+  .wish-columns {
+    flex-direction: row;
+  }
+  .wish-columns > .wish-box {
+    flex: 1;
+  }
+  .faq-list {
+    max-width: 480px;
   }
 }

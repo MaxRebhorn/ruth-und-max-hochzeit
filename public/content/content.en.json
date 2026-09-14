@@ -2,6 +2,7 @@
   "hero": {
     "eyebrow": "we're getting married",
     "scrollHint": "scroll down",
+    "countdownEyebrow": "in",
     "countdownLabels": { "days": "days", "hours": "hours", "minutes": "minutes", "seconds": "seconds" }
   },
   "gate": {

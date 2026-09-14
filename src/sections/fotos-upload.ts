@@ -1,5 +1,6 @@
 import type { AppContext } from '../types';
 import { emit } from '../bus';
+import { flowerDeco } from '../widgets/flower-deco';
 
 export function mountFotosUpload(root: HTMLElement, ctx: AppContext): void {
   const t = ctx.content.fotos;
@@ -7,6 +8,7 @@ export function mountFotosUpload(root: HTMLElement, ctx: AppContext): void {
 
   root.innerHTML = `
     <section id="fotos" class="section">
+      ${flowerDeco()}
       <h2 class="script-h2">${t.title}</h2>
       <div class="photobox-wrap">
         <button type="button" class="photobox" data-photobox-knock aria-label="Fotobox"></button>

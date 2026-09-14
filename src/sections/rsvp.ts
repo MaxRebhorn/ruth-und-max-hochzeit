@@ -1,5 +1,6 @@
 import type { AppContext } from '../types';
 import { getLevel } from '../access';
+import { flowerDeco } from '../widgets/flower-deco';
 
 export function mountRsvp(root: HTMLElement, ctx: AppContext): void {
   const t = ctx.content.forms.rsvp;
@@ -8,7 +9,8 @@ export function mountRsvp(root: HTMLElement, ctx: AppContext): void {
 
   root.innerHTML = `
     <section id="anmeldung" class="section">
-      <h2 class="script-h2">${t.title}</h2>
+      ${flowerDeco()}
+      <h2 class="script-h2 accent">${t.title}</h2>
       <p class="section-intro script-lg">${t.intro}</p>
       <div class="card rsvp-card">
         <p class="rsvp-stamp">RSVP</p>

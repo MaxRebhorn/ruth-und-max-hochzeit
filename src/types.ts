@@ -7,6 +7,7 @@ export interface Content {
     names: string;
     date: string;
     scrollHint: string;
+    countdownEyebrow: string;
     countdownLabels: { days: string; hours: string; minutes: string; seconds: string };
   };
   gate: {

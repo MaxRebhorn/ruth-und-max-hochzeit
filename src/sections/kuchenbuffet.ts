@@ -1,5 +1,6 @@
 import type { AppContext } from '../types';
 import { getLevel } from '../access';
+import { flowerDeco } from '../widgets/flower-deco';
 
 interface Cake {
   who: string;
@@ -32,8 +33,9 @@ export function mountKuchenbuffet(root: HTMLElement, ctx: AppContext): void {
   function render() {
     root.innerHTML = `
       <section id="kuchen" class="section">
+        ${flowerDeco()}
         <h2 class="script-h2">${t.title}</h2>
-        <div class="card">
+        <div class="card card-kuchen">
           <div data-kuchen-body>
             <p class="section-intro-small">${t.intro}</p>
             <form class="stack-form" data-kuchen-form>

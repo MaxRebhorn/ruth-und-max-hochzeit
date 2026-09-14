@@ -1,11 +1,13 @@
 import type { AppContext } from '../types';
 import { asset } from '../asset';
 import { mountPostcardAccordion } from '../widgets/postcard-accordion';
+import { flowerDeco } from '../widgets/flower-deco';
 
 export function mountVogtland(root: HTMLElement, ctx: AppContext): void {
   const t = ctx.content.vogtland;
   root.innerHTML = `
     <section id="vogtland" class="section section-wide">
+      ${flowerDeco()}
       <h2 class="script-h2">${t.title}</h2>
       <p class="script-lg vogtland-subtitle">${t.subtitle}</p>
       <div class="postcards">

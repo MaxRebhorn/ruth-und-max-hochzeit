@@ -1,13 +1,20 @@
 import type { AppContext } from '../types';
+import { flowerDeco } from '../widgets/flower-deco';
 
 export function mountHero(root: HTMLElement, ctx: AppContext): () => void {
   const t = ctx.content.hero;
   const labels = t.countdownLabels;
+  const [firstName, secondName] = (t.names ?? 'Ruth & Max').split('&').map((s) => s.trim());
   root.innerHTML = `
-    <section id="home" class="section hero">
+    <section id="home" class="section section-wide hero">
+      ${flowerDeco()}
       <p class="eyebrow">${t.eyebrow}</p>
-      <h1 class="script-huge">${t.names ?? 'Ruth & Max'}</h1>
+      <div class="hero-names-backdrop">
+        <span class="hero-name hero-name-1">${firstName}</span>
+        <span class="hero-name hero-name-2">&amp; ${secondName}</span>
+      </div>
       <p class="script-lg">${formatDate(t.date)}</p>
+      <p class="hero-countdown-eyebrow">${t.countdownEyebrow}</p>
       <div class="countdown">
         <div><div class="cd-num" data-cd="d">0</div><div class="cd-label">${labels.days}</div></div>
         <div><div class="cd-num" data-cd="h">00</div><div class="cd-label">${labels.hours}</div></div>

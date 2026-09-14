@@ -1,9 +1,11 @@
 import type { AppContext } from '../types';
+import { flowerDeco } from '../widgets/flower-deco';
 
 export function mountWunschliste(root: HTMLElement, ctx: AppContext): void {
   const t = ctx.content.wunschliste;
   root.innerHTML = `
     <section id="wunschliste" class="section">
+      ${flowerDeco()}
       <h2 class="script-h2">${t.title}</h2>
       <p class="section-intro-small">${t.intro}</p>
       <div class="wish-columns">

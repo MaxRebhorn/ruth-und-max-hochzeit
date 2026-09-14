@@ -1,6 +1,7 @@
 {
   "hero": {
     "eyebrow": "vi gifter oss",
+    "countdownEyebrow": "om",
     "countdownLabels": { "days": "dagar", "hours": "timmar", "minutes": "minuter", "seconds": "sekunder" }
   },
   "gate": {

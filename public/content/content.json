@@ -4,6 +4,7 @@
     "names": "Ruth & Max",
     "date": "2027-08-07T11:00:00",
     "scrollHint": "nach unten wischen",
+    "countdownEyebrow": "noch",
     "countdownLabels": { "days": "Tage", "hours": "Stunden", "minutes": "Minuten", "seconds": "Sekunden" }
   },
   "gate": {
