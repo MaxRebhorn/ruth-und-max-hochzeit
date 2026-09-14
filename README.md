@@ -27,12 +27,13 @@ The Apps Script backend deploys separately — see `apps-script/README.md`.
 
 ## Content & config
 
-- `content/content.json` (+ `.en.json` / `.sv.json`) — all page copy. DE is
-  the source language; translations only need to include the keys that
-  differ, everything else falls back to DE.
-- `config/config.json` — guest-level tokens, the Apps Script exec URL, and
-  the site URL used for QR generation. Replace the `CHANGE-ME` placeholders
-  before going live.
+- `public/content/content.json` (+ `.en.json` / `.sv.json`) — all page copy.
+  DE is the source language; translations only need to include the keys that
+  differ, everything else falls back to DE. Lives under `public/` (not the
+  repo root) so Vite copies it into `dist/` as a static, fetchable file.
+- `public/config/config.json` — guest-level tokens, the Apps Script exec URL,
+  and the site URL used for QR generation. Replace the `CHANGE-ME`
+  placeholders before going live.
 
 ## Design sync
 

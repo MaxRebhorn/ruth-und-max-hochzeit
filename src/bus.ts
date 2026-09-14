@@ -1,6 +1,7 @@
 type Events = {
   'lang:changed': undefined;
   'level:changed': undefined;
+  'envelope:replay': undefined;
 };
 
 type Listener = () => void;

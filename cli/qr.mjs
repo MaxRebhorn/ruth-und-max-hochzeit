@@ -6,7 +6,7 @@ export async function qr({ level, out }) {
     console.error('Usage: wedding qr --level <0-3> --out <file.png>');
     process.exit(1);
   }
-  const config = JSON.parse(await readFile(new URL('../config/config.json', import.meta.url), 'utf8'));
+  const config = JSON.parse(await readFile(new URL('../public/config/config.json', import.meta.url), 'utf8'));
   const token = config.levelTokens[String(level)];
   if (!token || token.startsWith('CHANGE-ME')) {
     console.error(`No real token configured for level ${level} in config/config.json yet.`);

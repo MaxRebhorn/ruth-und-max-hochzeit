@@ -29,6 +29,7 @@
     { "title": "Afterparty" }
   ],
   "anfahrt": { "title": "travel & stay" },
+  "faqTitle": "questions?",
   "faq": [
     { "q": "What should I wear?", "a": "Festive, colours welcome. No white — that one's reserved for a day." },
     { "q": "Are kids welcome?", "a": "Yes — just tell us how many in the RSVP." },

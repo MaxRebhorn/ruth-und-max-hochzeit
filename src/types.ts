@@ -25,18 +25,43 @@ export interface Content {
   nav: Record<string, string>;
   story: Array<{ year: string; text: string; photos: string[] }>;
   ablauf: Array<{ time: string; title: string; place?: string; mapQuery?: string; minLevel: Level }>;
-  anfahrt: { venues: Array<{ name: string; address: string; lat: number; lng: number }> };
+  anfahrt: { title: string; venues: Array<{ name: string; address: string; lat: number; lng: number }> };
+  faqTitle: string;
   faq: Array<{ q: string; a: string }>;
-  wunschliste: { notWanted: string[]; wanted: string };
-  vogtland: Array<{ title: string; place: string; distance: string; desc: string; image: string; mapQuery: string }>;
+  wunschliste: { title: string; intro: string; notWantedTitle: string; notWanted: string[]; wantedTitle: string; wanted: string };
+  fotos: { title: string; lockedLabel: string; lockedHint: string; opensLabel: string; unlockedIntro: string };
+  vogtland: {
+    title: string;
+    subtitle: string;
+    minLevel: Level;
+    entries: Array<{ title: string; place: string; distance: string; desc: string; image: string; mapQuery: string }>;
+  };
   forms: {
-    rsvp: { title: string; fields: Record<string, string> };
-    essenswahl: { title: string; fields: Record<string, string> };
-    liedwunsch: { title: string; searchPlaceholder: string; fallback: string };
-    ueberraschung: { title: string; intro: string };
-    uebernachtung: { title: string; needLabel: string };
-    frage: { title: string };
-    kuchen: { title: string; intro: string; kinds: string[] };
+    rsvp: {
+      title: string;
+      intro: string;
+      sentTitle: string;
+      sentBody: string;
+      deadline: string;
+      submitLabel: string;
+      fields: Record<string, string>;
+    };
+    essenswahl: { title: string; minLevel: Level; fields: Record<string, string> };
+    liedwunsch: { title: string; minLevel: Level; searchPlaceholder: string; fallback: string };
+    ueberraschung: { title: string; minLevel: Level; intro: string };
+    uebernachtung: { title: string; minLevel: Level; needLabel: string; detailsLabel: string };
+    frage: { title: string; fields: Record<string, string> };
+    kuchen: {
+      title: string;
+      intro: string;
+      sentTitle: string;
+      sentBody: string;
+      submitLabel: string;
+      towerTitle: string;
+      emptyLabel: string;
+      kinds: string[];
+      fields: Record<string, string>;
+    };
   };
 }
 

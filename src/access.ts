@@ -1,64 +1,87 @@
-import type { Config, Level } from './types';
-import { lookupGuest } from './api';
+import type { Level } from './types';
 import { emit } from './bus';
 
-const LEVEL_KEY = 'rm-level';
-const EMAIL_KEY = 'rm-email';
+const GUEST_KEY = 'rm-guest';
 const ADMIN_KEY = 'rm-admin';
 
-let level: Level | null = null;
+export type TierName = 'trauung' | 'party' | 'alles';
+
+const TIER_CODES: Record<TierName, string[]> = {
+  trauung: ['trauung', 'kirche', 'glockenschlag', 'glocke'],
+  party: ['tanz', 'tanzschuh', 'party', 'discokugel'],
+  alles: ['ganzertag', 'ganzer tag', 'sonnenaufgang', 'hochzeit', 'kuchengabel']
+};
+
+const TIER_LEVEL: Record<TierName, Level> = { trauung: 0, party: 1, alles: 2 };
+
+let tier: TierName | null = null;
 let admin = false;
 
 export function getLevel(): Level | null {
-  return level;
+  return tier === null ? null : TIER_LEVEL[tier];
+}
+
+export function getTier(): TierName | null {
+  return tier;
 }
 
 export function isAdmin(): boolean {
   return admin;
 }
 
-function setLevel(l: Level | null): void {
-  level = l;
-  if (l !== null) localStorage.setItem(LEVEL_KEY, String(l));
-  else localStorage.removeItem(LEVEL_KEY);
+function resolveCode(raw: string): TierName | 'admin' | null {
+  const v = raw
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-zäöüß ]/g, '');
+  if (!v) return null;
+  if (v === 'ruthundmax') return 'admin';
+  for (const name of Object.keys(TIER_CODES) as TierName[]) {
+    if (name === v || TIER_CODES[name].includes(v)) return name;
+  }
+  return null;
+}
+
+export function applyTier(next: TierName | null): void {
+  tier = next;
+  if (next) localStorage.setItem(GUEST_KEY, next);
+  else localStorage.removeItem(GUEST_KEY);
   emit('level:changed');
 }
 
 export function setAdmin(on: boolean): void {
   admin = on;
   if (on) localStorage.setItem(ADMIN_KEY, '1');
-  else localStorage.removeItem(ADMIN_KEY);
 }
 
 export function resetGate(): void {
-  localStorage.removeItem(LEVEL_KEY);
-  localStorage.removeItem(EMAIL_KEY);
-  setLevel(null);
+  localStorage.removeItem(GUEST_KEY);
+  applyTier(null);
 }
 
-/**
- * Tries the QR/token path first (?access=<level>&t=<token>, instant, no
- * network call), then falls back to a cached level from a previous
- * name+email lookup. Returns true if a level was resolved.
- */
-export function initFromUrlOrCache(config: Config): boolean {
+function isTierName(v: string | null): v is TierName {
+  return v === 'trauung' || v === 'party' || v === 'alles';
+}
+
+/** Mirrors the mockup's initGuest(): URL ?g=<code> wins, else cached localStorage tier. */
+export function initFromUrlOrCache(): boolean {
   if (localStorage.getItem(ADMIN_KEY) === '1') admin = true;
 
-  const params = new URLSearchParams(location.search);
-  const accessParam = params.get('access');
-  const token = params.get('t');
-  if (accessParam !== null && token) {
-    const lvl = parseLevel(accessParam);
-    if (lvl !== null && config.levelTokens[String(lvl)] === token) {
-      setLevel(lvl);
-      return true;
-    }
+  const codeParam = new URLSearchParams(location.search).get('g');
+  const resolved = codeParam ? resolveCode(codeParam) : null;
+  if (resolved === 'admin') {
+    setAdmin(true);
+    applyTier('alles');
+    return true;
+  }
+  if (resolved) {
+    applyTier(resolved);
+    return true;
   }
 
-  const cached = localStorage.getItem(LEVEL_KEY);
-  const lvl = parseLevel(cached);
-  if (lvl !== null) {
-    setLevel(lvl);
+  const cached = localStorage.getItem(GUEST_KEY);
+  if (isTierName(cached)) {
+    tier = cached;
     return true;
   }
   return false;
@@ -66,28 +89,19 @@ export function initFromUrlOrCache(config: Config): boolean {
 
 export interface GateResult {
   ok: boolean;
-  level: Level | null;
-  error?: 'not_found' | 'network';
+  error?: string;
 }
 
-export async function submitGate(config: Config, name: string, email: string): Promise<GateResult> {
-  try {
-    const lvl = await lookupGuest(config, name.trim(), email.trim());
-    if (lvl === null) return { ok: false, level: null, error: 'not_found' };
-    localStorage.setItem(EMAIL_KEY, email.trim());
-    setLevel(lvl);
-    return { ok: true, level: lvl };
-  } catch {
-    return { ok: false, level: null, error: 'network' };
+export function submitGateWord(raw: string, errorText: string): GateResult {
+  const resolved = resolveCode(raw);
+  if (resolved === 'admin') {
+    setAdmin(true);
+    applyTier('alles');
+    return { ok: true };
   }
-}
-
-export function getCachedEmail(): string | null {
-  return localStorage.getItem(EMAIL_KEY);
-}
-
-function parseLevel(raw: string | null): Level | null {
-  if (raw === null) return null;
-  const n = Number(raw);
-  return n === 0 || n === 1 || n === 2 || n === 3 ? (n as Level) : null;
+  if (resolved) {
+    applyTier(resolved);
+    return { ok: true };
+  }
+  return { ok: false, error: errorText };
 }

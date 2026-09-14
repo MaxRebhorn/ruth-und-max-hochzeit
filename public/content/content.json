@@ -43,6 +43,7 @@
       { "name": "Lauschgrüner Hof", "address": "Lauschgrün, 08499 Mylau", "lat": 50.6172, "lng": 12.2481 }
     ]
   },
+  "faqTitle": "noch Fragen?",
   "faq": [
     { "q": "Was ziehe ich an?", "a": "Festlich, gern bunt. Kein Weiß — das ist für einen Tag reserviert." },
     { "q": "Sind Kinder willkommen?", "a": "Ja — sag uns nur bei der Anmeldung, wie viele mitkommen." },

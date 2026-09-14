@@ -5,7 +5,7 @@ export async function mail({ subject, body }) {
     console.error('Usage: wedding mail --subject "…" --body "…"');
     process.exit(1);
   }
-  const config = JSON.parse(await readFile(new URL('../config/config.json', import.meta.url), 'utf8'));
+  const config = JSON.parse(await readFile(new URL('../public/config/config.json', import.meta.url), 'utf8'));
   const cliToken = process.env.WEDDING_CLI_TOKEN;
   if (!cliToken) {
     console.error('Set WEDDING_CLI_TOKEN in your environment (must match CLI_TOKEN in Apps Script properties).');
