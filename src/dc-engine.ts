@@ -11,11 +11,12 @@ export type Values = Record<string, unknown>;
 function resolveImageSlots(html: string): string {
   return html.replace(/<image-slot([^>]*)>\s*<\/image-slot>/g, (_m, attrs: string) => {
     const get = (name: string) => attrs.match(new RegExp(`${name}="([^"]*)"`))?.[1];
+    const id = get('id') ?? '';
     const src = get('src');
     const shape = get('shape') ?? 'rect';
     const placeholder = get('placeholder') ?? '';
-    if (src) return `<img src="${src}" alt="${placeholder}" class="raw-photo" data-shape="${shape}" loading="lazy">`;
-    return `<div class="raw-photo raw-photo-placeholder" data-shape="${shape}">${placeholder}</div>`;
+    if (src) return `<img src="${src}" alt="${placeholder}" class="raw-photo" data-shape="${shape}" data-slot-id="${id}" loading="lazy">`;
+    return `<div class="raw-photo raw-photo-placeholder" data-shape="${shape}" data-slot-id="${id}">${placeholder}</div>`;
   });
 }
 

@@ -78,6 +78,13 @@ all, which is all three shareable QR links need. Generate them with
 - Real MapLibre map for Anfahrt, real Google Drive photo upload for Fotos,
   level-3 gating on Vogtland.
 
+## Adding real photos
+
+Drop-in photo folders under `src/photos/` — any filename, any format, no
+code changes needed. See `src/photos/README.md` (written for Ruth/Max, not
+just developers). Photos are picked up at build time (`import.meta.glob` in
+`src/photos.ts`), so they need a rebuild/redeploy to show up live.
+
 ## Develop
 
 ```

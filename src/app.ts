@@ -2,6 +2,7 @@ import bodyRawHtml from './raw/body.raw.html?raw';
 import { render, bindEvents, applyLang, setConditional, type Values } from './dc-engine';
 import { submitRsvp, submitKuchen, listKuchen } from './api';
 import type { Config } from './types';
+import { photoUrl } from './photos';
 
 type Tier = 'trauung' | 'party' | 'alles';
 type Lang = 'de' | 'en' | 'sv';
@@ -762,6 +763,51 @@ function buildInitialValues(): Values {
   return values;
 }
 
+// -- drop-in photos (no code changes needed to add a real photo) -----------
+
+/**
+ * Maps each image slot to a folder under src/photos/ — Ruth/Max just drop
+ * image files in there (any name, any order — see src/photos/README.md) and
+ * the real photo appears, no code edit needed. A slot with no matching file
+ * keeps showing its placeholder caption exactly as before.
+ */
+const PHOTO_FOLDERS: Record<string, string> = {
+  'story-1': 'story/2019', 'story-1b': 'story/2019', 'story-1c': 'story/2019',
+  'story-2': 'story/2021', 'story-2b': 'story/2021', 'story-2c': 'story/2021',
+  'story-3': 'story/2022-02-24', 'story-3b': 'story/2022-02-24', 'story-3c': 'story/2022-02-24',
+  'story-7': 'story/2022-07-interrail', 'story-7b': 'story/2022-07-interrail', 'story-7c': 'story/2022-07-interrail',
+  'story-4': 'story/2023', 'story-4b': 'story/2023', 'story-4c': 'story/2023',
+  'story-8': 'story/2024-normandie', 'story-8b': 'story/2024-normandie', 'story-8c': 'story/2024-normandie',
+  'story-9': 'story/2025', 'story-9b': 'story/2025', 'story-9c': 'story/2025',
+  'story-5': 'story/2026-05-23-antrag', 'story-5b': 'story/2026-05-23-antrag', 'story-5c': 'story/2026-05-23-antrag',
+  'story-6': 'story/2027', 'story-6b': 'story/2027', 'story-6c': 'story/2027',
+  'map-sketch': 'anfahrt-karte',
+  'vogtland-bruecke': 'vogtland-zeichnung'
+};
+const PHOTO_INDEX: Record<string, number> = { '': 1, b: 2, c: 3 };
+
+function hydrateDropInPhotos(): void {
+  root.querySelectorAll<HTMLElement>('[data-slot-id]').forEach((el) => {
+    const id = el.dataset.slotId ?? '';
+    const folder = PHOTO_FOLDERS[id];
+    if (!folder) return;
+    const suffix = id.match(/[a-z]$/)?.[0] ?? '';
+    const src = photoUrl(folder, PHOTO_INDEX[suffix] ?? 1);
+    if (!src) return;
+    if (el.tagName === 'IMG') {
+      (el as HTMLImageElement).src = src;
+    } else {
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = el.textContent ?? '';
+      img.className = 'raw-photo';
+      img.loading = 'lazy';
+      img.dataset.slotId = id;
+      el.replaceWith(img);
+    }
+  });
+}
+
 /** Fetches config + real Kuchen submissions in the background; the page has already painted with the 2 demo cakes by the time this resolves. */
 async function loadRemoteState(): Promise<void> {
   try {
@@ -812,4 +858,5 @@ export function boot(container: HTMLElement): void {
   setInterval(tickCountdown, 1000);
 
   loadRemoteState();
+  hydrateDropInPhotos();
 }
