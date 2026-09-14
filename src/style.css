@@ -423,13 +423,21 @@ details[data-card][open] [data-chev] {
 }
 .raw-photo-placeholder {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   width: 100%;
   height: 100%;
-  background: #f3e4cf;
-  color: rgba(91, 42, 16, 0.55);
-  font: 300 11px Karla, sans-serif;
+  background: rgba(243, 220, 147, 0.2);
+  border: 1px dashed rgba(91, 42, 16, 0.3);
+  color: rgba(91, 42, 16, 0.65);
+  font: 300 12px Karla, sans-serif;
   text-align: center;
   padding: 6px;
+}
+.raw-photo-placeholder::before {
+  content: '🖼';
+  font-size: 22px;
+  opacity: 0.6;
 }
