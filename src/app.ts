@@ -1,5 +1,7 @@
 import bodyRawHtml from './raw/body.raw.html?raw';
 import { render, bindEvents, applyLang, setConditional, type Values } from './dc-engine';
+import { submitRsvp, submitKuchen, listKuchen } from './api';
+import type { Config } from './types';
 
 type Tier = 'trauung' | 'party' | 'alles';
 type Lang = 'de' | 'en' | 'sv';
@@ -48,6 +50,7 @@ const state = {
 };
 
 let root: HTMLElement;
+let config: Config = { appsScriptUrl: '', siteUrl: '' };
 
 function resolveCode(raw: string): Tier | 'admin' | null {
   const v = raw
@@ -448,8 +451,30 @@ function knockBox(): void {
 
 // -- RSVP submit (envelope-close animation, matches the mockup's `submit`) -----
 
+/**
+ * The RSVP inputs have no `name` attributes in the mockup's own markup, so
+ * fields are read positionally instead — stable regardless of guest tier,
+ * since tier-gated fields are CSS-hidden (display:none), not removed from
+ * the DOM. See the field-index table in the implementation plan.
+ */
+function persistRsvp(form: HTMLFormElement): void {
+  const inputs = form.querySelectorAll<HTMLInputElement>('input');
+  const textarea = form.querySelector<HTMLTextAreaElement>('textarea');
+  const teilnahme = [inputs[2]?.checked && 'Trauung', inputs[3]?.checked && 'Feier im Hof', inputs[4]?.checked && 'Afterparty'].filter(Boolean).join(', ');
+  submitRsvp(config, {
+    name: inputs[0]?.value ?? '',
+    count: Number(inputs[1]?.value) || 0,
+    teilnahme,
+    allergien: inputs[5]?.value ?? '',
+    song: inputs[6]?.value ?? '',
+    uebernachtung: !!inputs[7]?.checked,
+    nachricht: textarea?.value ?? ''
+  });
+}
+
 function submit(e: Event): void {
   e.preventDefault();
+  persistRsvp(e.target as HTMLFormElement);
   const card = root.querySelector<HTMLElement>('[data-rsvp-card]');
   const env = root.querySelector<HTMLElement>('[data-rsvp-env]');
   const sheet = root.querySelector<HTMLElement>('[data-rsvp-sheet]');
@@ -547,6 +572,29 @@ function cakeCountLabel(): string {
   return n === 0 ? 'noch keine Böden' : `${n} ${n === 1 ? 'Boden' : 'Böden'}${total ? ` · ca. ${total} Stücke` : ''}`;
 }
 
+function makeCakeLayerEl(cake: Cake, i: number, total: number): HTMLDivElement {
+  const div = document.createElement('div');
+  div.setAttribute('style', cakeLayerStyle(cake, i, total));
+  div.innerHTML =
+    `<span style="font:500 13px/1 Karla,sans-serif;letter-spacing:.01em;color:#4a2109;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cake.name}</span>` +
+    `<span style="font:400 10.5px/1 Karla,sans-serif;color:rgba(74,33,9,.72);white-space:nowrap">${[cake.who, cake.slices ? cake.slices + ' Stücke' : ''].filter(Boolean).join(' · ')}</span>`;
+  return div;
+}
+
+function refreshCakeTower(): void {
+  const layers = root.querySelector<HTMLElement>('[data-cake-layers]');
+  if (layers) {
+    layers.innerHTML = '';
+    state.cakes
+      .slice()
+      .reverse()
+      .forEach((c, i) => layers.appendChild(makeCakeLayerEl(c, i, state.cakes.length)));
+  }
+  setConditional(root, 'cakeAny', state.cakes.length > 0);
+  setConditional(root, 'cakeEmpty', state.cakes.length === 0);
+  root.querySelectorAll<HTMLElement>('[data-cake-count]').forEach((el) => (el.textContent = cakeCountLabel()));
+}
+
 function submitCake(e: Event): void {
   e.preventDefault();
   const form = e.target as HTMLFormElement;
@@ -557,25 +605,27 @@ function submitCake(e: Event): void {
     slices: parseInt((form.elements.namedItem('slices') as HTMLInputElement)?.value, 10) || 0,
     kind: (form.elements.namedItem('kind') as HTMLSelectElement)?.value || 'Kuchen'
   };
-  const wasEmpty = state.cakes.length === 0;
+  const checkboxes = form.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
+  submitKuchen(config, {
+    who: cake.who,
+    what: cake.name,
+    slices: cake.slices,
+    kind: cake.kind,
+    cooled: !!checkboxes[0]?.checked,
+    veganVeg: !!checkboxes[1]?.checked,
+    nuts: !!checkboxes[2]?.checked,
+    stand: !!checkboxes[3]?.checked
+  });
+
   state.cakes.push(cake);
   state.cakeSent = true;
   setConditional(root, 'cakeSent', true);
   setConditional(root, 'cakeNotSent', false);
 
   const layers = root.querySelector<HTMLElement>('[data-cake-layers]');
-  if (layers) {
-    const div = document.createElement('div');
-    div.setAttribute('style', cakeLayerStyle(cake, state.cakes.length - 1, state.cakes.length));
-    div.innerHTML =
-      `<span style="font:500 13px/1 Karla,sans-serif;letter-spacing:.01em;color:#4a2109;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cake.name}</span>` +
-      `<span style="font:400 10.5px/1 Karla,sans-serif;color:rgba(74,33,9,.72);white-space:nowrap">${[cake.who, cake.slices ? cake.slices + ' Stücke' : ''].filter(Boolean).join(' · ')}</span>`;
-    layers.prepend(div);
-  }
-  if (wasEmpty) {
-    setConditional(root, 'cakeAny', true);
-    setConditional(root, 'cakeEmpty', false);
-  }
+  if (layers) layers.prepend(makeCakeLayerEl(cake, state.cakes.length - 1, state.cakes.length));
+  setConditional(root, 'cakeAny', true);
+  setConditional(root, 'cakeEmpty', false);
   root.querySelectorAll<HTMLElement>('[data-cake-count]').forEach((el) => (el.textContent = cakeCountLabel()));
 }
 
@@ -712,6 +762,21 @@ function buildInitialValues(): Values {
   return values;
 }
 
+/** Fetches config + real Kuchen submissions in the background; the page has already painted with the 2 demo cakes by the time this resolves. */
+async function loadRemoteState(): Promise<void> {
+  try {
+    const res = await fetch(`${import.meta.env.BASE_URL}config/config.json`);
+    config = (await res.json()) as Config;
+  } catch {
+    return; // stay on the built-in demo cakes
+  }
+  const real = await listKuchen(config);
+  if (real) {
+    state.cakes = real.map((k) => ({ name: k.what, who: k.who, slices: k.slices, kind: k.kind }));
+    refreshCakeTower();
+  }
+}
+
 export function boot(container: HTMLElement): void {
   root = container;
   const values = buildInitialValues();
@@ -745,4 +810,6 @@ export function boot(container: HTMLElement): void {
 
   tickCountdown();
   setInterval(tickCountdown, 1000);
+
+  loadRemoteState();
 }

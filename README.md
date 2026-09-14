@@ -48,15 +48,31 @@ badly from the real design the first time around), the site is built by
 `src/raw/body.raw.html` / `src/raw/style.raw.css` over hand-writing new
 markup — that's what keeps this in sync with the design.
 
-### Not yet wired up (next phase)
+### Real backend (RSVP + Kuchenbuffet)
 
-- Real backend: RSVP/Kuchenbuffet submissions are local-only (exactly like
-  the mockup — nothing is persisted), matching the prototype's own behavior.
-  `src/api.ts`, `public/content/`, `public/config/`, and `apps-script/`
-  already contain a first pass at the spec's real data layer from an earlier
-  session, but nothing in `app.ts` calls them yet.
-- The spec's 4-level QR/email access system (currently: the mockup's own
-  3-tier secret-word gate).
+RSVP and Kuchenbuffet submissions now persist for real via Google Apps
+Script + Sheets (`apps-script/apps-script.gs`), **without touching any
+markup/CSS** — `src/app.ts`'s existing envelope-close animation and cake
+tower DOM updates run exactly as before, with a fire-and-forget `fetch()`
+POST added alongside. The RSVP form has no `name`/email attributes in the
+mockup's own markup, so fields are read **positionally** (see the table in
+`src/app.ts`'s `persistRsvp()`) and submissions are **append-only** — no
+per-guest upsert, since there's no email to key on. The cake tower now
+hydrates from a real `kuchen_list` GET on boot (falls back to the 2 demo
+cakes if `public/config/config.json`'s `appsScriptUrl` is still a
+placeholder or the fetch fails), so it reflects real submissions across
+visitors and sessions once deployed.
+
+Access is still the mockup's own 3-tier secret-word gate (trauung/party/
+alles) — a `?g=<code>` URL already unlocks instantly with no form shown at
+all, which is all three shareable QR links need. Generate them with
+`npm run wedding -- qr --tier alles --out alles.png` (see the CLI section).
+
+### Not yet wired up (later phase, per `technical-spec.md`)
+
+- The spec's 4-level QR/token **+** name/email background-check access
+  system — deliberately skipped for now in favor of the simpler 3-tier
+  instant-unlock above.
 - Essenswahl, Liedwunsch (Spotify search), Überraschung, Übernachtung, Frage
   stellen — spec-only forms with no mockup design yet.
 - Real MapLibre map for Anfahrt, real Google Drive photo upload for Fotos,
@@ -90,9 +106,11 @@ the `data-*` hook additions.
 `reference/` holds real, rendered screenshots of the mockup (not our
 reimplementation) for visual comparison — see `reference/README.md`.
 
-## CLI (for the next phase)
+## CLI
 
 ```
-npm run wedding -- qr --level 2 --out qr_stufe2.png
-WEDDING_CLI_TOKEN=... npm run wedding -- mail --subject "…" --body "…"
+npm run wedding -- qr --tier alles --out qr_alles.png
 ```
+
+Generates a QR code (and prints the plain link) for one of the three tiers
+(`trauung`, `party`, `alles`) using `public/config/config.json`'s `siteUrl`.
