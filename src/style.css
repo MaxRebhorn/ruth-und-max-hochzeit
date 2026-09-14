@@ -1,0 +1,128 @@
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  background: #ddd6c8;
+  font-family: Karla, system-ui, sans-serif;
+  color: #5b2a10;
+  -webkit-font-smoothing: antialiased;
+}
+* {
+  box-sizing: border-box;
+}
+a {
+  color: #a8562f;
+  text-decoration: none;
+}
+a:hover {
+  color: #5b2a10;
+}
+
+.script-xl {
+  font: 400 clamp(44px, 11.6vw, 90px) / 0.95 'Great Vibes', Caveat, cursive;
+  margin: 0.3em 0 0;
+}
+.script-huge {
+  font: 400 clamp(56px, 14vw, 100px) / 0.9 'Great Vibes', Caveat, cursive;
+  margin: 0.3em 0 0;
+}
+.script-lg {
+  font: 400 clamp(28px, 7vw, 46px) / 1 Caveat, cursive;
+}
+
+.gate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: #f6f1e7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 26px;
+}
+.gate-card {
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+}
+.gate-date {
+  margin: 0;
+  font: 400 17px/1 Caveat, cursive;
+  letter-spacing: 0.3em;
+  opacity: 0.55;
+}
+.gate-intro {
+  margin: 14px auto 0;
+  max-width: 300px;
+  font: 300 13.5px/1.7 Karla, sans-serif;
+  opacity: 0.8;
+}
+.gate-form {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.text-input {
+  width: 100%;
+  border: none;
+  border-bottom: 1.5px solid rgba(91, 42, 16, 0.45);
+  background: transparent;
+  padding: 7px 2px;
+  font: 300 15px Karla, sans-serif;
+  outline: none;
+  text-align: center;
+}
+.btn-primary {
+  padding: 12px;
+  background: #5b2a10;
+  color: #f6f1e7;
+  border: none;
+  cursor: pointer;
+}
+.gate-status {
+  margin: 12px 0 0;
+  min-height: 18px;
+  font: 300 12px/1.5 Karla, sans-serif;
+  color: #a8562f;
+}
+.gate-secret {
+  margin: 24px 0 0;
+  font: 400 15px/1 Caveat, cursive;
+  opacity: 0.35;
+  cursor: default;
+  user-select: none;
+}
+
+.section {
+  position: relative;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 74px clamp(13px, 3.4vw, 26px) 34px;
+  text-align: center;
+}
+.eyebrow {
+  margin: 0;
+  font: 400 clamp(19px, 5.2vw, 30px) / 1 Caveat, cursive;
+  letter-spacing: 0.16em;
+}
+.countdown {
+  display: flex;
+  justify-content: center;
+  gap: clamp(10px, 4vw, 26px);
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.cd-num {
+  font: 400 clamp(32px, 8vw, 52px) / 1.15 Caveat, cursive;
+}
+.cd-label {
+  font: 400 17px/1.2 Caveat, cursive;
+  opacity: 0.62;
+}
+.scroll-hint {
+  margin-top: 8px;
+  font: 400 15px/1 Caveat, cursive;
+  opacity: 0.5;
+}

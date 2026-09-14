@@ -1,0 +1,10 @@
+{
+  "levelTokens": {
+    "0": "CHANGE-ME-LEVEL-0",
+    "1": "CHANGE-ME-LEVEL-1",
+    "2": "CHANGE-ME-LEVEL-2",
+    "3": "CHANGE-ME-LEVEL-3"
+  },
+  "appsScriptUrl": "https://script.google.com/macros/s/CHANGE-ME/exec",
+  "siteUrl": "https://CHANGE-ME.github.io/hochzeitswebsite/"
+}
