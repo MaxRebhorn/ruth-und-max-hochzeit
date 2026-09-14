@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics="">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&amp;family=Great+Vibes&amp;family=Karla:ital,wght@0,300;0,400;0,500;1,400&amp;display=swap" rel="stylesheet">
+<style>
+html{scroll-behavior:smooth}
+body{margin:0;background:#ddd6c8;font-family:Karla,system-ui,sans-serif;color:#5b2a10;-webkit-font-smoothing:antialiased}
+a{color:#a8562f;text-decoration:none}
+a:hover{color:#5b2a10}
+*{box-sizing:border-box}
+input,textarea,select,button{font-family:inherit;color:inherit}
+summary::-webkit-details-marker{display:none}
+summary{list-style:none;cursor:pointer}
+@keyframes sway{0%,100%{transform:rotate(-1.2deg)}50%{transform:rotate(1.2deg)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+@keyframes wiggle{0%,100%{transform:rotate(0)}18%{transform:rotate(-4deg) translateX(-3px)}42%{transform:rotate(3.5deg) translateX(3px)}66%{transform:rotate(-2deg)}84%{transform:rotate(1deg)}}
+@keyframes wiggle2{0%,100%{transform:rotate(0)}18%{transform:rotate(-4deg) translateX(-3px)}42%{transform:rotate(3.5deg) translateX(3px)}66%{transform:rotate(-2deg)}84%{transform:rotate(1deg)}}
+@keyframes dance{0%,100%{transform:translateX(-7px) rotate(-3deg)}50%{transform:translateX(7px) rotate(3deg)}}
+@keyframes flyOut{0%{transform:translate(0,0) scale(.5);opacity:0}7%{opacity:1}82%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1);opacity:0}}
+@keyframes puff{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(var(--fx),var(--fy)) rotate(var(--fr));opacity:0}}
+@keyframes flapBob{0%{transform:translateY(-2.5px)}100%{transform:translateY(2.5px)}}
+@keyframes wingDown{0%,49.9%{opacity:1}50%,100%{opacity:0}}
+@keyframes wingUp{0%,49.9%{opacity:0}50%,100%{opacity:1}}
+[data-stack]{z-index:1}
+[data-stack][data-open="1"]{z-index:6}
+[data-stack] [data-leaf]{transition:transform .5s cubic-bezier(.2,.85,.25,1),box-shadow .5s ease;transform-origin:50% 92%}
+[data-stack] [data-leaf="0"]{z-index:3}
+[data-stack]{transition:transform .5s cubic-bezier(.2,.85,.25,1)}
+[data-stack][data-dir="r"]{transform-origin:0% 50%}
+[data-stack][data-dir="l"]{transform-origin:100% 50%}
+[data-stack] [data-leaf="1"],[data-stack] [data-leaf="2"]{transform:translateX(0) rotate(0deg) scale(.99);transition:transform .42s linear,box-shadow .3s ease;box-shadow:none}
+[data-stack][data-open="1"] [data-leaf="1"],[data-stack][data-open="1"] [data-leaf="2"],[data-stack][data-open="2"] [data-leaf="1"],[data-stack][data-open="2"] [data-leaf="2"]{box-shadow:0 6px 16px rgba(91,42,16,.16);transition:transform .5s cubic-bezier(.3,.85,.25,1),box-shadow .4s ease}
+[data-stack][data-open="1"][data-dir="r"] [data-leaf="1"]{transform:translateX(60%) rotate(5deg)}
+[data-stack][data-open="1"][data-dir="r"] [data-leaf="2"]{transform:translateX(120%) rotate(10deg)}
+[data-stack][data-open="1"][data-dir="l"] [data-leaf="1"]{transform:translateX(-60%) rotate(-5deg)}
+[data-stack][data-open="1"][data-dir="l"] [data-leaf="2"]{transform:translateX(-120%) rotate(-10deg)}
+[data-stack][data-open="2"]{transform:rotate(0deg)!important}
+[data-stack][data-open="2"][data-dir="r"] [data-leaf="1"]{transform:translateX(106%) rotate(2deg)}
+[data-stack][data-open="2"][data-dir="r"] [data-leaf="2"]{transform:translateX(212%) rotate(4deg)}
+[data-stack][data-open="2"][data-dir="l"] [data-leaf="1"]{transform:translateX(-106%) rotate(-2deg)}
+[data-stack][data-open="2"][data-dir="l"] [data-leaf="2"]{transform:translateX(-212%) rotate(-4deg)}
+[data-stack] [data-fanoc="more"],[data-stack] [data-fanoc="close"]{display:none}
+[data-stack][data-open="1"] [data-fanoc="open"]{display:none}
+[data-stack][data-open="1"] [data-fanoc="more"]{display:inline}
+[data-stack][data-open="2"] [data-fanoc="open"]{display:none}
+[data-stack][data-open="2"] [data-fanoc="close"]{display:inline}
+[data-stack] button:hover{color:#a8562f}
+/* nur-Trauung: Kirche mittig und groesser */
+html[data-guest="trauung"] [data-ablauf-items] > [data-reveal]{flex-direction:column!important;align-items:center!important;text-align:center;gap:10px}
+html[data-guest="trauung"] [data-ablauf-items] > [data-reveal] > div:first-child{width:min(300px,74%)!important}
+html[data-guest="trauung"] [data-ablauf-items] > [data-reveal] > div:last-child{text-align:center!important;flex:0 1 auto!important}
+/* Party-Version: Afterparty weiter nach unten */
+html[data-guest="party"] [data-ablauf-items] > [data-tier="party"]{margin-top:74px}
+/* groessere Trefferflaeche fuer die Tauben, gleiche Groesse */
+[data-fly]{padding:22px;margin:-22px}
+html[data-guest="trauung"] [data-tier="party"],html[data-guest="trauung"] [data-tier="alles"],html[data-guest="party"] [data-tier="alles"]{display:none!important}
+[data-only]{display:none}
+html[data-guest="trauung"] [data-only~="trauung"],html[data-guest="party"] [data-only~="party"]{display:block}
+[data-post]{transition:transform .38s cubic-bezier(.2,.85,.25,1),box-shadow .38s ease;z-index:1}
+[data-post][data-active="1"]{transform:rotate(0deg) translateY(-6px)!important;box-shadow:0 12px 26px rgba(91,42,16,.2);z-index:5}
+[data-postdetail]{max-height:0;opacity:0;overflow:hidden;transition:max-height .45s cubic-bezier(.25,.9,.3,1),opacity .3s ease}
+[data-post][data-active="1"] [data-postdetail]{max-height:340px;opacity:1}
+[data-post] [data-postoc="close"]{display:none}
+[data-post][data-active="1"] [data-postoc="close"]{display:inline}
+[data-post][data-active="1"] [data-postoc="open"]{display:none}
+[data-post] [data-postchev]{transition:transform .38s ease}
+[data-post][data-active="1"] [data-postchev]{transform:rotate(90deg)}
+[data-post] button:hover{color:#a8562f}
+@keyframes faqIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
+details[data-card]{position:relative;transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease;box-shadow:0 2px 8px rgba(91,42,16,.1)}
+details[data-card]:nth-of-type(2n){transform:rotate(.55deg)}
+details[data-card][open]{transform:rotate(0deg);box-shadow:0 7px 18px rgba(91,42,16,.15);border-color:rgba(168,86,47,.45)}
+details[data-card] summary{transition:color .3s ease}
+details[data-card][open] > p{animation:faqIn .34s ease both}
+details[data-card] [data-chev]{transition:transform .3s ease}
+details[data-card][open] [data-chev]{transform:rotate(90deg)}
+@keyframes layerIn{0%{transform:translateY(-30px) scale(.88);opacity:0}55%{transform:translateY(0) scale(1.05);opacity:1}75%{transform:translateY(0) scale(.98)}100%{transform:translateY(0) scale(1);opacity:1}}
+@keyframes pulse{0%,100%{box-shadow:0 6px 18px rgba(91,42,16,.28),0 0 0 0 rgba(209,102,90,.45)}50%{box-shadow:0 6px 18px rgba(91,42,16,.28),0 0 0 16px rgba(209,102,90,0)}}
+</style>
+<script src="./image-slot.js"></script>
+</helmet>
+
+<div style="min-height:100vh;display:flex;justify-content:center;background:#ddd6c8;padding:0" data-comment-anchor="1a0a9179cf-div">
+
+<div style="position:relative;width:100%;max-width:{{ cardMax }};background-color:#f6f1e7;background-image:url(assets/paper.png),radial-gradient(120% 80% at 50% 0%,rgba(255,255,255,.5),rgba(255,255,255,0) 55%),radial-gradient(140% 100% at 50% 100%,rgba(120,86,44,.09),rgba(120,86,44,0) 60%);background-size:300px 300px,100% 100%,100% 100%;background-repeat:repeat,no-repeat,no-repeat;box-shadow:0 0 60px rgba(70,45,20,.22);overflow:hidden">
+
+<div style="position:fixed;top:0;left:0;right:0;z-index:50;display:flex;justify-content:center;pointer-events:none">
+<div style="width:100%;max-width:{{ cardMax }};display:flex;align-items:{{ headerAlign }};justify-content:space-between;padding:14px clamp(13px,3.4vw,26px);pointer-events:auto">
+<div style="display:flex;gap:7px">
+<button onClick="{{ setDe }}" aria-label="Deutsch" style="width:34px;height:23px;border-radius:3px;border:1.5px solid #5b2a10;cursor:pointer;padding:0;background-repeat:no-repeat;background-size:100% 100%;background-color:#ffce00;background-image:linear-gradient(#000 0 33.4%,#dd0000 33.4% 66.7%,transparent 66.7%);opacity:{{ deOp }}"></button>
+<button onClick="{{ setEn }}" aria-label="English" style="width:34px;height:23px;border-radius:3px;border:1.5px solid #5b2a10;cursor:pointer;padding:0;background-repeat:no-repeat;background-size:100% 100%;background-color:#012169;background-image:linear-gradient(to bottom,transparent 42%,#c8102e 42%,#c8102e 58%,transparent 58%),linear-gradient(to right,transparent 42%,#c8102e 42%,#c8102e 58%,transparent 58%),linear-gradient(to bottom,transparent 34%,#fff 34%,#fff 66%,transparent 66%),linear-gradient(to right,transparent 34%,#fff 34%,#fff 66%,transparent 66%),linear-gradient(34deg,transparent 48.4%,#c8102e 48.4%,#c8102e 51.6%,transparent 51.6%),linear-gradient(-34deg,transparent 48.4%,#c8102e 48.4%,#c8102e 51.6%,transparent 51.6%),linear-gradient(34deg,transparent 45%,#fff 45%,#fff 55%,transparent 55%),linear-gradient(-34deg,transparent 45%,#fff 45%,#fff 55%,transparent 55%);opacity:{{ enOp }}"></button>
+<button onClick="{{ setSv }}" aria-label="Svenska" style="width:34px;height:23px;border-radius:3px;border:1.5px solid #5b2a10;cursor:pointer;padding:0;background-repeat:no-repeat;background-size:100% 100%;background-color:#006aa7;background-image:linear-gradient(to bottom,transparent 40%,#fecc00 40%,#fecc00 60%,transparent 60%),linear-gradient(to right,transparent 28%,#fecc00 28%,#fecc00 46%,transparent 46%);opacity:{{ svOp }}"></button>
+</div>
+<button onClick="{{ toggleNav }}" aria-label="Menü" style="display:flex;flex-direction:column;gap:5px;width:34px;padding:6px 2px;background:none;border:none;cursor:pointer">
+<div style="height:2px;border-radius:2px;background:#5b2a10"></div>
+<div style="height:2px;border-radius:2px;background:#5b2a10"></div>
+<div style="height:2px;border-radius:2px;background:#5b2a10"></div>
+</button>
+</div>
+</div>
+
+<section data-screen-label="01 Home" id="home" style="position: relative; padding: 74px clamp(13px,3.4vw,26px) 34px; text-align: center; overflow: hidden; margin: 0 auto; box-sizing: border-box; width: 100%; max-width: {{ cardMax }}" data-comment-anchor="c5c1f0fef5-section"><div data-grow="40" style="position:absolute;left:0;top:10.3%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f1.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(66px,13.4vw,110px);height:auto;transform:translateX(-50%) rotate(86deg);transform-origin:50% 100%"></div><div data-grow="130" style="position:absolute;left:0;top:27.7%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f2.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(59px,12.1vw,99px);height:auto;transform:translateX(-50%) rotate(95deg);transform-origin:50% 100%"></div><div data-grow="220" style="position:absolute;left:0;top:44.8%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f3.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(50px,10.1vw,83px);height:auto;transform:translateX(-50%) rotate(101deg);transform-origin:50% 100%"></div><div data-grow="310" style="position:absolute;left:0;top:65.6%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f4.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(48px,9.8vw,80px);height:auto;transform:translateX(-50%) rotate(90deg);transform-origin:50% 100%"></div><div data-grow="40" style="position:absolute;right:0;top:10.2%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f5.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(90px,18.3vw,150px);height:auto;transform:translateX(50%) rotate(-83deg);transform-origin:50% 100%"></div><div data-grow="130" style="position:absolute;right:0;top:32.5%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f6.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(70px,14.3vw,117px);height:auto;transform:translateX(50%) rotate(-77deg);transform-origin:50% 100%"></div><div data-grow="220" style="position:absolute;right:0;top:43.0%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f1.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(70px,14.1vw,116px);height:auto;transform:translateX(50%) rotate(-86deg);transform-origin:50% 100%"></div><div data-grow="310" style="position:absolute;right:0;top:64.6%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f2.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(41px,8.3vw,68px);height:auto;transform:translateX(50%) rotate(-95deg);transform-origin:50% 100%"></div>
+
+
+
+<p style="position:relative;z-index:1;margin:0;font:400 27px/1 Caveat,cursive;letter-spacing:.16em"><span data-de="1" style="font-size: clamp(19px, 5.2vw, 30px)">wir trauen uns</span><span data-en="1" style="display:none">we're getting married</span><span data-sv="1" style="display:none">vi gifter oss</span></p>
+<h1 style="position:relative;z-index:1;margin:16px 0 0;font:400 88px/.9  Karla,sans-serif'Great Vibes',Caveat,cursive;letter-spacing:.01em">
+
+</h1>
+<div style="padding:10px 0 18px;background:radial-gradient(ellipse 62% 78% at 50% 52%,rgba(168,205,228,.65) 0%,rgba(168,205,228,.32) 46%,rgba(168,205,228,0) 74%)"><span style="display: block; transform: translateX(-8%) rotate(-2.5deg); font-size: clamp(44px, 11.6vw, 90px); font-family: &quot;Great Vibes&quot;, Caveat, cursive">Ruth</span><span style="display: block; font-size: clamp(44px, 11.6vw, 90px); margin-top: -4px; transform: translateX(6%) rotate(1.5deg); font-family: &quot;Great Vibes&quot;, Caveat, cursive; margin-left: 20px">&amp; Max</span></div><p style="position:relative;z-index:1;margin: 26px 0 0; font: 400 40px/1 Caveat,cursive; font-size: clamp(30px, 8vw, 50px); font-family: great vibes, caveat,cursive">07. 08. 2027</p>
+<p style="position:relative;z-index:1;margin:6px 0 0;font:400 20px/1 Caveat,cursive;opacity:.65"><span data-de="1">noch</span><span data-en="1" style="display:none">in</span><span data-sv="1" style="display:none">om</span></p>
+<div style="position:relative;z-index:1;display: flex; justify-content: center; gap: clamp(10px, 4vw, 26px); margin-top: 6px; flex-wrap: wrap" data-comment-anchor="db5197ad84-div">
+<div><div style="position:relative;z-index:1;font:400 clamp(32px,8vw,52px)/1.15 Caveat,cursive">{{ cdD }}</div><div style="position:relative;z-index:1;font:400 17px/1.2 Caveat,cursive;opacity:.62"><span data-de="1">Tage</span><span data-en="1" style="display:none">days</span><span data-sv="1" style="display:none">dagar</span></div></div>
+<div><div style="position:relative;z-index:1;font:400 clamp(32px,8vw,52px)/1.15 Caveat,cursive">{{ cdH }}</div><div style="position:relative;z-index:1;font:400 17px/1.2 Caveat,cursive;opacity:.62"><span data-de="1">Stunden</span><span data-en="1" style="display:none">hours</span><span data-sv="1" style="display:none">timmar</span></div></div>
+<div><div style="position:relative;z-index:1;font:400 clamp(32px,8vw,52px)/1.15 Caveat,cursive">{{ cdM }}</div><div style="position:relative;z-index:1;font:400 17px/1.2 Caveat,cursive;opacity:.62"><span data-de="1">Minuten</span><span data-en="1" style="display:none">minutes</span><span data-sv="1" style="display:none">minuter</span></div></div>
+<div><div style="position:relative;z-index:1;font:400 clamp(32px,8vw,52px)/1.15 Caveat,cursive">{{ cdS }}</div><div style="position:relative;z-index:1;font:400 17px/1.2 Caveat,cursive;opacity:.62"><span data-de="1">Sekunden</span><span data-en="1" style="display:none">seconds</span><span data-sv="1" style="display:none">sekunder</span></div></div>
+</div>
+
+<div style="position:relative;z-index:1;margin-top:8px;font:400 15px/1 Caveat,cursive;opacity:.5;animation:bob 2.4s ease-in-out infinite"><span data-de="1">nach unten wischen</span><span data-en="1" style="display:none">scroll down</span><span data-sv="1" style="display:none">svep nedåt</span></div>
+</section>
+
+
+
+<section data-screen-label="02 Unsere Geschichte" id="geschichte" style="position:relative;padding:14px clamp(13px,3.4vw,26px) 40px;overflow:hidden;max-width:{{ cardMax }};margin:0 auto;box-sizing:border-box" data-comment-anchor="165e567ef7-section">
+
+<h2 style="margin:0 0 4px;text-align:center;font:400 46px/1 Caveat,cursive"><span data-de="1" style="font-family: ,caveat,great vibes,cursive">unsere Geschichte</span><span data-en="1" style="display:none">our story</span><span data-sv="1" style="display:none">vår historia</span></h2>
+
+
+<div style="position:relative;padding-top:4px">
+<div style="position:absolute;left:0;right:0;top:8px;bottom:26px;pointer-events:none"><svg viewBox="0 0 1000 1000" preserveAspectRatio="none" fill="none" style="width:100%;height:100%;display:block"><path d="M500 0C760 37 760 74 500 111C240 148 240 185 500 222C760 259 760 296 500 333C240 370 240 407 500 444C760 481 760 519 500 556C240 593 240 630 500 667C760 704 760 741 500 778C240 815 240 852 500 889C760 926 760 963 500 1000" stroke="rgba(91,42,16,.38)" stroke-width="2.4" stroke-dasharray="7 9" stroke-linecap="round" vector-effect="non-scaling-stroke"></path></svg></div>
+<div data-reveal="1" style="position:relative;display:flex;justify-content:flex-start;padding-bottom:14px"><div style="position:absolute;right:30.5%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#f6f1e7;border:2.4px solid rgba(91,42,16,.55)"></div>
+
+<div style="width:min(100%,540px);display:flex;flex-wrap:wrap;flex-direction:row;align-items:center;gap:22px;text-align:left">
+<div data-stack="1" data-dir="r" data-open="{{ fan1 }}" style="flex:none;width:min(244px,42%);aspect-ratio:196/244;position:relative;transform:rotate(-1.7deg)">
+<div data-leaf="2" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-1c" shape="rect" placeholder="Foto 2019 (3)"></image-slot></div>
+<div data-leaf="1" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-1b" shape="rect" placeholder="Foto 2019 (2)"></image-slot></div>
+<div data-leaf="0" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-1" shape="rect" placeholder="Foto 2019"></image-slot>
+<button type="button" onClick="{{ fanToggle1 }}" style="position:absolute;left:0;right:0;bottom:0;height:26px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font:400 17px/1 Caveat,cursive;color:rgba(91,42,16,.6);letter-spacing:.04em"><span data-fanoc="open">+2</span><span data-fanoc="more">&#187;</span><span data-fanoc="close">&#215;</span></button>
+</div>
+</div>
+<div style="flex:1 1 190px;min-width:0"><p style="margin:0;font:400 60px/.9 Caveat,cursive">2019</p><p style="margin:8px 0 0;font:300 14px/1.65 Karla,sans-serif;text-wrap:pretty"><span data-de="1">haben wir uns online kennengelernt — erster Kontakt, gemeinsames Zocken, endlose Telefonate</span><span data-en="1" style="display:none">we met online — first messages, gaming together, endless phone calls</span><span data-sv="1" style="display:none">träffades vi online — första kontakten, spel tillsammans och oändliga telefonsamtal</span></p></div>
+</div>
+</div>
+<div data-reveal="1" style="position:relative;display:flex;justify-content:flex-end;padding-bottom:14px"><div style="position:absolute;left:30.5%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#f6f1e7;border:2.4px solid rgba(91,42,16,.55)"></div>
+
+<div style="width:min(100%,540px);display:flex;flex-wrap:wrap;flex-direction:row-reverse;align-items:center;gap:22px;text-align:right">
+<div data-stack="1" data-dir="l" data-open="{{ fan2 }}" style="flex:none;width:min(224px,42%);aspect-ratio:196/244;position:relative;transform:rotate(2deg)">
+<div data-leaf="2" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-2c" shape="rect" placeholder="Foto 2021 (3)"></image-slot></div>
+<div data-leaf="1" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-2b" shape="rect" placeholder="Foto 2021 (2)"></image-slot></div>
+<div data-leaf="0" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-2" shape="rect" placeholder="Foto 2021"></image-slot>
+<button type="button" onClick="{{ fanToggle2 }}" style="position:absolute;left:0;right:0;bottom:0;height:26px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font:400 17px/1 Caveat,cursive;color:rgba(91,42,16,.6);letter-spacing:.04em"><span data-fanoc="open">+2</span><span data-fanoc="more">&#187;</span><span data-fanoc="close">&#215;</span></button>
+</div>
+</div>
+<div style="flex:1 1 190px;min-width:0"><p style="margin:0;font:400 60px/.9 Caveat,cursive">2021</p><p style="margin:8px 0 0;font:300 14px/1.65 Karla,sans-serif;text-wrap:pretty"><span data-de="1">haben wir uns zum ersten Mal wirklich getroffen</span><span data-en="1" style="display:none">we met in person for the first time</span><span data-sv="1" style="display:none">möttes vi i verkligheten för första gången</span></p></div>
+</div>
+</div>
+<div data-reveal="1" style="position:relative;display:flex;justify-content:flex-start;padding-bottom:14px" data-comment-anchor="4ccd1ed1e6-div"><div style="position:absolute;right:30.5%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#f6f1e7;border:2.4px solid rgba(91,42,16,.55)"></div>
+
+<div style="width:min(100%,540px);display:flex;flex-wrap:wrap;flex-direction:row;align-items:center;gap:22px;text-align:left">
+<div data-stack="1" data-dir="r" data-open="{{ fan3 }}" style="flex:none;width:min(238px,42%);aspect-ratio:196/244;position:relative;transform:rotate(-1.5deg)">
+<div data-leaf="2" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-3c" shape="rect" placeholder="Foto 24. 02. 2022 (3)"></image-slot></div>
+<div data-leaf="1" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-3b" shape="rect" placeholder="Foto 24. 02. 2022 (2)"></image-slot></div>
+<div data-leaf="0" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-3" shape="rect" placeholder="Foto 24. 02. 2022"></image-slot>
+<button type="button" onClick="{{ fanToggle3 }}" style="position:absolute;left:0;right:0;bottom:0;height:26px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font:400 17px/1 Caveat,cursive;color:rgba(91,42,16,.6);letter-spacing:.04em"><span data-fanoc="open">+2</span><span data-fanoc="more">&#187;</span><span data-fanoc="close">&#215;</span></button>
+</div>
+</div>
+<div style="flex:1 1 190px;min-width:0"><p style="margin:0;font:400 60px/.9 Caveat,cursive">24. 02. 2022</p><p style="margin:8px 0 0;font:300 14px/1.65 Karla,sans-serif;text-wrap:pretty"><span data-de="1">sind wir offiziell zusammengekommen</span><span data-en="1" style="display:none">we officially became a couple</span><span data-sv="1" style="display:none">blev vi officiellt ett par</span></p></div>
+</div>
+</div>
+<div data-reveal="1" style="position:relative;display:flex;justify-content:flex-end;padding-bottom:14px"><div style="position:absolute;left:30.5%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#f6f1e7;border:2.4px solid rgba(91,42,16,.55)"></div>
+
+<div style="width:min(100%,540px);display:flex;flex-wrap:wrap;flex-direction:row-reverse;align-items:center;gap:22px;text-align:right">
+<div data-stack="1" data-dir="l" data-open="{{ fan7 }}" style="flex:none;width:min(232px,42%);aspect-ratio:196/244;position:relative;transform:rotate(2.2deg)">
+<div data-leaf="2" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-7c" shape="rect" placeholder="Foto Interrail 2022 (3)"></image-slot></div>
+<div data-leaf="1" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-7b" shape="rect" placeholder="Foto Interrail 2022 (2)"></image-slot></div>
+<div data-leaf="0" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-7" shape="rect" placeholder="Foto Interrail 2022"></image-slot>
+<button type="button" onClick="{{ fanToggle7 }}" style="position:absolute;left:0;right:0;bottom:0;height:26px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font:400 17px/1 Caveat,cursive;color:rgba(91,42,16,.6);letter-spacing:.04em"><span data-fanoc="open">+2</span><span data-fanoc="more">&#187;</span><span data-fanoc="close">&#215;</span></button>
+</div>
+</div>
+<div style="flex:1 1 190px;min-width:0"><p style="margin:0;font:400 60px/.9 Caveat,cursive">Juli 2022</p><p style="margin:8px 0 0;font:300 14px/1.65 Karla,sans-serif;text-wrap:pretty"><span data-de="1">ging es mit Interrail quer durch Europa</span><span data-en="1" style="display:none">we crossed Europe by Interrail</span><span data-sv="1" style="display:none">reste vi genom Europa med Interrail</span></p></div>
+</div>
+</div>
+<div data-reveal="1" style="position:relative;display:flex;justify-content:flex-start;padding-bottom:14px"><div style="position:absolute;right:30.5%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#f6f1e7;border:2.4px solid rgba(91,42,16,.55)"></div>
+
+<div style="width:min(100%,540px);display:flex;flex-wrap:wrap;flex-direction:row;align-items:center;gap:22px;text-align:left">
+<div data-stack="1" data-dir="r" data-open="{{ fan4 }}" style="flex:none;width:min(220px,42%);aspect-ratio:196/244;position:relative;transform:rotate(2.5deg)">
+<div data-leaf="2" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-4c" shape="rect" placeholder="Foto 2023 (3)"></image-slot></div>
+<div data-leaf="1" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-4b" shape="rect" placeholder="Foto 2023 (2)"></image-slot></div>
+<div data-leaf="0" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-4" shape="rect" placeholder="Foto 2023"></image-slot>
+<button type="button" onClick="{{ fanToggle4 }}" style="position:absolute;left:0;right:0;bottom:0;height:26px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font:400 17px/1 Caveat,cursive;color:rgba(91,42,16,.6);letter-spacing:.04em"><span data-fanoc="open">+2</span><span data-fanoc="more">&#187;</span><span data-fanoc="close">&#215;</span></button>
+</div>
+</div>
+<div style="flex:1 1 190px;min-width:0"><p style="margin:0;font:400 60px/.9 Caveat,cursive">2023</p><p style="margin:8px 0 0;font:300 14px/1.65 Karla,sans-serif;text-wrap:pretty"><span data-de="1">zogen wir beide nach Dresden</span><span data-en="1" style="display:none">we both moved to Dresden</span><span data-sv="1" style="display:none">flyttade vi båda till Dresden</span></p></div>
+</div>
+</div>
+<div data-reveal="1" style="position:relative;display:flex;justify-content:flex-end;padding-bottom:14px"><div style="position:absolute;left:30.5%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#f6f1e7;border:2.4px solid rgba(91,42,16,.55)"></div>
+
+<div style="width:min(100%,540px);display:flex;flex-wrap:wrap;flex-direction:row-reverse;align-items:center;gap:22px;text-align:right">
+<div data-stack="1" data-dir="l" data-open="{{ fan8 }}" style="flex:none;width:min(240px,42%);aspect-ratio:196/244;position:relative;transform:rotate(-2.2deg)">
+<div data-leaf="2" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-8c" shape="rect" placeholder="Foto Normandie 2024 (3)"></image-slot></div>
+<div data-leaf="1" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-8b" shape="rect" placeholder="Foto Normandie 2024 (2)"></image-slot></div>
+<div data-leaf="0" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-8" shape="rect" placeholder="Foto Normandie 2024"></image-slot>
+<button type="button" onClick="{{ fanToggle8 }}" style="position:absolute;left:0;right:0;bottom:0;height:26px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font:400 17px/1 Caveat,cursive;color:rgba(91,42,16,.6);letter-spacing:.04em"><span data-fanoc="open">+2</span><span data-fanoc="more">&#187;</span><span data-fanoc="close">&#215;</span></button>
+</div>
+</div>
+<div style="flex:1 1 190px;min-width:0"><p style="margin:0;font:400 60px/.9 Caveat,cursive">Sommer 2024</p><p style="margin:8px 0 0;font:300 14px/1.65 Karla,sans-serif;text-wrap:pretty"><span data-de="1">fuhren wir mit Freunden in die Normandie</span><span data-en="1" style="display:none">we travelled to Normandy with friends</span><span data-sv="1" style="display:none">åkte vi till Normandie med vänner</span></p></div>
+</div>
+</div>
+<div data-reveal="1" style="position:relative;display:flex;justify-content:flex-start;padding-bottom:14px"><div style="position:absolute;right:30.5%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#f6f1e7;border:2.4px solid rgba(91,42,16,.55)"></div>
+
+<div style="width:min(100%,540px);display:flex;flex-wrap:wrap;flex-direction:row;align-items:center;gap:22px;text-align:left">
+<div data-stack="1" data-dir="r" data-open="{{ fan9 }}" style="flex:none;width:min(228px,42%);aspect-ratio:196/244;position:relative;transform:rotate(1.8deg)">
+<div data-leaf="2" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-9c" shape="rect" placeholder="Foto 2025 (3)"></image-slot></div>
+<div data-leaf="1" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-9b" shape="rect" placeholder="Foto 2025 (2)"></image-slot></div>
+<div data-leaf="0" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-9" shape="rect" placeholder="Foto 2025"></image-slot>
+<button type="button" onClick="{{ fanToggle9 }}" style="position:absolute;left:0;right:0;bottom:0;height:26px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font:400 17px/1 Caveat,cursive;color:rgba(91,42,16,.6);letter-spacing:.04em"><span data-fanoc="open">+2</span><span data-fanoc="more">&#187;</span><span data-fanoc="close">&#215;</span></button>
+</div>
+</div>
+<div style="flex:1 1 190px;min-width:0"><p style="margin:0;font:400 60px/.9 Caveat,cursive">2025</p><p style="margin:8px 0 0;font:300 14px/1.65 Karla,sans-serif;text-wrap:pretty"><span data-de="1">zogen wir in unsere erste gemeinsame Wohnung</span><span data-en="1" style="display:none">we moved into our first shared flat</span><span data-sv="1" style="display:none">flyttade vi in i vår första gemensamma lägenhet</span></p></div>
+</div>
+</div>
+<div data-reveal="1" style="position:relative;display:flex;justify-content:flex-end;padding-bottom:14px"><div style="position:absolute;left:30.5%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#f6f1e7;border:2.4px solid rgba(91,42,16,.55)" data-comment-anchor="8e9fc1ead0-div"></div>
+
+<div style="width:min(100%,540px);display:flex;flex-wrap:wrap;flex-direction:row-reverse;align-items:center;gap:22px;text-align:right">
+<div data-stack="1" data-dir="l" data-open="{{ fan5 }}" style="flex:none;width:min(246px,42%);aspect-ratio:196/244;position:relative;transform:rotate(-2deg)">
+<div data-leaf="2" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-5c" shape="rect" placeholder="Foto 23. 05. 2026 (3)"></image-slot></div>
+<div data-leaf="1" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-5b" shape="rect" placeholder="Foto 23. 05. 2026 (2)"></image-slot></div>
+<div data-leaf="0" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-5" shape="rect" placeholder="Foto 23. 05. 2026"></image-slot>
+<button type="button" onClick="{{ fanToggle5 }}" style="position:absolute;left:0;right:0;bottom:0;height:26px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font:400 17px/1 Caveat,cursive;color:rgba(91,42,16,.6);letter-spacing:.04em"><span data-fanoc="open">+2</span><span data-fanoc="more">&#187;</span><span data-fanoc="close">&#215;</span></button>
+</div>
+</div>
+<div style="flex:1 1 190px;min-width:0"><p style="margin:0;font:400 60px/.9 Caveat,cursive">23. 05. 2026</p><p style="margin:8px 0 0;font:300 14px/1.65 Karla,sans-serif;text-wrap:pretty"><span data-de="1">folgte der Antrag</span><span data-en="1" style="display:none">the proposal followed</span><span data-sv="1" style="display:none">kom frågan</span></p></div>
+</div>
+</div>
+<div data-reveal="1" style="position:relative;display:flex;justify-content:flex-start;padding-bottom:14px"><div style="position:absolute;right:30.5%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#f6f1e7;border:2.4px solid rgba(91,42,16,.55)"></div>
+
+<div style="width:min(100%,540px);display:flex;flex-wrap:wrap;flex-direction:row;align-items:center;gap:22px;text-align:left">
+<div data-stack="1" data-dir="r" data-open="{{ fan6 }}" style="flex:none;width:min(230px,42%);aspect-ratio:196/244;position:relative;transform:rotate(1.5deg)">
+<div data-leaf="2" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-6c" shape="rect" placeholder="Foto 2027 (3)"></image-slot></div>
+<div data-leaf="1" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-6b" shape="rect" placeholder="Foto 2027 (2)"></image-slot></div>
+<div data-leaf="0" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><image-slot id="story-6" shape="rect" placeholder="Foto 2027"></image-slot>
+<button type="button" onClick="{{ fanToggle6 }}" style="position:absolute;left:0;right:0;bottom:0;height:26px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font:400 17px/1 Caveat,cursive;color:rgba(91,42,16,.6);letter-spacing:.04em"><span data-fanoc="open">+2</span><span data-fanoc="more">&#187;</span><span data-fanoc="close">&#215;</span></button>
+</div>
+</div>
+<div style="flex:1 1 190px;min-width:0"><p style="margin:0;font:400 60px/.9 Caveat,cursive">2027</p><p style="margin:8px 0 0;font:300 14px/1.65 Karla,sans-serif;text-wrap:pretty"><span data-de="1">ist es soweit — wir geben uns das Ja-Wort</span><span data-en="1" style="display:none">the year we say yes</span><span data-sv="1" style="display:none">är det dags — vi säger ja</span></p></div>
+</div>
+</div>
+</div>
+
+</section>
+
+
+
+<sc-if value="{{ showScore }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;right:12px;bottom:12px;z-index:60;display:flex;align-items:center;gap:10px;padding:8px 13px;background:#fffdf8;border:1px solid rgba(91,42,16,.28);box-shadow:0 3px 12px rgba(91,42,16,.16);transform:rotate(-1.2deg)">
+<span style="font:500 9px/1.2 Karla,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#a8562f">Tauben</span>
+<span style="font:400 30px/.8 Caveat,cursive;color:#5b2a10">{{ popScore }}</span>
+<span style="width:1px;height:20px;background:rgba(91,42,16,.2)"></span>
+<span style="font:500 9px/1.2 Karla,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#a8562f">Best</span>
+<span style="font:400 22px/.8 Caveat,cursive;color:#5b2a10">{{ popBest }}</span>
+</div>
+</sc-if>
+
+<section data-screen-label="03 Ablauf" id="ablauf" style="position:relative;padding:14px clamp(13px,3.4vw,26px) 44px;overflow:hidden;max-width:{{ ablaufMax }};margin:0 auto;box-sizing:border-box">
+
+<h2 style="margin:0 0 6px;display:flex;align-items:center;justify-content:center;gap:14px;font:400 46px/1 Caveat,cursive"><span data-de="1">Ablauf</span><span data-en="1" style="display:none">the day</span><span data-sv="1" style="display:none">dagen</span></h2>
+
+<div data-ablauf-items="1" style="position:relative;margin-top:8px;display:flex;flex-direction:column;gap:26px" data-comment-anchor="506529fa52-div">
+<div data-line-wrap="1" style="position:absolute;top:0;left:0;right:0;bottom:0;clip-path:inset(0 0 0 0);pointer-events:none">
+<svg data-ablauf-line="1" viewBox="{{ ablaufVB }}" width="100%" height="100%" style="display:block;overflow:visible"><path d="{{ ablaufD }}" fill="none" stroke="rgba(91,42,16,.45)" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="2 11" vector-effect="non-scaling-stroke"></path></svg></div>
+
+<div data-reveal="1" style="position:relative;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start">
+<div onClick="{{ flyFlock }}" style="position:relative;flex:none;width:min(154px,32%);cursor:pointer"><img src="assets/kirche.svg" alt="Stadtkirche Mylau" style="display:block;width:100%;height:auto;object-fit:contain;mix-blend-mode:multiply" data-comment-anchor="8a38f5f72e-img">
+<div data-flock="1" aria-hidden="true" style="position:absolute;left:46%;top:calc(86% + 3px);width:0;height:0;pointer-events:none;z-index:3">
+<div data-fly="1"onClick="{{ popDove }}" style="pointer-events:auto;cursor:pointer;position:absolute;left:0px;top:0px;--dx:62vw;--dy:-130px;animation:flyOut 2.64s cubic-bezier(.32,.08,.72,.5) 0.1s both;animation-play-state:paused">
+<div style="animation:flapBob 0.26s ease-in-out infinite alternate">
+<div style="position:relative;width:41px;height:38px;transform:rotate(-6deg)">
+<img src="assets/pigeon-a.svg" alt="" style="position:absolute;left:0;top:0;width:100%;animation:wingDown 0.26s steps(1,end) infinite">
+<img src="assets/pigeon-b.svg" alt="" style="position:absolute;left:0;top:0;width:100%;animation:wingUp 0.26s steps(1,end) infinite">
+</div></div></div>
+<div data-fly="1"onClick="{{ popDove }}" style="pointer-events:auto;cursor:pointer;position:absolute;left:0px;top:0px;--dx:74vw;--dy:-215px;animation:flyOut 2.99s cubic-bezier(.32,.08,.72,.5) 0.4s both;animation-play-state:paused">
+<div style="animation:flapBob 0.3s ease-in-out infinite alternate">
+<div style="position:relative;width:33px;height:31px;transform:rotate(-12deg)">
+<img src="assets/pigeon-a.svg" alt="" style="position:absolute;left:0;top:0;width:100%;animation:wingDown 0.3s steps(1,end) infinite">
+<img src="assets/pigeon-b.svg" alt="" style="position:absolute;left:0;top:0;width:100%;animation:wingUp 0.3s steps(1,end) infinite">
+</div></div></div>
+<div data-fly="1"onClick="{{ popDove }}" style="pointer-events:auto;cursor:pointer;position:absolute;left:0px;top:0px;--dx:86vw;--dy:-95px;animation:flyOut 2.42s cubic-bezier(.32,.08,.72,.5) 0.62s both;animation-play-state:paused">
+<div style="animation:flapBob 0.24s ease-in-out infinite alternate">
+<div style="position:relative;width:45px;height:42px;transform:rotate(-3deg)">
+<img src="assets/pigeon-a.svg" alt="" style="position:absolute;left:0;top:0;width:100%;animation:wingDown 0.24s steps(1,end) infinite">
+<img src="assets/pigeon-b.svg" alt="" style="position:absolute;left:0;top:0;width:100%;animation:wingUp 0.24s steps(1,end) infinite">
+</div></div></div>
+<div data-fly="1"onClick="{{ popDove }}" style="pointer-events:auto;cursor:pointer;position:absolute;left:0px;top:0px;--dx:96vw;--dy:-300px;animation:flyOut 3.22s cubic-bezier(.32,.08,.72,.5) 0.95s both;animation-play-state:paused">
+<div style="animation:flapBob 0.32s ease-in-out infinite alternate">
+<div style="position:relative;width:30px;height:28px;transform:rotate(-14deg)">
+<img src="assets/pigeon-a.svg" alt="" style="position:absolute;left:0;top:0;width:100%;animation:wingDown 0.32s steps(1,end) infinite">
+<img src="assets/pigeon-b.svg" alt="" style="position:absolute;left:0;top:0;width:100%;animation:wingUp 0.32s steps(1,end) infinite">
+</div></div></div>
+<div data-fly="1"onClick="{{ popDove }}" style="pointer-events:auto;cursor:pointer;position:absolute;left:0px;top:0px;--dx:70vw;--dy:-370px;animation:flyOut 2.76s cubic-bezier(.32,.08,.72,.5) 1.28s both;animation-play-state:paused">
+<div style="animation:flapBob 0.28s ease-in-out infinite alternate">
+<div style="position:relative;width:38px;height:36px;transform:rotate(-9deg)">
+<img src="assets/pigeon-a.svg" alt="" style="position:absolute;left:0;top:0;width:100%;animation:wingDown 0.28s steps(1,end) infinite">
+<img src="assets/pigeon-b.svg" alt="" style="position:absolute;left:0;top:0;width:100%;animation:wingUp 0.28s steps(1,end) infinite">
+</div></div></div>
+<div data-fly="1"onClick="{{ popDove }}" style="pointer-events:auto;cursor:pointer;position:absolute;left:0px;top:0px;--dx:104vw;--dy:-180px;animation:flyOut 2.88s cubic-bezier(.32,.08,.72,.5) 0.25s both;animation-play-state:paused">
+<div style="animation:flapBob 0.27s ease-in-out infinite alternate">
+<div style="position:relative;width:36px;height:34px;transform:rotate(-8deg)">
+<img src="assets/pigeon-a.svg" alt="" style="position:absolute;left:0;top:0;width:100%;animation:wingDown 0.27s steps(1,end) infinite">
+<img src="assets/pigeon-b.svg" alt="" style="position:absolute;left:0;top:0;width:100%;animation:wingUp 0.27s steps(1,end) infinite">
+</div></div></div>
+<div data-fly="1"onClick="{{ popDove }}" style="pointer-events:auto;cursor:pointer;position:absolute;left:0px;top:0px;--dx:82vw;--dy:-425px;animation:flyOut 3.33s cubic-bezier(.32,.08,.72,.5) 0.78s both;animation-play-state:paused">
+<div style="animation:flapBob 0.31s ease-in-out infinite alternate">
+<div style="position:relative;width:29px;height:27px;transform:rotate(-13deg)">
+<img src="assets/pigeon-a.svg" alt="" style="position:absolute;left:0;top:0;width:100%;animation:wingDown 0.31s steps(1,end) infinite">
+<img src="assets/pigeon-b.svg" alt="" style="position:absolute;left:0;top:0;width:100%;animation:wingUp 0.31s steps(1,end) infinite">
+</div></div></div>
+<div data-fly="1"onClick="{{ popDove }}" style="pointer-events:auto;cursor:pointer;position:absolute;left:0px;top:0px;--dx:112vw;--dy:-255px;animation:flyOut 2.64s cubic-bezier(.32,.08,.72,.5) 1.05s both;animation-play-state:paused">
+<div style="animation:flapBob 0.25s ease-in-out infinite alternate">
+<div style="position:relative;width:43px;height:40px;transform:rotate(-5deg)">
+<img src="assets/pigeon-a.svg" alt="" style="position:absolute;left:0;top:0;width:100%;animation:wingDown 0.25s steps(1,end) infinite">
+<img src="assets/pigeon-b.svg" alt="" style="position:absolute;left:0;top:0;width:100%;animation:wingUp 0.25s steps(1,end) infinite">
+</div></div></div>
+<div data-fly="1"onClick="{{ popDove }}" style="pointer-events:auto;cursor:pointer;position:absolute;left:0px;top:0px;--dx:58vw;--dy:-330px;animation:flyOut 3.11s cubic-bezier(.32,.08,.72,.5) 1.5s both;animation-play-state:paused">
+<div style="animation:flapBob 0.29s ease-in-out infinite alternate">
+<div style="position:relative;width:31px;height:29px;transform:rotate(-11deg)">
+<img src="assets/pigeon-a.svg" alt="" style="position:absolute;left:0;top:0;width:100%;animation:wingDown 0.29s steps(1,end) infinite">
+<img src="assets/pigeon-b.svg" alt="" style="position:absolute;left:0;top:0;width:100%;animation:wingUp 0.29s steps(1,end) infinite">
+</div></div></div>
+</div>
+</div><div style="flex:1 1 150px;min-width:0;padding-top:4px">
+<p style="margin:0;font:400 34px/1 Caveat,cursive">11:00</p><p style="margin:4px 0 0;font:400 15px/1.35 Karla,sans-serif"><span data-de="1">Trauung mit heiligem Abendmahl</span><span data-en="1" style="display:none">Ceremony with Holy Communion</span></p>
+
+<p style="margin:2px 0 0;font:300 13px/1.5 Karla,sans-serif;opacity:.7">Stadtkirche Mylau</p><a href="https://www.google.com/maps/search/?api=1&amp;query=Stadtkirche+Mylau" target="_blank" rel="noreferrer" style="display:inline-block;margin-top:6px;font:500 11px/1 Karla,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:13px 6px 4px;margin:-13px -6px -2px;border-bottom:1.5px solid rgba(168,86,47,.5)"><span data-de="1">Maps öffnen</span><span data-en="1" style="display:none">open in maps</span><span data-sv="1" style="display:none">öppna i kartor</span></a></div>
+
+</div>
+
+<div data-reveal="1" data-tier="alles" style="position:relative;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;flex-direction:row-reverse">
+<div style="flex:none;width:min(250px,46%)"><img src="assets/lauschgruener-hof.svg" alt="Lauschgrüner Hof" style="width:100%;height:auto;object-fit:contain;mix-blend-mode:multiply" data-comment-anchor="c8837e4f9d-img"></div>
+<div style="flex:1 1 150px;min-width:0;text-align:right;padding-top:4px"><p style="margin:0;font:400 clamp(24px,6vw,32px)/1.05 Caveat,cursive"><span data-de="1">ankommen in Lauschgrün</span><span data-en="1" style="display:none">arriving in Lauschgrün</span></p>
+<p style="margin:4px 0 0;font:400 11px/1.5 ui-monospace,Menlo,monospace;color:#a8562f;background:rgba(243,220,147,.4);padding:3px 6px;display:inline-block">[Uhrzeit ergänzen]</p>
+<p style="margin:4px 0 0;font:300 13px/1.5 Karla,sans-serif;opacity:.7">Lauschgrüner Hof</p>
+<a href="https://www.google.com/maps/search/?api=1&amp;query=Lauschgr%C3%BCner+Hof" target="_blank" rel="noreferrer" style="display:inline-block;margin-top:6px;font:500 11px/1 Karla,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:13px 6px 4px;margin:-13px -6px -2px;border-bottom:1.5px solid rgba(168,86,47,.5)"><span data-de="1">Maps öffnen</span><span data-en="1" style="display:none">open in maps</span><span data-sv="1" style="display:none">öppna i kartor</span></a></div>
+</div>
+
+<div data-reveal="1" data-tier="alles" style="position:relative;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start">
+<div style="flex:none;width:min(180px,34%)"><img src="assets/torte.svg" alt="Kaffee &amp; Kuchen" style="width:100%;height:auto;object-fit:contain;mix-blend-mode:multiply" data-comment-anchor="d879f905f3-img"></div>
+<div style="flex:1 1 150px;min-width:0;padding-top:4px"><p style="margin:0;font:400 clamp(24px,6vw,32px)/1.05 Caveat,cursive"><span data-en="1" style="display:none">coffee &amp; the cake table</span><span data-de="1">Kaffee trinken &amp; Kuchenbuffet</span></p>
+<p style="margin:6px 0 0;font:300 13px/1.55 Karla,sans-serif;opacity:.7"><span data-de="1">im engen Familien- &amp; Freundeskreis — und alles, was ihr mitbringt</span><span data-en="1" style="display:none">close family &amp; friends — and everything you bring along</span></p>
+<a href="#kuchen" style="display:inline-block;margin-top:6px;font:500 11px/1 Karla,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:13px 6px 4px;margin:-13px -6px -2px;border-bottom:1.5px solid rgba(168,86,47,.5)"><span data-de="1">Kuchen anmelden</span><span data-en="1" style="display:none">sign up a cake</span><span data-sv="1" style="display:none">anmäl en tårta</span></a></div>
+</div>
+
+<div data-reveal="1" data-tier="party" style="position:relative;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;flex-direction:row-reverse" data-comment-anchor="22f6adb1ca-div">
+<div style="flex:none;width:min(196px,42%);display:flex;flex-direction:column;align-items:center">
+<img src="assets/discoball.svg" alt="Discokugel" style="width:78%;height:auto;display:block;animation:sway 5.5s ease-in-out infinite;transform-origin:50% 0" data-comment-anchor="ec036ed951-img">
+<img src="assets/party-us.svg" alt="Ruth und Max tanzen" style="width:90%;height:auto;display:block;margin-top:-22%;animation:dance 2.4s ease-in-out infinite;transform-origin:50% 96%">
+</div>
+<div style="flex:1 1 150px;min-width:0;text-align:right;padding-top:4px"><p style="margin:0;font:400 clamp(26px,7vw,34px)/1 Caveat,cursive" data-comment-anchor="512d3049e0-p"><span data-de="1">ab 21:00</span><span data-en="1" style="display:none">from 21:00</span></p>
+<p style="margin:4px 0 0;font:400 15px/1.35 Karla,sans-serif">Afterparty Lauschgrün</p>
+<p style="margin:2px 0 0;font:300 13px/1.5 Karla,sans-serif;opacity:.7"><span data-de="1">tanzen, bis die Sonne wieder da ist</span><span data-en="1" style="display:none">dancing until sunrise</span></p></div>
+
+
+</div>
+
+<div data-only="trauung party" style="padding-top:6px;text-align:center"><p data-only="trauung" style="margin:0;font:400 26px/1.4 Caveat,cursive;opacity:.72;max-width:340px;margin-inline:auto"><span data-de="1">und danach feiern wir im engsten Kreis weiter — schön, dass du bei der Trauung dabei bist</span><span data-en="1" style="display:none">and afterwards we celebrate on in the closest circle — we are glad you are with us for the ceremony</span><span data-sv="1" style="display:none">och sedan firar vi vidare i den närmaste kretsen — så fint att du är med vid vigseln</span></p><p data-only="party" style="margin:0;font:400 26px/1.4 Caveat,cursive;opacity:.72;max-width:340px;margin-inline:auto"><span data-de="1">zwischendurch feiern wir im engsten Familienkreis — abends sehen wir uns auf der Tanzfläche</span><span data-en="1" style="display:none">in between we celebrate with close family — we will see you on the dancefloor tonight</span><span data-sv="1" style="display:none">däremellan firar vi med närmaste familjen — i kväll ses vi på dansgolvet</span></p></div>
+</div>
+</section>
+
+
+
+<div style="position:relative;width:100%;overflow:hidden"><div data-grow="40" style="position:absolute;left:0;top:8.3%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f3.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(48px,9.8vw,80px);height:auto;transform:translateX(-50%) rotate(101deg);transform-origin:50% 100%"></div><div data-grow="130" style="position:absolute;left:0;top:25.7%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f4.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(65px,13.2vw,108px);height:auto;transform:translateX(-50%) rotate(90deg);transform-origin:50% 100%"></div><div data-grow="220" style="position:absolute;left:0;top:47.6%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f5.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(90px,18.3vw,150px);height:auto;transform:translateX(-50%) rotate(83deg);transform-origin:50% 100%"></div><div data-grow="310" style="position:absolute;left:0;top:64.4%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f6.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(52px,10.6vw,87px);height:auto;transform:translateX(-50%) rotate(77deg);transform-origin:50% 100%"></div><div data-grow="40" style="position:absolute;right:0;top:14.4%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f1.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(59px,12.1vw,99px);height:auto;transform:translateX(50%) rotate(-86deg);transform-origin:50% 100%"></div><div data-grow="130" style="position:absolute;right:0;top:28.2%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f2.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(66px,13.4vw,110px);height:auto;transform:translateX(50%) rotate(-95deg);transform-origin:50% 100%"></div><div data-grow="220" style="position:absolute;right:0;top:43.3%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f3.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(61px,12.4vw,102px);height:auto;transform:translateX(50%) rotate(-101deg);transform-origin:50% 100%"></div><div data-grow="310" style="position:absolute;right:0;top:64.1%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f4.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(68px,13.8vw,113px);height:auto;transform:translateX(50%) rotate(-90deg);transform-origin:50% 100%"></div><section data-screen-label="04 Anfahrt" id="anfahrt" style="position:relative;padding:14px clamp(13px,3.4vw,26px) 40px;max-width:{{ contentMax }};margin:0 auto;box-sizing:border-box">
+<h2 style="margin:0 0 16px;text-align:center;font:400 44px/1 Caveat,cursive"><span data-de="1">Anfahrt &amp; Übernachtung</span><span data-en="1" style="display:none">travel &amp; stay</span><span data-sv="1" style="display:none">resa &amp; boende</span></h2>
+<div style="height:186px;border:1px solid rgba(91,42,16,.2);background:#fffdf8"><image-slot id="map-sketch" shape="rect" placeholder="Karte / gezeichneter Wegplan"></image-slot></div>
+<div style="display:flex;flex-direction:column;gap:14px;margin-top:18px">
+<div><p style="margin: 0; font: 500 13px/1.3 Karla,sans-serif; text-align: center">Stadtkirche Mylau</p><p style="margin: 2px 0 0; font: 300 13px/1.5 Karla,sans-serif; opacity: .7; text-align: center">Kirchplatz, 08499 Mylau</p></div>
+<div><p style="margin: 0; font: 500 13px/1.3 Karla,sans-serif; text-align: center">Lauschgrüner Hof</p><p style="margin: 2px 0 0; font: 300 13px/1.5 Karla,sans-serif; opacity: .7; text-align: center">Lauschgrün, 08499 Mylau</p></div>
+
+</div>
+</section></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div style="position:relative;width:100%;overflow:hidden"><div data-grow="40" style="position:absolute;left:0;top:4.9%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f5.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(90px,18.3vw,150px);height:auto;transform:translateX(-50%) rotate(83deg);transform-origin:50% 100%"></div><div data-grow="130" style="position:absolute;left:0;top:16.7%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f6.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(50px,10.2vw,84px);height:auto;transform:translateX(-50%) rotate(77deg);transform-origin:50% 100%"></div><div data-grow="220" style="position:absolute;left:0;top:33.0%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f1.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(71px,14.5vw,119px);height:auto;transform:translateX(-50%) rotate(86deg);transform-origin:50% 100%"></div><div data-grow="310" style="position:absolute;left:0;top:41.7%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f2.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(59px,12.0vw,98px);height:auto;transform:translateX(-50%) rotate(95deg);transform-origin:50% 100%"></div><div data-grow="400" style="position:absolute;left:0;top:55.9%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f3.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(52px,10.5vw,86px);height:auto;transform:translateX(-50%) rotate(101deg);transform-origin:50% 100%"></div><div data-grow="490" style="position:absolute;left:0;top:69.7%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f4.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(48px,9.8vw,80px);height:auto;transform:translateX(-50%) rotate(90deg);transform-origin:50% 100%"></div><div data-grow="40" style="position:absolute;right:0;top:12.1%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f5.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(90px,18.3vw,150px);height:auto;transform:translateX(50%) rotate(-83deg);transform-origin:50% 100%"></div><div data-grow="130" style="position:absolute;right:0;top:20.5%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f6.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(61px,12.3vw,101px);height:auto;transform:translateX(50%) rotate(-77deg);transform-origin:50% 100%"></div><div data-grow="220" style="position:absolute;right:0;top:33.4%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f1.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(73px,14.9vw,122px);height:auto;transform:translateX(50%) rotate(-86deg);transform-origin:50% 100%"></div><div data-grow="310" style="position:absolute;right:0;top:41.8%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f2.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(53px,10.9vw,89px);height:auto;transform:translateX(50%) rotate(-95deg);transform-origin:50% 100%"></div><div data-grow="400" style="position:absolute;right:0;top:59.9%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f3.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(58px,11.7vw,96px);height:auto;transform:translateX(50%) rotate(-101deg);transform-origin:50% 100%"></div><div data-grow="490" style="position:absolute;right:0;top:67.8%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f4.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(61px,12.3vw,101px);height:auto;transform:translateX(50%) rotate(-90deg);transform-origin:50% 100%"></div><section data-screen-label="06 Anmeldung" id="anmeldung" style="position:relative;padding:14px clamp(11px,3vw,20px) 44px;max-width:{{ formMax }};margin:0 auto;box-sizing:border-box">
+<h2 style="margin:0 0 2px;text-align:center;font:400 46px/1 Caveat,cursive"><span data-de="1">Anmeldung</span><span data-en="1" style="display:none">RSVP</span><span data-sv="1" style="display:none">OSA</span></h2>
+<p style="margin:0 0 16px;text-align:center;font:400 14px/1.5 Caveat,cursive;font-size:19px;opacity:.6"><span data-de="1">wir freuen uns auf dich</span><span data-en="1" style="display:none">we'd love to see you</span></p>
+
+<div data-rsvp-wrap="1" style="position:relative;perspective:1100px;perspective-origin:50% 22%;transition:max-height .85s cubic-bezier(.55,0,.35,1)">
+<div style="position:relative;background:#fffdf8;border:1.5px solid rgba(91,42,16,.55);padding:22px 18px 24px;box-shadow:0 4px 16px rgba(91,42,16,.1);transform-origin:50% 0;transform-style:preserve-3d;transition:transform .72s cubic-bezier(.55,0,.35,1),opacity .5s" data-rsvp-card="1">
+<p style="position:relative;margin:0 0 26px;text-align:center;font:400 30px/1 Caveat,cursive;letter-spacing:.28em;background:#fffdf8;display:inline-block;left:50%;transform:translateX(-50%);padding:0 10px">RSVP</p>
+<sc-if value="{{ sent }}" hint-placeholder-val="{{ false }}">
+<div style="padding:26px 6px;text-align:center">
+<p style="margin:0;font:400 34px/1.2 Caveat,cursive"><span data-de="1">Danke für deine Antwort!</span><span data-en="1" style="display:none">Thanks for your reply!</span><span data-sv="1" style="display:none">Tack!</span></p>
+<p style="margin:8px 0 0;font:300 13.5px/1.6 Karla,sans-serif;opacity:.75"><span data-de="1">Deine Anmeldung ist bei uns. Bis zum 07.08.!</span><span data-en="1" style="display:none">Your reply is with us. See you on 07.08.!</span></p>
+</div>
+</sc-if>
+<sc-if value="{{ notSent }}" hint-placeholder-val="{{ true }}">
+<form onSubmit="{{ submit }}" style="display:flex;flex-direction:column;gap:19px">
+<label style="display:block"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px">Name</span><input type="text" placeholder="Ruth Beispiel" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none"></label>
+
+<label style="display:block"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px"><span data-de="1">ich / wir kommen — Anzahl</span><span data-en="1" style="display:none">we're coming — how many</span></span><input type="number" min="1" max="12" placeholder="2" style="width:88px;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none"></label>
+
+<div><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:8px"><span data-de="1">zu was?</span><span data-en="1" style="display:none">to which parts?</span></span>
+<div style="display:flex;flex-direction:column;gap:9px">
+<label style="display:flex;align-items:center;gap:9px;font:300 13.5px Karla,sans-serif"><input type="checkbox" style="width:16px;height:16px;accent-color:#a8562f"><span data-de="1">Trauung, 11:00</span><span data-en="1" style="display:none">Ceremony, 11:00</span></label>
+<label style="display:flex;align-items:center;gap:9px;font:300 13.5px Karla,sans-serif" data-tier="alles"><input type="checkbox" style="width:16px;height:16px;accent-color:#a8562f"><span data-de="1">Feier im Hof</span><span data-en="1" style="display:none">Reception at the Hof</span></label>
+<label style="display:flex;align-items:center;gap:9px;font:300 13.5px Karla,sans-serif" data-tier="party"><input type="checkbox" style="width:16px;height:16px;accent-color:#a8562f">Afterparty</label>
+</div></div>
+
+<label style="display:block" data-tier="alles"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px"><span data-de="1">Essen / Allergien</span><span data-en="1" style="display:none">food / allergies</span></span><input type="text" placeholder="vegetarisch, keine Nüsse …" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none"></label>
+
+<label style="display:block"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px"><span data-de="1">bringt mich auf die Tanzfläche</span><span data-en="1" style="display:none">gets me on the dancefloor</span></span><input type="text" placeholder="Song + Künstler" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none"></label>
+
+<label style="display:flex;align-items:center;gap:9px;font:300 13.5px Karla,sans-serif"><input type="checkbox" style="width:16px;height:16px;accent-color:#a8562f"><span data-de="1">Ich brauche eine Übernachtung</span><span data-en="1" style="display:none">I need somewhere to stay</span></label>
+
+<label style="display:block"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px"><span data-de="1">Nachricht an uns</span><span data-en="1" style="display:none">a note for us</span></span><textarea rows="3" style="width:100%;border:1.5px solid rgba(91,42,16,.3);background:transparent;padding:8px;font:300 13.5px/1.6 Karla,sans-serif;outline:none;resize:none"></textarea></label>
+
+<button type="submit" style="margin-top:2px;padding:13px;background:#5b2a10;color:#f6f1e7;border:none;font:400 26px/1 Caveat,cursive;letter-spacing:.04em;cursor:pointer"><span data-de="1">abschicken</span><span data-en="1" style="display:none">send it</span><span data-sv="1" style="display:none">skicka</span></button>
+<p style="margin:0;text-align:center;font:300 11px/1.5 Karla,sans-serif;opacity:.55"><span data-de="1">bitte bis 01.05.2027</span><span data-en="1" style="display:none">please reply by 1 May 2027</span></p>
+</form>
+</sc-if>
+</div>
+
+<div style="position:absolute;left:50%;top:14px;width:300px;height:198px;margin:0 0 0 -150px;z-index:6;transform-style:preserve-3d;pointer-events:none;transition:transform 1.05s cubic-bezier(.45,.05,.5,1),opacity .7s;display:none;opacity:0;transform:rotateX(8deg) scale(.7)" data-rsvp-env="1">
+<div style="position:absolute;inset:0;background:linear-gradient(#efe5d1,#e2d6bd);border:1.5px solid rgba(91,42,16,.5);box-shadow:0 18px 34px rgba(91,42,16,.24)"></div>
+<div style="position:absolute;inset:0;overflow:hidden;z-index:1"><div style="position:absolute;left:26px;right:26px;top:14px;height:152px;background:#fffdf8;border:1px solid rgba(91,42,16,.28);box-shadow:0 3px 9px rgba(91,42,16,.16);padding:12px 14px;transition:transform .68s cubic-bezier(.4,0,.4,1);transform:translateY(-138px)" data-rsvp-sheet="1">
+<p style="margin:0;font:400 22px/1 Caveat,cursive;letter-spacing:.2em;text-align:center">RSVP</p>
+<div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+<div style="height:1.5px;background:rgba(91,42,16,.22)"></div>
+<div style="height:1.5px;background:rgba(91,42,16,.22)"></div>
+<div style="height:1.5px;background:rgba(91,42,16,.22);width:72%"></div>
+<div style="height:1.5px;background:rgba(91,42,16,.22)"></div>
+<div style="height:1.5px;background:rgba(91,42,16,.22);width:54%"></div>
+</div>
+</div>
+</div>
+<div style="position:absolute;inset:0;z-index:2;background:linear-gradient(#f2e9d7,#e6dac2);border:1.5px solid rgba(91,42,16,.5);border-top:none;clip-path:polygon(0 30%,50% 66%,100% 30%,100% 100%,0 100%)"></div>
+<div style="position:absolute;left:-1.5px;right:-1.5px;top:-1.5px;height:134px;z-index:3;transform-origin:top center;transform-style:preserve-3d;background:linear-gradient(#f4ecdc,#e6dbc3);border:1.5px solid rgba(91,42,16,.5);clip-path:polygon(0 0,100% 0,100% 45.5%,50% 100%,0 45.5%);transition:transform .6s cubic-bezier(.4,0,.5,1);transform:rotateX(168deg)" data-rsvp-flap="1"></div>
+<div style="position:absolute;left:50%;top:52%;width:44px;height:44px;margin:-22px 0 0 -22px;z-index:4;border-radius:49% 51% 47% 53%/52% 48% 52% 48%;background:radial-gradient(circle at 32% 26%,#c05a4a 0%,#a33a2c 40%,#8a2a20 70%,#6e1f18 100%);box-shadow:inset 0 2px 5px rgba(255,255,255,.25),0 4px 10px rgba(60,20,10,.35);transition:opacity .3s,transform .4s cubic-bezier(.3,1.5,.5,1);opacity:0;transform:rotate(-16deg) scale(.35)" data-rsvp-seal="1"></div>
+</div>
+</div>
+</section></div>
+
+
+
+<div style="position:relative;width:100%;overflow:hidden" data-tier="alles"><div data-grow="40" style="position:absolute;left:0;top:11.1%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f5.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(90px,18.3vw,150px);height:auto;transform:translateX(-50%) rotate(83deg);transform-origin:50% 100%"></div><div data-grow="130" style="position:absolute;left:0;top:26.9%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f6.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(67px,13.5vw,111px);height:auto;transform:translateX(-50%) rotate(77deg);transform-origin:50% 100%"></div><div data-grow="220" style="position:absolute;left:0;top:36.2%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f1.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(52px,10.6vw,87px);height:auto;transform:translateX(-50%) rotate(86deg);transform-origin:50% 100%"></div><div data-grow="310" style="position:absolute;left:0;top:54.8%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f2.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(62px,12.7vw,104px);height:auto;transform:translateX(-50%) rotate(95deg);transform-origin:50% 100%"></div><div data-grow="400" style="position:absolute;left:0;top:65.4%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f3.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(57px,11.6vw,95px);height:auto;transform:translateX(-50%) rotate(101deg);transform-origin:50% 100%"></div><div data-grow="40" style="position:absolute;right:0;top:6.6%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f4.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(70px,14.1vw,116px);height:auto;transform:translateX(50%) rotate(-90deg);transform-origin:50% 100%"></div><div data-grow="130" style="position:absolute;right:0;top:22.9%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f5.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(80px,16.3vw,134px);height:auto;transform:translateX(50%) rotate(-83deg);transform-origin:50% 100%"></div><div data-grow="220" style="position:absolute;right:0;top:35.9%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f6.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(52px,10.6vw,87px);height:auto;transform:translateX(50%) rotate(-77deg);transform-origin:50% 100%"></div><div data-grow="310" style="position:absolute;right:0;top:54.7%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f1.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(73px,14.9vw,122px);height:auto;transform:translateX(50%) rotate(-86deg);transform-origin:50% 100%"></div><div data-grow="400" style="position:absolute;right:0;top:69.7%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f2.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(46px,9.4vw,77px);height:auto;transform:translateX(50%) rotate(-95deg);transform-origin:50% 100%"></div><section data-screen-label="06b Kuchenbuffet" id="kuchen" style="position:relative;padding:14px clamp(11px,3vw,20px) 44px;max-width:{{ formMax }};margin:0 auto;box-sizing:border-box">
+<h2 style="margin:0 0 2px;text-align:center;font:400 46px/1 Caveat,cursive"><span data-de="1">Kuchenbuffet</span><span data-en="1" style="display:none">cake table</span><span data-sv="1" style="display:none">tårtbordet</span></h2>
+<p style="margin:0 0 16px;text-align:center;font:400 19px/1.35 Caveat,cursive;opacity:.6"><span data-de="1">wer mag, bringt einen Kuchen mit</span><span data-en="1" style="display:none">bring a cake if you like</span></p>
+
+<div style="background:#fffdf8;border:1.5px solid rgba(243,220,147,1);border-top-width:9px;padding:22px 18px 24px;box-shadow:0 4px 16px rgba(91,42,16,.1)">
+<sc-if value="{{ cakeSent }}" hint-placeholder-val="{{ false }}">
+<div style="padding:22px 6px;text-align:center">
+<p style="margin:0;font:400 34px/1.2 Caveat,cursive"><span data-de="1">Danke fürs Backen!</span><span data-en="1" style="display:none">Thanks for baking!</span></p>
+<p style="margin:8px 0 0;font:300 13.5px/1.6 Karla,sans-serif;opacity:.75"><span data-de="1">Wir tragen deinen Kuchen in die Liste ein.</span><span data-en="1" style="display:none">We'll add your cake to the list.</span></p>
+</div>
+</sc-if>
+<sc-if value="{{ cakeNotSent }}" hint-placeholder-val="{{ true }}">
+<form onSubmit="{{ submitCake }}" style="display:flex;flex-direction:column;gap:19px">
+<p style="margin:0;font:300 13px/1.65 Karla,sans-serif;opacity:.8"><span data-de="1">Am Nachmittag gibt es Kaffee und ein Buffet aus allem, was ihr mitbringt. Damit nicht acht Käsekuchen kommen: hier eintragen, was du beisteuerst.</span><span data-en="1" style="display:none">In the afternoon there's coffee and a table of whatever you bring. So we don't end up with eight cheesecakes: note down what you're contributing.</span></p>
+<label style="display:block"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px">Name</span><input type="text" name="who" placeholder="Ruth Beispiel" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none"></label>
+<label style="display:block"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px"><span data-de="1">das bringe ich mit</span><span data-en="1" style="display:none">what I'm bringing</span></span><input type="text" name="what" placeholder="Käsekuchen mit Mandarinen" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none"></label>
+<div style="display:flex;gap:16px">
+<label style="display:block;flex:1"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px"><span data-de="1">für ca. … Stücke</span><span data-en="1" style="display:none">serves … slices</span></span><input type="number" name="slices" min="1" max="60" placeholder="12" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none"></label>
+<label style="display:block;flex:1"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px"><span data-de="1">Art</span><span data-en="1" style="display:none">kind</span></span><select name="kind" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:6px 2px;font:300 14px Karla,sans-serif;outline:none">
+<option>Kuchen</option><option>Torte</option><option>Muffins / Kleingebäck</option><option>Herzhaftes</option><option>Getränk</option>
+</select></label>
+</div>
+<div><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:8px"><span data-de="1">gut zu wissen</span><span data-en="1" style="display:none">good to know</span></span>
+<div style="display:flex;flex-direction:column;gap:9px">
+<label style="display:flex;align-items:center;gap:9px;font:300 13.5px Karla,sans-serif"><input type="checkbox" style="width:16px;height:16px;accent-color:#a8562f"><span data-de="1">muss gekühlt werden</span><span data-en="1" style="display:none">needs refrigerating</span></label>
+<label style="display:flex;align-items:center;gap:9px;font:300 13.5px Karla,sans-serif"><input type="checkbox" style="width:16px;height:16px;accent-color:#a8562f"><span data-de="1">vegan / vegetarisch</span><span data-en="1" style="display:none">vegan / vegetarian</span></label>
+<label style="display:flex;align-items:center;gap:9px;font:300 13.5px Karla,sans-serif"><input type="checkbox" style="width:16px;height:16px;accent-color:#a8562f"><span data-de="1">enthält Nüsse</span><span data-en="1" style="display:none">contains nuts</span></label>
+<label style="display:flex;align-items:center;gap:9px;font:300 13.5px Karla,sans-serif"><input type="checkbox" style="width:16px;height:16px;accent-color:#a8562f"><span data-de="1">ich brauche eine Kuchenplatte / Tortenheber</span><span data-en="1" style="display:none">I need a cake stand / server</span></label>
+</div></div>
+<button type="submit" style="margin-top:2px;padding:13px;background:#5b2a10;color:#f6f1e7;border:none;font:400 26px/1 Caveat,cursive;cursor:pointer"><span data-de="1">Kuchen anmelden</span><span data-en="1" style="display:none">sign up my cake</span><span data-sv="1" style="display:none">anmäl min tårta</span></button>
+</form>
+</sc-if>
+</div>
+<div style="margin-top:18px;padding:18px 14px 14px;border:1px dashed rgba(91,42,16,.3)">
+<p style="margin:0;text-align:center;font:400 26px/1 Caveat,cursive"><span data-de="1">der Kuchenturm</span><span data-en="1" style="display:none">the cake tower</span><span data-sv="1" style="display:none">tårttornet</span></p>
+<p style="margin:2px 0 16px;text-align:center;font:300 11.5px/1.5 Karla,sans-serif;letter-spacing:.06em;opacity:.6">{{ cakeCount }}</p>
+
+<div style="display:flex;flex-direction:column;align-items:center">
+<sc-if value="{{ cakeAny }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:100%">
+<sc-for list="{{ cakeLayers }}" as="l" hint-placeholder-count="3">
+<div style="{{ l.style }}"><span style="font:500 13px/1 Karla,sans-serif;letter-spacing:.01em;color:#4a2109;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ l.name }}</span><span style="font:400 10.5px/1 Karla,sans-serif;color:rgba(74,33,9,.72);white-space:nowrap">{{ l.meta }}</span></div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ cakeEmpty }}" hint-placeholder-val="{{ false }}">
+<p style="margin:0 0 8px;font:400 20px/1.3 Caveat,cursive;opacity:.5"><span data-de="1">noch leer — sei der erste Boden</span><span data-en="1" style="display:none">still empty — be the first layer</span></p>
+</sc-if>
+
+<div style="width:min(100%,340px);height:13px;margin-top:6px;border-radius:50%;background:linear-gradient(#fffdf8,#d5c8b1);border:1px solid rgba(91,42,16,.26);box-shadow:0 3px 8px rgba(91,42,16,.14)"></div>
+<div style="width:18px;height:22px;background:linear-gradient(90deg,#e8dec9,#c9bb9f)"></div>
+<div style="width:96px;height:10px;border-radius:50%;background:linear-gradient(#ded2bb,#b9aa8e)"></div>
+</div>
+
+<p style="margin:14px 0 0;text-align:center;font:400 11px/1.6 ui-monospace,Menlo,monospace;color:#a8562f">[jeder neue Kuchen wird ein Boden]</p>
+</div>
+</section></div>
+
+
+
+<section data-screen-label="05 FAQ" id="faq" style="position: relative; padding: 14px clamp(13px,3.4vw,26px) 40px; overflow: hidden; margin: 0 auto; box-sizing: border-box; width: 100%; max-width: {{ cardMax }}"><div data-grow="40" style="position:absolute;left:0;top:11.2%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f3.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(47px,9.5vw,78px);height:auto;transform:translateX(-50%) rotate(101deg);transform-origin:50% 100%"></div><div data-grow="130" style="position:absolute;left:0;top:22.4%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f4.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(70px,14.3vw,117px);height:auto;transform:translateX(-50%) rotate(90deg);transform-origin:50% 100%"></div><div data-grow="220" style="position:absolute;left:0;top:34.3%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f5.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(90px,18.3vw,150px);height:auto;transform:translateX(-50%) rotate(83deg);transform-origin:50% 100%"></div><div data-grow="310" style="position:absolute;left:0;top:56.6%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f6.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(61px,12.4vw,102px);height:auto;transform:translateX(-50%) rotate(77deg);transform-origin:50% 100%"></div><div data-grow="400" style="position:absolute;left:0;top:69.7%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f1.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(50px,10.1vw,83px);height:auto;transform:translateX(-50%) rotate(86deg);transform-origin:50% 100%"></div><div data-grow="40" style="position:absolute;right:0;top:13.1%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f2.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(66px,13.4vw,110px);height:auto;transform:translateX(50%) rotate(-95deg);transform-origin:50% 100%"></div><div data-grow="130" style="position:absolute;right:0;top:20.5%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f3.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(52px,10.6vw,87px);height:auto;transform:translateX(50%) rotate(-101deg);transform-origin:50% 100%"></div><div data-grow="220" style="position:absolute;right:0;top:41.0%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f4.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(70px,14.3vw,117px);height:auto;transform:translateX(50%) rotate(-90deg);transform-origin:50% 100%"></div><div data-grow="310" style="position:absolute;right:0;top:55.5%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f5.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(90px,18.3vw,150px);height:auto;transform:translateX(50%) rotate(-83deg);transform-origin:50% 100%"></div><div data-grow="400" style="position:absolute;right:0;top:63.4%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f6.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(52px,10.5vw,86px);height:auto;transform:translateX(50%) rotate(-77deg);transform-origin:50% 100%"></div>
+
+<h2 style="margin:0 0 4px;text-align:center;font:400 46px/1 Caveat,cursive"><span data-de="1">noch Fragen?</span><span data-en="1" style="display:none">questions?</span><span data-sv="1" style="display:none">frågor?</span></h2>
+<p style="margin:0 0 18px;text-align:center;font:500 12px/1 Karla,sans-serif;letter-spacing:.34em;opacity:.5">FAQ</p>
+<div style="display:flex;flex-direction:column;gap:11px;width:100%;max-width:400px;margin:0 auto">
+<details data-card="1" style="background:#fffdf8;border:1px solid rgba(91,42,16,.18);padding:15px 20px 17px;transform:rotate(-.5deg)"><summary style="font: 400 25px/1.2 Caveat,cursive; display: flex; align-items: center; justify-content: center; gap: 12px"><span><span data-de="1">Was ziehe ich an?</span><span data-en="1" style="display:none">What should I wear?</span></span><span data-chev="1" style="opacity:.5;font-size:26px;line-height:.8;transform-origin:50% 55%">›</span></summary><p style="margin:8px 0 0;text-align:center;font:300 13.5px/1.7 Karla,sans-serif"><span data-de="1">Festlich, gern bunt. Kein Weiß — das ist für einen Tag reserviert.</span><span data-en="1" style="display:none">Festive, colours welcome. No white — that one's reserved for a day.</span></p></details>
+<details data-card="1" style="background:#fffdf8;border:1px solid rgba(91,42,16,.18);padding:15px 20px 17px;transform:rotate(-.5deg)"><summary style="font:400 25px/1.2 Caveat,cursive;display:flex;align-items:center;justify-content:center;gap:12px"><span><span data-de="1">Sind Kinder willkommen?</span><span data-en="1" style="display:none">Are kids welcome?</span></span><span data-chev="1" style="opacity:.5;font-size:26px;line-height:.8;transform-origin:50% 55%">›</span></summary><p style="margin:8px 0 0;text-align:center;font:300 13.5px/1.7 Karla,sans-serif"><span data-de="1">Ja — sag uns nur bei der Anmeldung, wie viele mitkommen.</span><span data-en="1" style="display:none">Yes — just tell us how many in the RSVP.</span></p></details>
+<details data-card="1" style="background:#fffdf8;border:1px solid rgba(91,42,16,.18);padding:15px 20px 17px;transform:rotate(-.5deg)"><summary style="font:400 25px/1.2 Caveat,cursive;display:flex;align-items:center;justify-content:center;gap:12px"><span><span data-de="1">Wo kann ich parken?</span><span data-en="1" style="display:none">Where can I park?</span></span><span data-chev="1" style="opacity:.5;font-size:26px;line-height:.8;transform-origin:50% 55%">›</span></summary><p style="margin:8px 0 0;text-align:center;font:300 13.5px/1.7 Karla,sans-serif"><span data-de="1">Am Hof gibt es Plätze direkt an der Zufahrt.</span><span data-en="1" style="display:none">There is parking right by the farm entrance.</span></p><p style="margin:6px 0 0;text-align:center;font:400 11px/1.5 ui-monospace,Menlo,monospace;color:#a8562f">[Details ergänzen]</p></details>
+<details data-card="1" style="background:#fffdf8;border:1px solid rgba(91,42,16,.18);padding:15px 20px 17px;transform:rotate(-.5deg)"><summary style="font:400 25px/1.2 Caveat,cursive;display:flex;align-items:center;justify-content:center;gap:12px"><span><span data-de="1">Bis wann soll ich zusagen?</span><span data-en="1" style="display:none">When should I reply by?</span></span><span data-chev="1" style="opacity:.5;font-size:26px;line-height:.8;transform-origin:50% 55%">›</span></summary><p style="margin:8px 0 0;text-align:center;font:300 13.5px/1.7 Karla,sans-serif"><span data-de="1">Bitte bis zum 01.05.2027 — dann können wir gut planen.</span><span data-en="1" style="display:none">By 1 May 2027, so we can plan properly.</span></p></details>
+</div>
+</section>
+
+
+
+<div style="position:relative;width:100%;overflow:hidden"><div data-grow="40" style="position:absolute;left:0;top:13.3%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f1.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(70px,14.3vw,117px);height:auto;transform:translateX(-50%) rotate(86deg);transform-origin:50% 100%"></div><div data-grow="130" style="position:absolute;left:0;top:25.9%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f2.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(54px,11.0vw,90px);height:auto;transform:translateX(-50%) rotate(95deg);transform-origin:50% 100%"></div><div data-grow="220" style="position:absolute;left:0;top:47.1%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f3.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(80px,16.3vw,134px);height:auto;transform:translateX(-50%) rotate(101deg);transform-origin:50% 100%"></div><div data-grow="310" style="position:absolute;left:0;top:66.7%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f4.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(63px,12.8vw,105px);height:auto;transform:translateX(-50%) rotate(90deg);transform-origin:50% 100%"></div><div data-grow="40" style="position:absolute;right:0;top:13.6%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f5.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(90px,18.3vw,150px);height:auto;transform:translateX(50%) rotate(-83deg);transform-origin:50% 100%"></div><div data-grow="130" style="position:absolute;right:0;top:31.1%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f6.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(53px,10.9vw,89px);height:auto;transform:translateX(50%) rotate(-77deg);transform-origin:50% 100%"></div><div data-grow="220" style="position:absolute;right:0;top:48.4%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f1.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(46px,9.4vw,77px);height:auto;transform:translateX(50%) rotate(-86deg);transform-origin:50% 100%"></div><div data-grow="310" style="position:absolute;right:0;top:68.4%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f2.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(49px,9.9vw,81px);height:auto;transform:translateX(50%) rotate(-95deg);transform-origin:50% 100%"></div><section data-screen-label="07 Wunschliste" id="wunschliste" style="position:relative;padding:14px clamp(13px,3.4vw,26px) 40px;overflow:hidden;max-width:{{ contentMax }};margin:0 auto;box-sizing:border-box">
+
+<h2 style="margin:0 0 14px;text-align:center;font:400 46px/1 Caveat,cursive"><span data-de="1">Wunschliste</span><span data-en="1" style="display:none">gifts</span><span data-sv="1" style="display:none">önskelista</span></h2>
+<p style="margin:0 0 20px;text-align:center;font:300 13.5px/1.7 Karla,sans-serif"><span data-de="1">Das größte Geschenk ist, dass ihr da seid. Wenn ihr trotzdem etwas mitbringen wollt: hier die kurze Liste von Dingen, die wir <em>nicht</em> brauchen.</span><span data-en="1" style="display:none">Your being there is the gift. If you'd still like to bring something, here's the short list of what we <em>don't</em> need.</span></p>
+<div style="display:{{ wishWrapDisplay }};gap:16px">
+<div style="flex:1;border:1.5px solid rgba(209,102,90,.6);background:rgba(209,102,90,.07);padding:18px 18px 20px">
+<p style="margin:0 0 12px;font:400 28px/1 Caveat,cursive;color:#b5453a"><span data-de="1">bitte nicht:</span><span data-en="1" style="display:none">please not:</span><span data-sv="1" style="display:none">helst inte:</span></p>
+<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px">
+<li style="display:flex;gap:10px;font:300 14px/1.5 Karla,sans-serif"><span style="color:#b5453a">✕</span><span data-de="1">Handtücher &amp; Bettwäsche</span><span data-en="1" style="display:none">towels &amp; bed linen</span></li>
+<li style="display:flex;gap:10px;font:300 14px/1.5 Karla,sans-serif"><span style="color:#b5453a">✕</span><span data-de="1">Geschirr und Gläser</span><span data-en="1" style="display:none">crockery and glasses</span></li>
+<li style="display:flex;gap:10px;font:300 14px/1.5 Karla,sans-serif"><span style="color:#b5453a">✕</span><span data-de="1">Deko fürs Wohnzimmer</span><span data-en="1" style="display:none">living-room decor</span></li>
+<li style="display:flex;gap:10px;font:400 11px/1.6 ui-monospace,Menlo,monospace;color:#a8562f"><span style="color:#b5453a">✕</span>[weitere Punkte ergänzen]</li>
+</ul>
+</div>
+<div style="flex:1;margin-top:{{ wishGap2Margin }};border:1.5px solid rgba(191,224,173,.9);background:rgba(191,224,173,.22);padding:18px">
+<p style="margin:0 0 8px;font:400 28px/1 Caveat,cursive"><span data-de="1">darüber freuen wir uns:</span><span data-en="1" style="display:none">what we'd love:</span></p>
+<p style="margin:0;font:300 14px/1.65 Karla,sans-serif"><span data-de="1">Ein Beitrag zur Hochzeitsreise — oder etwas Selbstgemachtes, Eingekochtes, Gesungenes.</span><span data-en="1" style="display:none">A contribution to the honeymoon — or something homemade, home-canned, or sung.</span></p>
+</div>
+</div>
+</section></div>
+
+
+
+<div style="position:relative;width:100%;overflow:hidden"><div data-grow="40" style="position:absolute;left:0;top:9.6%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f3.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(58px,11.7vw,96px);height:auto;transform:translateX(-50%) rotate(101deg);transform-origin:50% 100%"></div><div data-grow="130" style="position:absolute;left:0;top:32.5%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f4.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(70px,14.1vw,116px);height:auto;transform:translateX(-50%) rotate(90deg);transform-origin:50% 100%"></div><div data-grow="220" style="position:absolute;left:0;top:42.8%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f5.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(90px,18.3vw,150px);height:auto;transform:translateX(-50%) rotate(83deg);transform-origin:50% 100%"></div><div data-grow="310" style="position:absolute;left:0;top:66.0%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f6.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(67px,13.5vw,111px);height:auto;transform:translateX(-50%) rotate(77deg);transform-origin:50% 100%"></div><div data-grow="40" style="position:absolute;right:0;top:11.9%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f1.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(45px,9.1vw,75px);height:auto;transform:translateX(50%) rotate(-86deg);transform-origin:50% 100%"></div><div data-grow="130" style="position:absolute;right:0;top:25.0%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f2.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(41px,8.3vw,68px);height:auto;transform:translateX(50%) rotate(-95deg);transform-origin:50% 100%"></div><div data-grow="220" style="position:absolute;right:0;top:47.1%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f3.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(50px,10.2vw,84px);height:auto;transform:translateX(50%) rotate(-101deg);transform-origin:50% 100%"></div><div data-grow="310" style="position:absolute;right:0;top:65.3%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f4.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(43px,8.7vw,71px);height:auto;transform:translateX(50%) rotate(-90deg);transform-origin:50% 100%"></div><section data-screen-label="08 Fotos" id="fotos" style="position:relative;padding:14px clamp(13px,3.4vw,26px) 26px;overflow:hidden;max-width:{{ contentMax }};margin:0 auto;box-sizing:border-box" data-comment-anchor="a8586fd408-section">
+<div style="position:absolute;right:2px;bottom:8px;width:78px;height:180px;transform-origin:right bottom;transition:transform 1.5s cubic-bezier(.2,.9,.25,1) .55s,opacity 1s .55s;transform:{{ grow }};opacity:{{ growO }}">
+
+</div>
+<h2 style="margin:0 0 14px;text-align:center;font:400 46px/1 Caveat,cursive"><span data-de="1">Fotos</span><span data-en="1" style="display:none">photos</span><span data-sv="1" style="display:none">foton</span></h2>
+<div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+<button onClick="{{ knockBox }}" aria-label="Fotobox" style="width:172px;height:150px;border:none;padding:0;background:none;cursor:pointer;animation:{{ boxAnim }}">
+<div style="position:relative;width:172px;height:150px">
+<div style="position:absolute;left:0;right:0;top:34px;bottom:0;background:linear-gradient(#e5d8c0,#d8c8ac);border:1.5px solid rgba(91,42,16,.5);border-radius:2px;box-shadow:inset 0 -10px 16px rgba(91,42,16,.14)"></div>
+<div style="position:absolute;left:2px;right:2px;top:14px;height:34px;background:linear-gradient(#eee2cd,#e0d0b4);border:1.5px solid rgba(91,42,16,.55);border-radius:3px"></div>
+<div style="position:absolute;left:72px;top:6px;width:28px;height:24px;border:3px solid rgba(91,42,16,.75);border-bottom:none;border-radius:14px 14px 0 0"></div>
+<div style="position:absolute;left:64px;top:30px;width:44px;height:36px;background:linear-gradient(#c9a15e,#a67c3c);border:1.5px solid rgba(91,42,16,.7);border-radius:4px;box-shadow:inset 0 2px 3px rgba(255,255,255,.45)"></div>
+<div style="position:absolute;left:84px;top:44px;width:5px;height:12px;background:rgba(91,42,16,.7);border-radius:3px"></div>
+</div>
+</button>
+<p style="margin:0;font:500 10px/1 Karla,sans-serif;letter-spacing:.24em;text-transform:uppercase;color:#a8562f;border:1px solid rgba(168,86,47,.5);padding:5px 9px"><span data-de="1">geschlossen</span><span data-en="1" style="display:none">locked</span><span data-sv="1" style="display:none">låst</span></p>
+<sc-if value="{{ boxKnocked }}" hint-placeholder-val="{{ false }}">
+<p style="margin:0;max-width:270px;text-align:center;font:400 24px/1.25 Caveat,cursive;color:#b5453a"><span data-de="1">Noch zu! Die Box öffnet sich erst am 07.08.2027.</span><span data-en="1" style="display:none">Still shut! The box opens on 07.08.2027.</span><span data-sv="1" style="display:none">Fortfarande låst! Lådan öppnas den 07.08.2027.</span></p>
+</sc-if>
+</div>
+<div style="padding:20px 20px 0;text-align:center">
+<p style="margin:2px 0 0;font:400 30px/1.15 Caveat,cursive"><span data-de="1">öffnet am 07.08.2027</span><span data-en="1" style="display:none">opens on 07.08.2027</span></p>
+<p style="margin:8px 0 0;font:300 13px/1.7 Karla,sans-serif;opacity:.7"><span data-de="1">Ab dem Hochzeitstag kannst du hier deine Bilder hochladen — dann landen alle Fotos in einem Album.</span><span data-en="1" style="display:none">From the wedding day on you can drop your pictures here — everything lands in one album.</span></p>
+</div>
+
+
+
+<div style="margin-top:34px;text-align:center;padding-bottom:22px">
+<p style="margin:0;font:400 32px/1.2 Caveat,cursive"><span data-de="1">Wir freuen uns auf euch!</span><span data-en="1" style="display:none">We can't wait to see you!</span><span data-sv="1" style="display:none">Vi ser fram emot er!</span></p>
+<p style="margin:6px 0 0;font:400 22px/1 Caveat,cursive;opacity:.55">Ruth &amp; Max · 07.08.2027</p>
+<button onClick="{{ replay }}" style="margin-top:18px;background:none;border:none;font:500 10px/1 Karla,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#a8562f;cursor:pointer;border-bottom:1px solid rgba(168,86,47,.45);padding:0 0 3px"><span data-de="1">Brief nochmal öffnen</span><span data-en="1" style="display:none">open the letter again</span></button>
+</div>
+</section>
+
+<section data-screen-label="09 Vogtland" id="vogtland" style="position:relative;padding:14px clamp(13px,3.4vw,26px) 44px;overflow:hidden;max-width:{{ cardMax }};margin:0 auto;box-sizing:border-box">
+<h2 style="margin:0 0 2px;text-align:center;font:400 46px/1 Caveat,cursive"><span data-de="1">bleibt noch einen Tag</span><span data-en="1" style="display:none">stay one more day</span><span data-sv="1" style="display:none">stanna en dag till</span></h2>
+<p style="margin:0 0 14px;text-align:center;font:400 19px/1.45 Caveat,cursive;opacity:.6"><span data-de="1">was man sonst noch so im Vogtland machen kann</span><span data-en="1" style="display:none">what else there is to do in Vogtland</span><span data-sv="1" style="display:none">vad man annars kan göra i Vogtland</span></p>
+<div style="width:min(480px,92%);margin:0 auto 20px;aspect-ratio:16/7"><image-slot id="vogtland-bruecke" shape="rect" placeholder="Zeichnung Göltzschtalbrücke"></image-slot></div>
+<p style="margin:-12px auto 22px;max-width:340px;text-align:center;font:400 11px/1.5 ui-monospace,Menlo,monospace;color:#a8562f">[Platz für Ruths Göltzschtalbrücken-Zeichnung — kommt als SVG hierher]</p>
+<div style="display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:20px 14px">
+<div data-post="1" data-active="{{ post1 }}" style="position:relative;box-sizing:border-box;flex:0 1 246px;max-width:270px;padding:11px 12px 12px;background:#fffdf8;border:1px solid rgba(91,42,16,.2);box-shadow:0 3px 11px rgba(91,42,16,.12);transform:rotate(-2.6deg) translateY(0px)"><div style="position:absolute;top:9px;right:10px;width:30px;height:36px;border:1px dashed rgba(91,42,16,.3);background:rgba(243,220,147,.3);display:flex;align-items:center;justify-content:center;font:400 17px/1 Caveat,cursive;color:rgba(91,42,16,.55);transform:rotate(3deg);z-index:2">A</div><div style="height:132px;border:1px solid rgba(91,42,16,.14);background:#fdf8ee"><image-slot id="vogt-1" src="assets/vogtland/bruecke.png" shape="rect" placeholder="Göltzschtalbrücke"></image-slot></div><p style="margin:10px 0 2px;font:400 25px/1.15 Caveat,cursive;color:#a8562f"><span data-de="1">für das Pflichtfoto</span><span data-en="1" style="display:none">for the obligatory photo</span><span data-sv="1" style="display:none">för obligatoriska fotot</span></p><p style="margin:4px 0 0;font:500 14px/1.3 Karla,sans-serif">Göltzschtalbrücke</p><p style="margin:3px 0 0;font:300 12px/1.5 Karla,sans-serif;opacity:.7"><span data-de="1">15 Min · größte Ziegelsteinbrücke der Welt</span><span data-en="1" style="display:none">15 min · largest brick bridge in the world</span><span data-sv="1" style="display:none">15 min · världens största tegelbro</span></p><div data-postdetail="1"><div style="padding-top:9px;border-top:1px solid rgba(91,42,16,.14);margin-top:9px"><p style="margin:0;font:300 12.5px/1.6 Karla,sans-serif;opacity:.8;text-wrap:pretty"><span data-de="1">26 Meter über dem Tal, 98 Bögen — von unten sieht man erst, wie groß das Ding wirklich ist. Der Rundweg unter der Brücke dauert eine gute halbe Stunde.</span><span data-en="1" style="display:none">26 metres above the valley and 98 arches — you only grasp the scale from below. The loop underneath takes a good half hour.</span><span data-sv="1" style="display:none">26 meter över dalen och 98 bågar — storleken förstår man först underifrån. Slingan under bron tar en halvtimme.</span></p><a href="https://www.google.com/maps/search/?api=1&amp;query=G%C3%B6ltzschtalbr%C3%BCcke" target="_blank" rel="noreferrer" style="display:inline-block;margin-top:8px;font:500 10.5px/1 Karla,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#a8562f;border-bottom:1.5px solid rgba(168,86,47,.5);padding:13px 6px 4px;margin:-13px -6px -2px;text-decoration:none"><span data-de="1">Route</span><span data-en="1" style="display:none">route</span><span data-sv="1" style="display:none">vägen</span></a></div></div><button type="button" onClick="{{ postToggle1 }}" style="margin-top:9px;width:100%;border:none;border-top:1px dashed rgba(91,42,16,.25);background:transparent;cursor:pointer;padding:7px 0 0;font:400 19px/1 Caveat,cursive;color:rgba(91,42,16,.62);display:flex;align-items:center;justify-content:center;gap:7px"><span data-postoc="open"><span data-de="1">mehr</span><span data-en="1" style="display:none">more</span><span data-sv="1" style="display:none">mer</span></span><span data-postoc="close"><span data-de="1">zu</span><span data-en="1" style="display:none">close</span><span data-sv="1" style="display:none">stäng</span></span><span data-postchev="1" style="font-size:22px;line-height:.7">&#8250;</span></button></div>
+<div data-post="1" data-active="{{ post2 }}" style="position:relative;box-sizing:border-box;flex:0 1 246px;max-width:270px;padding:11px 12px 12px;background:#fffdf8;border:1px solid rgba(91,42,16,.2);box-shadow:0 3px 11px rgba(91,42,16,.12);transform:rotate(2.2deg) translateY(10px)"><div style="position:absolute;top:9px;right:10px;width:30px;height:36px;border:1px dashed rgba(91,42,16,.3);background:rgba(243,220,147,.3);display:flex;align-items:center;justify-content:center;font:400 17px/1 Caveat,cursive;color:rgba(91,42,16,.55);transform:rotate(3deg);z-index:2">B</div><div style="height:132px;border:1px solid rgba(91,42,16,.14);background:#fdf8ee"><image-slot id="vogt-2" src="assets/vogtland/talsperre.png" shape="rect" placeholder="Talsperre Pöhl"></image-slot></div><p style="margin:10px 0 2px;font:400 25px/1.15 Caveat,cursive;color:#a8562f"><span data-de="1">für den Kater danach</span><span data-en="1" style="display:none">for the morning after</span><span data-sv="1" style="display:none">för dagen efter</span></p><p style="margin:4px 0 0;font:500 14px/1.3 Karla,sans-serif">Talsperre Pöhl</p><p style="margin:3px 0 0;font:300 12px/1.5 Karla,sans-serif;opacity:.7"><span data-de="1">25 Min · Baden, Boot, Strandbad</span><span data-en="1" style="display:none">25 min · swimming, boats, lido</span><span data-sv="1" style="display:none">25 min · bad, båt, strandbad</span></p><div data-postdetail="1"><div style="padding-top:9px;border-top:1px solid rgba(91,42,16,.14);margin-top:9px"><p style="margin:0;font:300 12.5px/1.6 Karla,sans-serif;opacity:.8;text-wrap:pretty"><span data-de="1">Das Vogtland-Meer. Strandbad, Tretboote und genug Wiese, um einen Hochzeitsmorgen einfach zu verschlafen.</span><span data-en="1" style="display:none">The local sea. Lido, pedal boats and enough lawn to sleep off a wedding morning.</span><span data-sv="1" style="display:none">Vogtlands hav. Strandbad, trampbåtar och tillräckligt med gräs för att sova bort morgonen.</span></p><a href="https://www.google.com/maps/search/?api=1&amp;query=Talsperre+P%C3%B6hl" target="_blank" rel="noreferrer" style="display:inline-block;margin-top:8px;font:500 10.5px/1 Karla,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#a8562f;border-bottom:1.5px solid rgba(168,86,47,.5);padding:13px 6px 4px;margin:-13px -6px -2px;text-decoration:none"><span data-de="1">Route</span><span data-en="1" style="display:none">route</span><span data-sv="1" style="display:none">vägen</span></a></div></div><button type="button" onClick="{{ postToggle2 }}" style="margin-top:9px;width:100%;border:none;border-top:1px dashed rgba(91,42,16,.25);background:transparent;cursor:pointer;padding:7px 0 0;font:400 19px/1 Caveat,cursive;color:rgba(91,42,16,.62);display:flex;align-items:center;justify-content:center;gap:7px"><span data-postoc="open"><span data-de="1">mehr</span><span data-en="1" style="display:none">more</span><span data-sv="1" style="display:none">mer</span></span><span data-postoc="close"><span data-de="1">zu</span><span data-en="1" style="display:none">close</span><span data-sv="1" style="display:none">stäng</span></span><span data-postchev="1" style="font-size:22px;line-height:.7">&#8250;</span></button></div>
+<div data-post="1" data-active="{{ post3 }}" style="position:relative;box-sizing:border-box;flex:0 1 246px;max-width:270px;padding:11px 12px 12px;background:#fffdf8;border:1px solid rgba(91,42,16,.2);box-shadow:0 3px 11px rgba(91,42,16,.12);transform:rotate(-1.4deg) translateY(4px)"><div style="position:absolute;top:9px;right:10px;width:30px;height:36px;border:1px dashed rgba(91,42,16,.3);background:rgba(243,220,147,.3);display:flex;align-items:center;justify-content:center;font:400 17px/1 Caveat,cursive;color:rgba(91,42,16,.55);transform:rotate(3deg);z-index:2">C</div><div style="height:132px;border:1px solid rgba(91,42,16,.14);background:#fdf8ee"><image-slot id="vogt-3" src="assets/vogtland/burg-mylau.png" shape="rect" placeholder="Burg Mylau"></image-slot></div><p style="margin:10px 0 2px;font:400 25px/1.15 Caveat,cursive;color:#a8562f"><span data-de="1">für fünf Minuten Mittelalter</span><span data-en="1" style="display:none">for five minutes of medieval</span><span data-sv="1" style="display:none">för fem minuter medeltid</span></p><p style="margin:4px 0 0;font:500 14px/1.3 Karla,sans-serif">Burg Mylau</p><p style="margin:3px 0 0;font:300 12px/1.5 Karla,sans-serif;opacity:.7"><span data-de="1">2 Min von der Kirche · Burg & Museum</span><span data-en="1" style="display:none">2 min from the church · castle & museum</span><span data-sv="1" style="display:none">2 min från kyrkan · borg & museum</span></p><div data-postdetail="1"><div style="padding-top:9px;border-top:1px solid rgba(91,42,16,.14);margin-top:9px"><p style="margin:0;font:300 12.5px/1.6 Karla,sans-serif;opacity:.8;text-wrap:pretty"><span data-de="1">Steht direkt über der Stadtkirche — wer vor der Trauung zu früh da ist, läuft einmal hoch und hat den besten Blick über Mylau.</span><span data-en="1" style="display:none">Right above the church — if you arrive early, walk up for the best view over Mylau.</span><span data-sv="1" style="display:none">Ligger rakt ovanför kyrkan — kom du för tidigt, gå upp för den bästa utsikten.</span></p><a href="https://www.google.com/maps/search/?api=1&amp;query=Burg+Mylau" target="_blank" rel="noreferrer" style="display:inline-block;margin-top:8px;font:500 10.5px/1 Karla,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#a8562f;border-bottom:1.5px solid rgba(168,86,47,.5);padding:13px 6px 4px;margin:-13px -6px -2px;text-decoration:none"><span data-de="1">Route</span><span data-en="1" style="display:none">route</span><span data-sv="1" style="display:none">vägen</span></a></div></div><button type="button" onClick="{{ postToggle3 }}" style="margin-top:9px;width:100%;border:none;border-top:1px dashed rgba(91,42,16,.25);background:transparent;cursor:pointer;padding:7px 0 0;font:400 19px/1 Caveat,cursive;color:rgba(91,42,16,.62);display:flex;align-items:center;justify-content:center;gap:7px"><span data-postoc="open"><span data-de="1">mehr</span><span data-en="1" style="display:none">more</span><span data-sv="1" style="display:none">mer</span></span><span data-postoc="close"><span data-de="1">zu</span><span data-en="1" style="display:none">close</span><span data-sv="1" style="display:none">stäng</span></span><span data-postchev="1" style="font-size:22px;line-height:.7">&#8250;</span></button></div>
+<div data-post="1" data-active="{{ post4 }}" style="position:relative;box-sizing:border-box;flex:0 1 246px;max-width:270px;padding:11px 12px 12px;background:#fffdf8;border:1px solid rgba(91,42,16,.2);box-shadow:0 3px 11px rgba(91,42,16,.12);transform:rotate(2.8deg) translateY(12px)"><div style="position:absolute;top:9px;right:10px;width:30px;height:36px;border:1px dashed rgba(91,42,16,.3);background:rgba(243,220,147,.3);display:flex;align-items:center;justify-content:center;font:400 17px/1 Caveat,cursive;color:rgba(91,42,16,.55);transform:rotate(3deg);z-index:2">D</div><div style="height:132px;border:1px solid rgba(91,42,16,.14);background:#fdf8ee"><image-slot id="vogt-4" src="assets/vogtland/bad-schlema.png" shape="rect" placeholder="Bad Schlema"></image-slot></div><p style="margin:10px 0 2px;font:400 25px/1.15 Caveat,cursive;color:#a8562f"><span data-de="1">für Wasser & Wolldecke</span><span data-en="1" style="display:none">for water & a blanket</span><span data-sv="1" style="display:none">för vatten & filt</span></p><p style="margin:4px 0 0;font:500 14px/1.3 Karla,sans-serif">Bad Schlema</p><p style="margin:3px 0 0;font:300 12px/1.5 Karla,sans-serif;opacity:.7"><span data-de="1">ca. 55 Min · Kurbad &amp; Radon-Therme</span><span data-en="1" style="display:none">approx. 55 min · spa town &amp; radon baths</span><span data-sv="1" style="display:none">ca 55 min · kurort &amp; radonbad</span></p><div data-postdetail="1"><div style="padding-top:9px;border-top:1px solid rgba(91,42,16,.14);margin-top:9px"><p style="margin:0;font:300 12.5px/1.6 Karla,sans-serif;opacity:.8;text-wrap:pretty"><span data-de="1">Kurort im Erzgebirge mit Thermalbad und Kurpark — der ruhigste Weg, einen langen Hochzeitsabend auszuklingen. Gut mit einem Erzgebirgs-Umweg auf der Heimfahrt zu verbinden.</span><span data-en="1" style="display:none">A spa town in the Erzgebirge with thermal baths and a spa park — the calmest way to let a long wedding night settle. Easy to fold into the drive home.</span><span data-sv="1" style="display:none">Kurort i Erzgebirge med termalbad och kurpark — det stillsammaste sättet att låta en lång bröllopskväll landa. Lätt att ta med på hemvägen.</span></p><a href="https://www.google.com/maps/search/?api=1&amp;query=Bad+Schlema" target="_blank" rel="noreferrer" style="display:inline-block;margin-top:8px;font:500 10.5px/1 Karla,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#a8562f;border-bottom:1.5px solid rgba(168,86,47,.5);padding:13px 6px 4px;margin:-13px -6px -2px;text-decoration:none"><span data-de="1">Route</span><span data-en="1" style="display:none">route</span><span data-sv="1" style="display:none">vägen</span></a></div></div><button type="button" onClick="{{ postToggle4 }}" style="margin-top:9px;width:100%;border:none;border-top:1px dashed rgba(91,42,16,.25);background:transparent;cursor:pointer;padding:7px 0 0;font:400 19px/1 Caveat,cursive;color:rgba(91,42,16,.62);display:flex;align-items:center;justify-content:center;gap:7px"><span data-postoc="open"><span data-de="1">mehr</span><span data-en="1" style="display:none">more</span><span data-sv="1" style="display:none">mer</span></span><span data-postoc="close"><span data-de="1">zu</span><span data-en="1" style="display:none">close</span><span data-sv="1" style="display:none">stäng</span></span><span data-postchev="1" style="font-size:22px;line-height:.7">&#8250;</span></button></div>
+</div>
+</section>
+
+</div>
+
+<sc-if value="{{ navOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ toggleNav }}" style="position:fixed;top:0;bottom:0;left:0;right:0;z-index:70;display:flex;justify-content:center;background:rgba(91,42,16,.25)">
+<div style="width:100%;max-width:{{ navPanelMax }};background:#f6f1e7;padding:74px 30px 30px;display:flex;flex-direction:column;gap:2px">
+<a href="#home" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10"><span data-de="1">Start</span><span data-en="1" style="display:none">Home</span><span data-sv="1" style="display:none">Start</span></a>
+<a href="#geschichte" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10"><span data-de="1">unsere Geschichte</span><span data-en="1" style="display:none">our story</span><span data-sv="1" style="display:none">vår historia</span></a>
+<a href="#ablauf" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10"><span data-de="1">Ablauf</span><span data-en="1" style="display:none">the day</span><span data-sv="1" style="display:none">dagen</span></a>
+<a href="#anfahrt" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10"><span data-de="1">Anfahrt</span><span data-en="1" style="display:none">travel</span><span data-sv="1" style="display:none">resa</span></a>
+<a href="#vogtland" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10"><span data-de="1">Vogtland</span><span data-en="1" style="display:none">Vogtland</span><span data-sv="1" style="display:none">Vogtland</span></a>
+<a href="#anmeldung" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10"><span data-de="1">Anmeldung</span><span data-en="1" style="display:none">RSVP</span><span data-sv="1" style="display:none">OSA</span></a>
+<a href="#kuchen" data-tier="alles" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10"><span data-de="1">Kuchenbuffet</span><span data-en="1" style="display:none">cake table</span><span data-sv="1" style="display:none">tårtbordet</span></a>
+<a href="#faq" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10">FAQ</a>
+<a href="#wunschliste" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10"><span data-de="1">Wunschliste</span><span data-en="1" style="display:none">gifts</span><span data-sv="1" style="display:none">önskelista</span></a>
+<a href="#fotos" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10"><span data-de="1">Fotos</span><span data-en="1" style="display:none">photos</span><span data-sv="1" style="display:none">foton</span></a>
+<p style="margin:22px 0 0;font:500 10px/1 Karla,sans-serif;letter-spacing:.2em;text-transform:uppercase;opacity:.45"><span data-de="1">tippen zum Schließen</span><span data-en="1" style="display:none">tap to close</span><span data-sv="1" style="display:none">tryck för att stänga</span></p>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ letterVisible }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;top:0;bottom:0;left:0;right:0;z-index:90;display:flex;justify-content:center;background:transparent;pointer-events:{{ overlayPE }};transition:opacity .6s;opacity:{{ overlayO }}">
+<div style="position:relative;width:100%;height:100%;max-width:none;perspective:1400px;overflow:hidden">
+<div style="position: absolute; top: 0; bottom: 0; left: 0; width: 50%; transform-origin: left center; transform-style: preserve-3d; backface-visibility: hidden; background-image: repeating-linear-gradient(48deg,rgba(168,205,228,.55) 0 3px,transparent 3px 11px); border-right: 1px solid rgba(91,42,16,.25); box-shadow: 6px 0 22px rgba(91,42,16,.12); transition: transform 1.15s cubic-bezier(.55,0,.35,1); transform: {{ flapL }}; background-color: #E0D5BE"></div>
+<div style="position: absolute; top: 0; bottom: 0; right: 0; width: 50%; transform-origin: right center; transform-style: preserve-3d; backface-visibility: hidden; background-image: repeating-linear-gradient(-48deg,rgba(243,220,147,.75) 0 3px,transparent 3px 11px); box-shadow: -6px 0 22px rgba(91,42,16,.1); transition: transform 1.05s cubic-bezier(.55,0,.35,1); transform: {{ flapR }}; background-color: #E0D5BE" data-comment-anchor="2088e68239-div"></div>
+<button onClick="{{ open }}" aria-label="Siegel öffnen" style="position: absolute; top: 50%; left: 50%; margin: -46px 0 0 -46px; width: 96px; height: 96px; border-radius: 49% 51% 47% 53%/52% 48% 52% 48%; border: none; padding: 0; cursor: pointer; box-shadow: inset 0 3px 7px rgba(255,255,255,.28),inset 0 -6px 12px rgba(60,12,8,.55),0 8px 18px rgba(60,20,10,.4); filter: saturate(1.05); transition: transform .5s cubic-bezier(.4,1.6,.5,1),opacity .5s; overflow: hidden; animation: pulse 2.6s ease-in-out infinite; transform: {{ sealT }}; opacity: {{ sealO }}; color: #AD4914; background-color: #7F0B0BEB" data-comment-anchor="fe3752d98b-button"><span style="display:block;width:100%;height:100%;background:url(assets/siegel.jpg) center/128% no-repeat;mix-blend-mode:multiply;opacity:.85;filter:drop-shadow(0 1px 0 rgba(255,220,200,.35))"></span><span style="position: absolute; inset: 0; pointer-events: none; left: -6px; top: -5px"></span></button>
+<p style="position:absolute;top:50%;left:0;right:0;margin:66px 0 0;text-align:center;font:400 21px/1.3 Caveat,cursive;color:rgba(91,42,16,.65);transition:opacity .4s;opacity:{{ sealO }}"><span data-de="1">auf das Siegel tippen</span><span data-en="1" style="display:none">tap the seal</span><span data-sv="1" style="display:none">tryck på sigillet</span></p>
+</div>
+</div>
+</sc-if>
+
+</div></div>
+
+
+<sc-if value="{{ gateOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;inset:0;z-index:9998;background:#f6f1e7;background-image:url(assets/paper.png);background-size:520px;display:flex;align-items:center;justify-content:center;padding:26px">
+<div style="width:100%;max-width:360px;text-align:center">
+<p style="margin:0;font:400 17px/1 Caveat,cursive;letter-spacing:.3em;opacity:.55">07.08.2027</p>
+<h2 style="margin:10px 0 0;font:400 52px/1.05 Caveat,cursive">Ruth &amp; Max</h2>
+<p style="margin:14px auto 0;max-width:300px;font:300 13.5px/1.7 Karla,sans-serif;opacity:.8"><span data-de="1">Schön, dass du da bist. Auf deiner Einladung steht ein Wort — tipp es hier ein, dann öffnet sich deine Seite.</span><span data-en="1" style="display:none">Lovely to see you. Your invitation carries a single word — type it in and your page opens.</span><span data-sv="1" style="display:none">Vad fint att du är här. På din inbjudan står ett ord — skriv in det och din sida öppnas.</span></p>
+<form onSubmit="{{ gateSubmit }}" style="margin-top:22px;display:flex;flex-direction:column;gap:14px">
+<input name="code" autocomplete="off" placeholder="…" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:7px 2px;font:300 15px Karla,sans-serif;outline:none;text-align:center">
+<button type="submit" style="padding:12px;background:#5b2a10;color:#f6f1e7;border:none;font:400 25px/1 Caveat,cursive;cursor:pointer"><span data-de="1">aufmachen</span><span data-en="1" style="display:none">open</span><span data-sv="1" style="display:none">öppna</span></button>
+</form>
+<p style="margin:12px 0 0;min-height:18px;font:300 12px/1.5 Karla,sans-serif;color:#a8562f">{{ gateError }}</p>
+<p onClick="{{ gateSecret }}" style="margin:24px 0 0;font:400 15px/1 Caveat,cursive;opacity:.35;cursor:default;user-select:none">R &amp; M</p>
+</div></div>
+</sc-if>
+
+<sc-if value="{{ adminOn }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;left:12px;bottom:12px;z-index:9999;display:flex;flex-direction:column;gap:5px;padding:9px 10px;background:#fffdf8;border:1px solid rgba(91,42,16,.25);box-shadow:0 4px 14px rgba(91,42,16,.18)">
+<p style="margin:0 0 2px;font:500 9px/1 Karla,sans-serif;letter-spacing:.18em;text-transform:uppercase;opacity:.5">Vorschau</p>
+<button type="button" onClick="{{ setTrauung }}" style="border:none;background:transparent;cursor:pointer;font:400 19px/1 Caveat,cursive;text-align:left;color:{{ cTrauung }}">nur Trauung</button>
+<button type="button" onClick="{{ setParty }}" style="border:none;background:transparent;cursor:pointer;font:400 19px/1 Caveat,cursive;text-align:left;color:{{ cParty }}">+ Party</button>
+<button type="button" onClick="{{ setAlles }}" style="border:none;background:transparent;cursor:pointer;font:400 19px/1 Caveat,cursive;text-align:left;color:{{ cAlles }}">ganzer Tag</button>
+<button type="button" onClick="{{ setGate }}" style="margin-top:3px;border:none;border-top:1px dashed rgba(91,42,16,.25);background:transparent;cursor:pointer;font:400 17px/1 Caveat,cursive;text-align:left;padding-top:5px;opacity:.65">Begrüßung</button>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;autoOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Opening animation&quot;},&quot;animSpeed&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:1,&quot;min&quot;:0.5,&quot;max&quot;:2,&quot;step&quot;:0.1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Opening animation&quot;},&quot;defaultLang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;de&quot;,&quot;en&quot;,&quot;sv&quot;],&quot;default&quot;:&quot;de&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Language&quot;}}">
+class Component extends DCLogic {
+  state = { phase: 0, letterVisible: true, flowersIn: false, navOpen: false, sent: false, cakeSent: false, cakes: [{ name: 'Käsekuchen', who: 'Oma Renate', slices: 16, kind: 'Kuchen' }, { name: 'Schokotorte', who: 'Familie Beispiel', slices: 12, kind: 'Torte' }], lang: 'de', now: Date.now(), knock: 0, rsvpPhase: 0, desktop: false };
+
+  guestCodes = {
+    trauung: ['trauung', 'kirche', 'glockenschlag', 'glocke'],
+    party: ['tanz', 'tanzschuh', 'party', 'discokugel'],
+    alles: ['ganzertag', 'ganzer tag', 'sonnenaufgang', 'hochzeit', 'kuchengabel']
+  };
+
+  resolveCode(raw) {
+    const v = String(raw || '').trim().toLowerCase().replace(/[^a-zäöüß ]/g, '');
+    if (!v) return null;
+    if (v === 'ruthundmax') return 'admin';
+    for (const tier of Object.keys(this.guestCodes)) {
+      if (tier === v || this.guestCodes[tier].indexOf(v) >= 0) return tier;
+    }
+    return null;
+  }
+
+  applyGuest(tier) {
+    document.documentElement.setAttribute('data-guest', tier || 'none');
+    if (tier) { try { localStorage.setItem('rm-guest', tier); } catch (e) {} }
+    this.setState({ guest: tier || null }, () => this.layoutAblaufLine());
+  }
+
+  initGuest() {
+    let tier = null, admin = false;
+    try {
+      const p = new URLSearchParams(location.search).get('g');
+      const r = p ? this.resolveCode(p) : null;
+      if (r === 'admin') { admin = true; tier = 'alles'; }
+      else if (r) tier = r;
+      if (!tier) tier = localStorage.getItem('rm-guest') || null;
+      if (localStorage.getItem('rm-admin') === '1') admin = true;
+    } catch (e) {}
+    if (admin) { try { localStorage.setItem('rm-admin', '1'); } catch (e) {} }
+    this.setState({ admin: admin });
+    this.applyGuest(tier);
+  }
+
+  layoutAblaufLine() {
+    const svg = document.querySelector('[data-ablauf-line]');
+    const wrap = document.querySelector('[data-ablauf-items]');
+    if (!svg || !wrap) return;
+    const box = wrap.getBoundingClientRect();
+    const items = Array.from(wrap.children).filter(el =>
+      el.hasAttribute('data-reveal') && el.offsetParent !== null && getComputedStyle(el).display !== 'none');
+    const vb = '0 0 ' + Math.max(1, box.width).toFixed(0) + ' ' + Math.max(1, box.height).toFixed(0);
+    let d = '';
+    for (let i = 0; i < items.length - 1; i++) {
+      const a = items[i].firstElementChild, b = items[i + 1].firstElementChild;
+      if (!a || !b) continue;
+      const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+      const x1 = ra.left + ra.width / 2 - box.left, y1 = ra.bottom - box.top - ra.height * 0.22;
+      const x2 = rb.left + rb.width / 2 - box.left, y2 = rb.top - box.top + rb.height * 0.22;
+      if (y2 - y1 < 10) continue;
+      const dy = Math.max(26, (y2 - y1) * (items.length <= 2 ? 0.92 : 0.62));
+      d += 'M' + x1.toFixed(1) + ' ' + y1.toFixed(1) + ' C ' + x1.toFixed(1) + ' ' + (y1 + dy).toFixed(1)
+        + ' ' + x2.toFixed(1) + ' ' + (y2 - dy).toFixed(1) + ' ' + x2.toFixed(1) + ' ' + y2.toFixed(1) + ' ';
+    }
+    if (d !== this.state.lineD || vb !== this.state.lineVB) this.setState({ lineD: d, lineVB: vb });
+  }
+
+  guestVals() {
+    const g = this.state.guest;
+    const ink = t => (g === t ? '#a8562f' : 'rgba(91,42,16,.75)');
+    return {
+      ablaufD: this.state.lineD || 'M0 0',
+      ablaufVB: this.state.lineVB || '0 0 378 975',
+      gateOpen: !g,
+      gateError: this.state.gateError || '',
+      adminOn: !!this.state.admin && !!g,
+      cTrauung: ink('trauung'), cParty: ink('party'), cAlles: ink('alles'),
+      setTrauung: () => this.applyGuest('trauung'),
+      setParty: () => this.applyGuest('party'),
+      setAlles: () => this.applyGuest('alles'),
+      setGate: () => { try { localStorage.removeItem('rm-guest'); } catch (e) {} this.applyGuest(null); },
+      gateSecret: () => {
+        this.secretHits = (this.secretHits || 0) + 1;
+        if (this.secretHits >= 3) {
+          try { localStorage.setItem('rm-admin', '1'); } catch (e) {}
+          this.setState({ admin: true });
+          this.applyGuest('alles');
+        }
+      },
+      gateSubmit: e => {
+        e.preventDefault();
+        const r = this.resolveCode(e.target.code && e.target.code.value);
+        if (r === 'admin') {
+          try { localStorage.setItem('rm-admin', '1'); } catch (err) {}
+          this.setState({ admin: true, gateError: '' });
+          this.applyGuest('alles');
+        } else if (r) {
+          this.setState({ gateError: '' });
+          this.applyGuest(r);
+        } else {
+          this.setState({ gateError: this.state.lang === 'en' ? 'Hmm, that word does not fit. Check your invitation?' : this.state.lang === 'sv' ? 'Hmm, ordet passar inte. Kolla inbjudan?' : 'Hmm, das Wort passt nicht. Schau nochmal auf die Einladung?' });
+        }
+      }
+    };
+  }
+
+  componentDidMount() {
+    this.setState({ lang: this.props.defaultLang || 'de' });
+    this.initGuest();
+    this.lineRaf = () => { clearTimeout(this.lineT); this.lineT = setTimeout(() => this.layoutAblaufLine(), 120); };
+    window.addEventListener('resize', this.lineRaf);
+    setTimeout(() => this.layoutAblaufLine(), 260);
+    setTimeout(() => this.layoutAblaufLine(), 1200);
+    this.timer = setInterval(() => this.setState({ now: Date.now() }), 1000);
+    this.applyLang(this.props.defaultLang || 'de');
+    setTimeout(() => this.initReveal(), 120);
+    if (this.props.autoOpen) this.t0 = setTimeout(() => this.open(), 1200);
+    this.onResize = () => this.setState({ desktop: window.innerWidth >= 860 });
+    window.addEventListener('resize', this.onResize);
+    this.onResize();
+  }
+  componentDidUpdate(prev) {
+    if (prev.lang !== this.state.lang) { this.applyLang(this.state.lang); setTimeout(() => this.layoutAblaufLine(), 60); }
+  }
+  componentWillUnmount() { if (this.lineRaf) window.removeEventListener('resize', this.lineRaf); clearTimeout(this.lineT); if (this.rsvpRaf) cancelAnimationFrame(this.rsvpRaf); clearInterval(this.timer); clearTimeout(this.t0); (this.tt || []).forEach(clearTimeout); if (this.io) this.io.disconnect(); if (this.onScroll) window.removeEventListener('scroll', this.onScroll); if (this.onResize) window.removeEventListener('resize', this.onResize); }
+
+  applyLang(l) {
+    document.querySelectorAll('[data-en]').forEach(e => { e.style.display = l === 'en' ? '' : 'none'; });
+    document.querySelectorAll('[data-sv]').forEach(e => { e.style.display = l === 'sv' ? '' : 'none'; });
+    document.querySelectorAll('[data-de]').forEach(e => {
+      // Swedish falls back to German where no Swedish version exists yet
+      const hasSv = e.parentElement && e.parentElement.querySelector(':scope > [data-sv]');
+      e.style.display = (l === 'de' || (l === 'sv' && !hasSv)) ? '' : 'none';
+    });
+  }
+
+  initReveal() {
+    if (this.io) this.io.disconnect();
+    const blocks = Array.from(document.querySelectorAll('[data-reveal]'));
+    const lines = [];
+    // the dotted Ablauf connector draws itself with the scroll position
+    this.lineWrap = document.querySelector('[data-line-wrap]');
+    if (this.lineWrap && !this.onScroll) {
+      this.onScroll = () => {
+        if (this.raf) return;
+        this.raf = requestAnimationFrame(() => {
+          this.raf = null;
+          const el = this.lineWrap;
+          if (!el) return;
+          const r = el.getBoundingClientRect();
+          const p = Math.max(0, Math.min(1, (window.innerHeight * 0.86 - r.top) / (r.height * 0.72)));
+          el.style.clipPath = 'inset(0 0 ' + ((1 - p) * 100).toFixed(1) + '% 0)';
+        });
+      };
+      window.addEventListener('scroll', this.onScroll, { passive: true });
+      this.onScroll();
+    }
+    const grows = Array.from(document.querySelectorAll('[data-grow]'));
+    grows.forEach(el => {
+      const d = parseInt(el.dataset.grow || '0', 10);
+      el.style.opacity = '0';
+      el.style.transform = 'scale(.3) rotate(-16deg)';
+      el.style.transition = 'opacity 1s ease ' + d + 'ms, transform 1.5s cubic-bezier(.2,.9,.25,1) ' + d + 'ms';
+    });
+    blocks.forEach(el => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(26px)';
+      el.style.transition = 'opacity .7s ease, transform .9s cubic-bezier(.2,.9,.25,1)';
+    });
+    lines.forEach(el => {
+      el.style.opacity = '0';
+      el.style.clipPath = 'inset(0 0 100% 0)';
+      el.style.transition = 'opacity .5s ease, clip-path 1.1s cubic-bezier(.4,0,.5,1)';
+    });
+    this.io = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        const el = en.target;
+        if (el.hasAttribute('data-reveal-line')) { el.style.opacity = '1'; el.style.clipPath = 'inset(0)'; }
+        else { el.style.opacity = '1'; el.style.transform = 'none'; }
+        el.querySelectorAll('[data-fly]').forEach(n => { n.style.animationPlayState = 'running'; });
+        this.io.unobserve(el);
+      });
+    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.15 });
+    blocks.concat(lines).forEach(el => this.io.observe(el));
+    const showGrow = el => { el.style.opacity = '1'; el.style.transform = 'none'; };
+    const hosts = new Set(grows.map(el => el.parentElement).filter(Boolean));
+    this.growIo = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        en.target.querySelectorAll(':scope > [data-grow]').forEach(showGrow);
+        this.growIo.unobserve(en.target);
+      });
+    }, { threshold: 0, rootMargin: '0px 0px -8% 0px' });
+    hosts.forEach(el => this.growIo.observe(el));
+    requestAnimationFrame(() => grows.forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (r.top < window.innerHeight && r.bottom > 0) showGrow(el);
+    }));
+  }
+
+  flyFlock = (e) => {
+    if (this.flockBusy) return;
+    const wrap = document.querySelector('[data-flock]');
+    if (!wrap) return;
+    const btn = e && e.currentTarget;
+    let longest = 0;
+    wrap.querySelectorAll('[data-fly]').forEach(n => {
+      const a = n.style.animation;
+      n.style.display = '';
+      n.style.animation = 'none';
+      void n.offsetWidth;
+      n.style.animation = a;
+      n.style.animationPlayState = 'running';
+      const cs = getComputedStyle(n);
+      const secs = s => (s || '').split(',').reduce((m, v) => Math.max(m, parseFloat(v) * (v.indexOf('ms') > -1 && v.indexOf('s') === v.indexOf('ms') + 1 ? 0.001 : 1) || 0), 0);
+      longest = Math.max(longest, secs(cs.animationDuration) + secs(cs.animationDelay));
+    });
+    this.flockBusy = true;
+    if (btn) btn.style.cursor = 'default';
+    clearTimeout(this.flockT);
+    this.flockT = setTimeout(() => {
+      this.flockBusy = false;
+      if (btn) btn.style.cursor = 'pointer';
+    }, Math.max(1200, longest * 1000 + 200));
+  };
+  
+  adjustFlockPosition = () => {
+    const flock = document.querySelector('[data-flock]');
+    if (flock) {
+      flock.style.left = '-8%';
+      flock.style.top = '60%';
+    }
+  };
+
+  popDove = (e) => {
+    e.stopPropagation();
+    const n = e.currentTarget;
+    if (!n || n.dataset.popped) return;
+    n.dataset.popped = '1';
+    const r = n.getBoundingClientRect(), host = n.offsetParent || document.body;
+    const hr = host.getBoundingClientRect();
+    const cx = r.left - hr.left + r.width / 2, cy = r.top - hr.top + r.height / 2;
+    const burst = document.createElement('div');
+    burst.style.cssText = 'position:absolute;left:' + cx + 'px;top:' + cy + 'px;width:0;height:0;pointer-events:none;z-index:4';
+    for (let i = 0; i < 11; i++) {
+      const ang = (i / 11) * Math.PI * 2 + Math.random() * 0.5;
+      const d = 26 + Math.random() * 40, w = 5 + Math.random() * 5;
+      const f = document.createElement('div');
+      f.style.cssText = 'position:absolute;left:0;top:0;width:' + w.toFixed(1) + 'px;height:' + (w * 2.1).toFixed(1) +
+        'px;border-radius:60% 60% 50% 50%/70% 70% 40% 40%;background:#f6f1e7;border:1px solid #5b2a10;' +
+        '--fx:' + (Math.cos(ang) * d).toFixed(1) + 'px;--fy:' + (Math.sin(ang) * d - 10).toFixed(1) + 'px;--fr:' +
+        Math.round(-200 + Math.random() * 400) + 'deg;animation:puff ' + (0.7 + Math.random() * 0.5).toFixed(2) + 's cubic-bezier(.2,.7,.3,1) both';
+      burst.appendChild(f);
+    }
+    host.appendChild(burst);
+    n.style.display = 'none';
+    setTimeout(() => { burst.remove(); delete n.dataset.popped; }, 1400);
+    this.countPop();
+  };
+
+  countPop = () => {
+    const pops = (this.state.pops || 0) + 1;
+    let best = 0;
+    try { best = parseInt(localStorage.getItem('rm-dove-best') || '0', 10) || 0; } catch (err) {}
+    if (pops > best) { best = pops; try { localStorage.setItem('rm-dove-best', String(pops)); } catch (err) {} }
+    this.setState({ pops, best });
+  };
+
+  open = () => {
+    if (this.state.phase > 0) return;
+    const s = this.props.animSpeed || 1;
+    this.tt = [];
+    this.setState({ phase: 1 });
+    this.tt.push(setTimeout(() => this.setState({ phase: 2 }), 380 / s));
+    this.tt.push(setTimeout(() => this.setState({ phase: 3 }), 1450 / s));
+    this.tt.push(setTimeout(() => this.setState({ phase: 4 }), 2300 / s));
+    this.tt.push(setTimeout(() => this.setState({ letterVisible: false, flowersIn: true }), 2750 / s));
+  };
+
+  replay = () => {
+    (this.tt || []).forEach(clearTimeout);
+    this.setState({ phase: 0, letterVisible: true, flowersIn: false });
+    if (typeof window !== 'undefined') window.scrollTo(0, 0);
+  };
+
+  cakeTypes = {
+    'Torte': ['#f3e4cf', '#a8562f'],
+    'Muffins / Kleingebäck': ['#f0dfc0', '#c98b4b'],
+    'Herzhaftes': ['#eadfc6', '#8d7a4e'],
+    'Getränk': ['#e3ecef', '#6f93a4']
+  };
+
+  submitCake = e => {
+    e.preventDefault();
+    const f = e.target;
+    const what = (f.what && f.what.value || '').trim();
+    const cake = {
+      name: what || 'Überraschungskuchen',
+      who: (f.who && f.who.value || '').trim(),
+      slices: parseInt(f.slices && f.slices.value, 10) || 0,
+      kind: f.kind && f.kind.value || 'Kuchen'
+    };
+    this.setState(s => ({ cakeSent: true, cakes: (s.cakes || []).concat([cake]) }));
+  };
+
+  postVals() {
+    const active = this.state.postActive;
+    const out = {};
+    for (let n = 1; n <= 4; n++) {
+      out['post' + n] = active === n ? '1' : '0';
+      out['postToggle' + n] = (i => e => {
+        e.preventDefault();
+        this.setState(s => ({ postActive: s.postActive === i ? 0 : i }));
+      })(n);
+    }
+    return out;
+  }
+
+  fanVals() {
+    const open = this.state.fanOpen || {};
+    const out = {};
+    for (let n = 1; n <= 9; n++) {
+      out['fan' + n] = String(open[n] || 0);
+      out['fanToggle' + n] = (i => e => {
+        e.preventDefault(); e.stopPropagation();
+        const cur = (this.state.fanOpen || {})[i] || 0;
+        const step = v => this.setState(s => {
+          const o = Object.assign({}, s.fanOpen);
+          o[i] = v;
+          return { fanOpen: o };
+        });
+        if (cur === 2) {
+          step(1);
+          clearTimeout(this.fanT);
+          this.fanT = setTimeout(() => step(0), 190);
+        } else {
+          step(cur + 1);
+        }
+      })(n);
+    }
+    return out;
+  }
+
+  cakeVals() {
+    const cakes = this.state.cakes || [];
+    const n = cakes.length;
+    const total = cakes.reduce((a, c) => a + (c.slices || 0), 0);
+    const lang = this.state.lang;
+    const layers = cakes.map((c, i) => {
+      const [sponge, filling] = this.cakeTypes[c.kind] || ['#ecd8b4', '#c07a44'];
+      const w = Math.max(52, 100 - i * (44 / Math.max(1, n - 1 || 1))) ;
+      const rot = (i % 2 ? 0.6 : -0.6) * (1 + (i % 3) * 0.25);
+      const fresh = i === n - 1 && this.state.cakeSent;
+      return {
+        key: i,
+        name: c.name,
+        meta: [c.who, c.slices ? c.slices + (lang === 'de' ? ' Stücke' : ' slices') : ''].filter(Boolean).join(' · '),
+        style: 'display:flex;align-items:baseline;justify-content:center;gap:9px;box-sizing:border-box;padding:8px 12px 0;'
+          + 'width:' + w.toFixed(1) + '%;max-width:340px;height:36px;border-radius:7px 7px 5px 5px;'
+          + 'border:1.2px solid rgba(91,42,16,.26);box-shadow:0 2px 6px rgba(91,42,16,.13);'
+          + 'background:linear-gradient(' + sponge + ' 0 64%,' + filling + ' 64% 78%,' + sponge + ' 78% 100%);'
+          + 'transform:rotate(' + rot.toFixed(2) + 'deg);'
+          + (fresh ? 'animation:layerIn .55s cubic-bezier(.34,1.56,.64,1) both;' : '')
+      };
+    }).reverse();
+    return {
+      submitCake: this.submitCake,
+      cakeLayers: layers,
+      cakeAny: n > 0,
+      cakeEmpty: n === 0,
+      cakeCount: n === 0
+        ? (lang === 'de' ? 'noch keine Böden' : 'no layers yet')
+        : (lang === 'de'
+            ? n + (n === 1 ? ' Boden' : ' Böden') + (total ? ' · ca. ' + total + ' Stücke' : '')
+            : n + (n === 1 ? ' layer' : ' layers') + (total ? ' · approx. ' + total + ' slices' : ''))
+    };
+  }
+
+  renderVals() {
+    const flyFlock = this.flyFlock, popDove = this.popDove;
+    const p = this.state.phase, seal = this.props.sealColor;
+    const target = new Date(2027, 7, 7, 11, 0, 0).getTime();
+    const diff = Math.max(0, target - this.state.now);
+    const pad = n => String(n).padStart(2, '0');
+    if (seal) { /* colour handled below */ }
+    const d = this.state.desktop;
+    return {
+      flyFlock, popDove,
+      popScore: String(this.state.pops || 0),
+      popBest: String(this.state.best || 0),
+      showScore: (this.state.pops || 0) >= 3,
+      desktop: d,
+      notDesktop: !d,
+      cardMax: d ? '1180px' : '430px',
+      headerAlign: d ? 'center' : 'flex-start',
+      navPanelMax: d ? '360px' : '430px',
+      contentMax: d ? '640px' : '430px',
+      ablaufMax: d ? '1040px' : '430px',
+      formMax: d ? '560px' : '430px',
+      storyDisplay: d ? 'grid' : 'flex',
+      storyCols: d ? '1fr 1fr 1fr' : 'none',
+      storySvgDisplay: d ? 'none' : 'block',
+      storyItemDir: d ? 'column' : 'row',
+      storyItemDir2: d ? 'column' : 'row-reverse',
+      storyItemAlign: d ? 'center' : 'flex-start',
+      storyTextAlign: d ? 'center' : 'left',
+      storyTextAlign2: d ? 'center' : 'right',
+      wishWrapDisplay: d ? 'flex' : 'block',
+      wishGap2Margin: d ? '0' : '16px',
+      cdD: String(Math.floor(diff / 86400000)),
+      cdH: pad(Math.floor(diff / 3600000) % 24),
+      cdM: pad(Math.floor(diff / 60000) % 60),
+      cdS: pad(Math.floor(diff / 1000) % 60),
+      grow: this.state.flowersIn ? 'none' : 'scale(.12) rotate(-14deg)',
+      growO: this.state.flowersIn ? '1' : '0',
+      flapL: p >= 1 ? 'rotateY(-108deg)' : 'none',
+      flapR: p >= 2 ? 'rotateY(112deg)' : 'none',
+      overlayPE: p >= 3 ? 'none' : 'auto',
+      sealT: p >= 1 ? 'scale(1.5) rotate(9deg)' : 'none',
+      sealO: p >= 1 ? '0' : '1',
+      overlayO: p >= 4 ? '0' : '1',
+      letterVisible: this.state.letterVisible,
+      navOpen: this.state.navOpen,
+      sent: this.state.sent,
+      notSent: !this.state.sent,
+      cakeSent: this.state.cakeSent,
+      cakeNotSent: !this.state.cakeSent,
+      ...this.cakeVals(),
+      ...this.fanVals(),
+      ...this.postVals(),
+      ...this.guestVals(),
+      deOp: this.state.lang === 'de' ? '1' : '.4',
+      enOp: this.state.lang === 'en' ? '1' : '.4',
+      setDe: () => this.setState({ lang: 'de' }),
+      setEn: () => this.setState({ lang: 'en' }),
+      setSv: () => this.setState({ lang: 'sv' }),
+      svOp: this.state.lang === 'sv' ? '1' : '.4',
+      boxAnim: this.state.knock ? (this.state.knock % 2 ? 'wiggle .55s ease-in-out' : 'wiggle2 .55s ease-in-out') : 'none',
+      boxKnocked: this.state.knock > 0,
+      knockBox: () => this.setState(s => ({ knock: s.knock + 1 })),
+      toggleNav: () => this.setState(s => ({ navOpen: !s.navOpen })),
+      submit: e => {
+        e.preventDefault();
+        const q = k => document.querySelector('[data-rsvp-' + k + ']');
+        const wrap = document.querySelector('[data-rsvp-wrap]');
+        const card = q('card'), env = q('env'), sheet = q('sheet'), flap = q('flap'), seal = q('seal');
+        this.tt = this.tt || [];
+        const at = (t, fn) => this.tt.push(setTimeout(fn, t));
+        if (wrap) {
+          const r = wrap.getBoundingClientRect();
+          wrap.style.maxHeight = r.height + 'px';
+          const root = document.documentElement, prev = root.style.scrollBehavior;
+          root.style.scrollBehavior = 'auto';
+          window.scrollTo(0, Math.max(0, window.scrollY + r.top - 86));
+          root.style.scrollBehavior = prev;
+          void wrap.offsetHeight;
+          wrap.style.maxHeight = '250px';
+        }
+        // beats are written straight to the DOM — no re-render can delay or clobber them
+        if (card) { card.style.transform = 'rotateX(16deg) scaleY(.2) translateY(52px)'; card.style.opacity = '.45'; }
+        at(700, () => {
+          if (env) { env.style.display = 'block'; void env.offsetHeight; env.style.opacity = '1'; env.style.transform = 'rotateX(8deg) scale(1)'; }
+          if (card) { card.style.transform = 'rotateX(26deg) scaleY(.09) translateY(70px) scale(.6)'; card.style.opacity = '0'; }
+        });
+        at(1660, () => { if (sheet) sheet.style.transform = 'translateY(24px)'; });
+        at(2440, () => { if (flap) flap.style.transform = 'rotateX(0deg)'; });
+        at(3080, () => { if (seal) { seal.style.opacity = '1'; seal.style.transform = 'rotate(7deg) scale(1)'; } });
+        at(3860, () => {
+          if (env) { env.style.opacity = '0'; env.style.transform = 'translate3d(-135%,14px,-260px) rotate3d(.25,1,.18,-30deg) scale(.82)'; }
+        });
+        at(4920, () => {
+          if (wrap) wrap.style.maxHeight = '';
+          if (card) { card.style.transform = 'none'; card.style.opacity = '1'; }
+          if (env) { env.style.display = 'none'; env.style.transform = 'rotateX(8deg) scale(.7)'; }
+          if (sheet) sheet.style.transform = 'translateY(-138px)';
+          if (flap) flap.style.transform = 'rotateX(168deg)';
+          if (seal) { seal.style.opacity = '0'; seal.style.transform = 'rotate(-16deg) scale(.35)'; }
+          this.setState({ sent: true });
+        });
+      },
+      open: this.open,
+      replay: this.replay
+    };
+  }
+}
+</script>
+</body>
+</html>
