@@ -22,3 +22,8 @@ for (const path of Object.keys(modules).sort()) {
 export function photoUrl(folder: string, index: number): string | null {
   return byFolder.get(folder)?.[index - 1] ?? null;
 }
+
+/** All photo URLs in a folder, in filename order. */
+export function photosInFolder(folder: string): string[] {
+  return byFolder.get(folder) ?? [];
+}

@@ -85,6 +85,12 @@ code changes needed. See `src/photos/README.md` (written for Ruth/Max, not
 just developers). Photos are picked up at build time (`import.meta.glob` in
 `src/photos.ts`), so they need a rebuild/redeploy to show up live.
 
+The **story timeline** (`src/photos/story/*/`) is fully folder-driven: a new
+subfolder with an `entry.md` becomes a new timeline entry automatically,
+sorted by folder name, with no fixed limit on photo count (overflow beyond 3
+photos wraps into extra stacks) — see `src/story-entries.ts` and the format
+details in `src/photos/README.md`.
+
 ## Develop
 
 ```

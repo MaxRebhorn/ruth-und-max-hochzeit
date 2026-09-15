@@ -3,6 +3,7 @@ import { render, bindEvents, applyLang, setConditional, type Values } from './dc
 import { submitRsvp, submitKuchen, listKuchen } from './api';
 import type { Config } from './types';
 import { photoUrl } from './photos';
+import { renderStoryRows } from './story-entries';
 
 type Tier = 'trauung' | 'party' | 'alles';
 type Lang = 'de' | 'en' | 'sv';
@@ -44,7 +45,6 @@ const state = {
   guest: null as Tier | null,
   admin: false,
   gateError: '',
-  fanOpen: {} as Record<number, number>,
   postActive: 0,
   pops: 0,
   best: 0
@@ -176,9 +176,16 @@ function applyResponsive(): void {
 
 // -- Ablauf connector line (matches the mockup's layoutAblaufLine()) --------
 
-function layoutAblaufLine(): void {
-  const svg = root.querySelector<SVGSVGElement>('[data-ablauf-line]');
-  const wrap = root.querySelector<HTMLElement>('[data-ablauf-items]');
+/**
+ * Computes a wavy bezier connector threading through each row's dot marker
+ * (each row's first child). Shared by Ablauf (data-ablauf-items/-line) and
+ * the story timeline (data-story-items/-line) — same algorithm, different
+ * mount points, since the story timeline's row count is now dynamic instead
+ * of a fixed 9 that a static S-curve path could assume.
+ */
+function layoutConnectorLine(itemsAttr: string, lineAttr: string): void {
+  const svg = root.querySelector<SVGSVGElement>(`[${lineAttr}]`);
+  const wrap = root.querySelector<HTMLElement>(`[${itemsAttr}]`);
   if (!svg || !wrap) return;
   const box = wrap.getBoundingClientRect();
   const items = Array.from(wrap.children).filter(
@@ -203,6 +210,14 @@ function layoutAblaufLine(): void {
   svg.setAttribute('viewBox', vb);
   const path = svg.querySelector('path');
   if (path) path.setAttribute('d', d || 'M0 0');
+}
+
+function layoutAblaufLine(): void {
+  layoutConnectorLine('data-ablauf-items', 'data-ablauf-line');
+}
+
+function layoutStoryLine(): void {
+  layoutConnectorLine('data-story-items', 'data-story-line');
 }
 
 // -- scroll reveal (matches initReveal()) ------------------------------------
@@ -275,20 +290,31 @@ function initReveal(): void {
 
 // -- photo fan (unsere Geschichte) -------------------------------------------
 
-function fanToggle(n: number): void {
-  const stack = root.querySelector<HTMLElement>(`[data-fan-id="${n}"]`);
-  if (!stack) return;
-  const cur = state.fanOpen[n] || 0;
-  const set = (v: number) => {
-    state.fanOpen[n] = v;
-    stack.setAttribute('data-open', String(v));
-  };
-  if (cur === 2) {
-    set(1);
-    setTimeout(() => set(0), 190);
-  } else {
-    set(cur + 1);
-  }
+/**
+ * Delegated on [data-story-items] instead of per-index fanToggle1..9
+ * functions — the story timeline's entries/stacks are now generated from
+ * src/photos/story/*, so a fixed set of named handlers no longer fits.
+ * Cycles the clicked stack's own data-open attribute directly (0 -> 1 -> 2
+ * -> briefly 1 -> 0), matching the mockup's own fanToggle timing exactly;
+ * the existing CSS already drives all the visuals off data-open.
+ */
+function setupStoryFanToggles(): void {
+  const container = root.querySelector('[data-story-items]');
+  container?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-fan-toggle-btn]');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const stack = btn.closest<HTMLElement>('[data-stack]');
+    if (!stack) return;
+    const cur = Number(stack.dataset.open || '0');
+    if (cur === 2) {
+      stack.dataset.open = '1';
+      setTimeout(() => (stack.dataset.open = '0'), 190);
+    } else {
+      stack.dataset.open = String(cur + 1);
+    }
+  });
 }
 
 // -- Vogtland postcards -------------------------------------------------------
@@ -752,10 +778,6 @@ function buildInitialValues(): Values {
     setGate
   };
 
-  for (let n = 1; n <= 9; n++) {
-    values[`fan${n}`] = '0';
-    values[`fanToggle${n}`] = ((i: number) => () => fanToggle(i))(n);
-  }
   for (let n = 1; n <= 4; n++) {
     values[`post${n}`] = '0';
     values[`postToggle${n}`] = ((i: number) => () => postToggle(i))(n);
@@ -766,33 +788,24 @@ function buildInitialValues(): Values {
 // -- drop-in photos (no code changes needed to add a real photo) -----------
 
 /**
- * Maps each image slot to a folder under src/photos/ — Ruth/Max just drop
- * image files in there (any name, any order — see src/photos/README.md) and
- * the real photo appears, no code edit needed. A slot with no matching file
- * keeps showing its placeholder caption exactly as before.
+ * Maps each *static* single-image slot to a folder under src/photos/ — Ruth/
+ * Max just drop an image file in there (any name — see src/photos/README.md)
+ * and the real photo appears, no code edit needed. A slot with no matching
+ * file keeps showing its placeholder caption exactly as before. The story
+ * timeline's photos are handled separately by story-entries.ts, since those
+ * are fully generated now rather than fixed <image-slot> tags.
  */
 const PHOTO_FOLDERS: Record<string, string> = {
-  'story-1': 'story/2019', 'story-1b': 'story/2019', 'story-1c': 'story/2019',
-  'story-2': 'story/2021', 'story-2b': 'story/2021', 'story-2c': 'story/2021',
-  'story-3': 'story/2022-02-24', 'story-3b': 'story/2022-02-24', 'story-3c': 'story/2022-02-24',
-  'story-7': 'story/2022-07-interrail', 'story-7b': 'story/2022-07-interrail', 'story-7c': 'story/2022-07-interrail',
-  'story-4': 'story/2023', 'story-4b': 'story/2023', 'story-4c': 'story/2023',
-  'story-8': 'story/2024-normandie', 'story-8b': 'story/2024-normandie', 'story-8c': 'story/2024-normandie',
-  'story-9': 'story/2025', 'story-9b': 'story/2025', 'story-9c': 'story/2025',
-  'story-5': 'story/2026-05-23-antrag', 'story-5b': 'story/2026-05-23-antrag', 'story-5c': 'story/2026-05-23-antrag',
-  'story-6': 'story/2027', 'story-6b': 'story/2027', 'story-6c': 'story/2027',
   'map-sketch': 'anfahrt-karte',
   'vogtland-bruecke': 'vogtland-zeichnung'
 };
-const PHOTO_INDEX: Record<string, number> = { '': 1, b: 2, c: 3 };
 
 function hydrateDropInPhotos(): void {
   root.querySelectorAll<HTMLElement>('[data-slot-id]').forEach((el) => {
     const id = el.dataset.slotId ?? '';
     const folder = PHOTO_FOLDERS[id];
     if (!folder) return;
-    const suffix = id.match(/[a-z]$/)?.[0] ?? '';
-    const src = photoUrl(folder, PHOTO_INDEX[suffix] ?? 1);
+    const src = photoUrl(folder, 1);
     if (!src) return;
     if (el.tagName === 'IMG') {
       (el as HTMLImageElement).src = src;
@@ -829,19 +842,18 @@ export function boot(container: HTMLElement): void {
   root.innerHTML = render(bodyRawHtml, values);
   bindEvents(root, values);
 
-  // Stamp data-fan-id/data-post-id from each stack/postcard's own toggle button
-  // (fanToggleN/postToggleN) rather than DOM order — the story timeline's fan
-  // numbers (fan1, fan2, fan3, fan7, fan4, ...) are NOT sequential in the DOM.
-  root.querySelectorAll<HTMLElement>('[data-stack]').forEach((el) => {
-    const btn = el.querySelector<HTMLElement>('[data-onclick^="fanToggle"]');
-    const n = btn?.dataset.onclick?.replace('fanToggle', '');
-    if (n) el.setAttribute('data-fan-id', n);
-  });
+  // Stamp data-post-id from each postcard's own toggle button (postToggleN)
+  // rather than DOM order — Vogtland's postcards happen to be sequential,
+  // but this stays robust if that ever changes.
   root.querySelectorAll<HTMLElement>('[data-post]').forEach((el) => {
     const btn = el.querySelector<HTMLElement>('[data-onclick^="postToggle"]');
     const n = btn?.dataset.onclick?.replace('postToggle', '');
     if (n) el.setAttribute('data-post-id', n);
   });
+
+  const storyWrap = root.querySelector('[data-story-items]');
+  if (storyWrap) storyWrap.insertAdjacentHTML('beforeend', renderStoryRows());
+  setupStoryFanToggles();
 
   applyLang(root, 'de');
   applyResponsive();
@@ -849,9 +861,12 @@ export function boot(container: HTMLElement): void {
   initReveal();
   setTimeout(layoutAblaufLine, 260);
   setTimeout(layoutAblaufLine, 1200);
+  setTimeout(layoutStoryLine, 260);
+  setTimeout(layoutStoryLine, 1200);
   window.addEventListener('resize', () => {
     applyResponsive();
     layoutAblaufLine();
+    layoutStoryLine();
   });
 
   tickCountdown();

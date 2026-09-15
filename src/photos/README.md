@@ -11,26 +11,46 @@ ist kein Fehler.
 JPEG). Ein Handyfoto direkt aus der Kamera ist oft 5–15 MB — verkleinert
 reichen 200–500 KB locker für die Bildschirmgröße hier.
 
-## Unsere Geschichte (die Foto-Stapel im Zeitstrahl)
+## Unsere Geschichte (der Zeitstrahl) — jeder Ordner ist ein eigenes Ereignis
 
-Jeder Zeitstrahl-Eintrag zeigt bis zu 3 Fotos (Publikum sieht sie als
-aufklappbaren Stapel mit "+2"-Knopf). Legt bis zu 3 Dateien in den
-passenden Ordner:
+Jeder Unterordner in `story/` wird automatisch zu einem eigenen Eintrag im
+Zeitstrahl — **neuer Ordner = neues Ereignis auf der Seite**, ganz ohne
+Code-Änderung. Bestehende Ordner:
 
-| Zeitstrahl-Eintrag | Ordner |
-|---|---|
-| 2019 — online kennengelernt | `story/2019/` |
-| 2021 — erstes echtes Treffen | `story/2021/` |
-| 24.02.2022 — offiziell zusammen | `story/2022-02-24/` |
-| Juli 2022 — Interrail | `story/2022-07-interrail/` |
-| 2023 — Umzug nach Dresden | `story/2023/` |
-| Sommer 2024 — Normandie | `story/2024-normandie/` |
-| 2025 — erste gemeinsame Wohnung | `story/2025/` |
-| 23.05.2026 — der Antrag | `story/2026-05-23-antrag/` |
-| 2027 — die Hochzeit | `story/2027/` |
+`2019/`, `2021/`, `2022-02-24/`, `2022-07-interrail/`, `2023/`,
+`2024-normandie/`, `2025/`, `2026-05-23-antrag/`, `2027/`
 
-Nur ein Foto für einen Eintrag? Ein File reicht — der "+2"-Knopf verschwindet
-automatisch, wenn nur 1 Foto da ist.
+**Neues Ereignis hinzufügen:**
+1. Neuen Ordner unter `story/` anlegen, z. B. `story/2024-05/`.
+2. Darin eine Datei `entry.md` anlegen (Format unten).
+3. Fotos reinlegen (Namen egal, wie überall — siehe oben).
+
+**Ordnername = Sortierung.** Er bestimmt nur, wo der Eintrag chronologisch
+einsortiert wird, er wird nirgends angezeigt — bitte mit Datum beginnen
+lassen, z. B. `2024-05` oder `2024-05-12`, dann sortiert es sich von selbst
+richtig.
+
+**`entry.md`-Format** (erste Zeile = das Datum, wie es auf der Seite steht;
+danach eine Leerzeile, dann der Text; optional `---en---`/`---sv---` für
+Englisch/Schwedisch — fehlt eine Übersetzung, wird automatisch Deutsch
+angezeigt):
+
+```
+Mai 2024
+
+Hier steht, was in diesem Moment passiert ist.
+
+---en---
+Here's what happened at this moment.
+
+---sv---
+Här är vad som hände i detta ögonblick.
+```
+
+**Fotos pro Ereignis:** bis zu 3 Fotos werden als aufklappbarer Stapel mit
+"+N"-Knopf gezeigt (nur 1 Foto → kein Knopf). **Mehr als 3?** Kein Problem —
+ab dem 4. Foto fängt automatisch ein zweiter Stapel darunter an (und ein
+dritter ab dem 7., usw.).
 
 ## Andere Fotos (nur 1 Bild pro Ordner)
 
