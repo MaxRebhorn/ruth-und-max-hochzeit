@@ -441,3 +441,13 @@ details[data-card][open] [data-chev] {
   font-size: 22px;
   opacity: 0.6;
 }
+
+/* The decorative flower illustrations use width:clamp(41px..90px, ...vw, ...)
+   in the mockup's own markup — the px minimum doesn't shrink further, so on
+   a narrow phone they read as oversized and crowd the text next to them.
+   Cap them smaller on narrow viewports only; desktop/tablet stay untouched. */
+@media (max-width: 600px) {
+  [data-grow] img {
+    width: min(38px, 9vw) !important;
+  }
+}
