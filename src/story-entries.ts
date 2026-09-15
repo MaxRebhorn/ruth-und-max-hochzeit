@@ -67,16 +67,16 @@ function renderStack(photos: string[], dir: 'r' | 'l', seed: number, size: numbe
     count > 1 ? renderLeaf(photos[1], 1, null) : '',
     renderLeaf(photos[0], 0, count > 1 ? `+${count - 1}` : null)
   ].join('');
-  return `<div data-stack="1" data-dir="${dir}" data-open="0" data-fan-id="${fanCounter}" style="flex:none;width:${size}px;aspect-ratio:196/244;position:relative;transform:rotate(${rotate}deg)">${leaves}</div>`;
+  return `<div data-stack="1" data-dir="${dir}" data-open="0" data-fan-id="${fanCounter}" style="flex:none;width:min(${size}px,42%);aspect-ratio:196/244;position:relative;transform:rotate(${rotate}deg)">${leaves}</div>`;
 }
 
 function renderPlaceholderStack(size: number): string {
-  return `<div style="flex:none;width:${size}px;aspect-ratio:196/244;position:relative"><div class="raw-photo raw-photo-placeholder">noch kein Foto</div></div>`;
+  return `<div style="flex:none;width:min(${size}px,42%);aspect-ratio:196/244;position:relative"><div class="raw-photo raw-photo-placeholder">noch kein Foto</div></div>`;
 }
 
 /** A plain (non-fanning) extra photo card — same polaroid look as a stack leaf, no toggle. */
 function renderExtraThumb(src: string): string {
-  return `<div style="flex:none;width:${EXTRA_SIZE}px;aspect-ratio:196/244;position:relative;box-sizing:border-box;padding:6px 6px 6px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><img class="raw-photo" src="${src}" alt=""></div>`;
+  return `<div style="flex:none;width:min(${EXTRA_SIZE}px,28%);aspect-ratio:196/244;position:relative;box-sizing:border-box;padding:6px 6px 6px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><img class="raw-photo" src="${src}" alt=""></div>`;
 }
 
 function langSpans(text: LangText): string {
