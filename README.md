@@ -85,11 +85,22 @@ code changes needed. See `src/photos/README.md` (written for Ruth/Max, not
 just developers). Photos are picked up at build time (`import.meta.glob` in
 `src/photos.ts`), so they need a rebuild/redeploy to show up live.
 
-The **story timeline** (`src/photos/story/*/`) is fully folder-driven: a new
-subfolder with an `entry.md` becomes a new timeline entry automatically,
-sorted by folder name, with no fixed limit on photo count (overflow beyond 3
-photos wraps into extra stacks) — see `src/story-entries.ts` and the format
-details in `src/photos/README.md`.
+Three sections are fully folder-driven the same way — a new subfolder with
+an `entry.md` becomes a new item automatically, no code change needed:
+
+- **Story timeline** (`src/photos/story/*/`, `src/story-entries.ts`) —
+  sorted by folder name, no fixed limit on photo count (overflow beyond 3
+  wraps into extra stacks). Format: `src/photos/README.md`.
+- **Ablauf / day schedule** (`src/photos/ablauf/*/`, `src/ablauf-entries.ts`)
+  — supports time/title/place/map-link/tier-gating fields, plus a `doves:
+  ja` flag for the flying-doves easter egg. Format: `src/photos/ablauf/README.md`.
+- **Vogtland guide** (`src/photos/vogtland-guide/*/`,
+  `src/vogtland-entries.ts`) — postcard letter badges (A, B, C, …) assign
+  themselves automatically. Format: `src/photos/vogtland-guide/README.md`.
+
+All three use the same folder-name-prefix sort convention and the same
+`---en---`/`---sv---` translation-section format (shared parser:
+`src/entry-format.ts`).
 
 ## Develop
 

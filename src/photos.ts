@@ -4,7 +4,7 @@
  * raw WhatsApp/phone export just works. `import.meta.glob` resolves this at
  * build time, so it only sees files that exist when `npm run build` runs.
  */
-const modules = import.meta.glob<string>('./photos/**/*.{jpg,jpeg,JPG,JPEG,png,PNG,webp,WEBP}', {
+const modules = import.meta.glob<string>('./photos/**/*.{jpg,jpeg,JPG,JPEG,png,PNG,webp,WEBP,svg,SVG}', {
   eager: true,
   query: '?url',
   import: 'default'

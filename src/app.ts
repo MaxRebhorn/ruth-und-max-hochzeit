@@ -4,6 +4,8 @@ import { submitRsvp, submitKuchen, listKuchen } from './api';
 import type { Config } from './types';
 import { photoUrl } from './photos';
 import { renderStoryRows } from './story-entries';
+import { renderAblaufRows } from './ablauf-entries';
+import { renderVogtlandCards } from './vogtland-entries';
 
 type Tier = 'trauung' | 'party' | 'alles';
 type Lang = 'de' | 'en' | 'sv';
@@ -45,7 +47,6 @@ const state = {
   guest: null as Tier | null,
   admin: false,
   gateError: '',
-  postActive: 0,
   pops: 0,
   best: 0
 };
@@ -319,11 +320,24 @@ function setupStoryFanToggles(): void {
 
 // -- Vogtland postcards -------------------------------------------------------
 
-function postToggle(n: number): void {
-  const cur = state.postActive === n ? 0 : n;
-  state.postActive = cur;
-  root.querySelectorAll<HTMLElement>('[data-post-id]').forEach((el) => {
-    el.setAttribute('data-active', el.dataset.postId === String(cur) ? '1' : '0');
+/**
+ * Delegated on [data-vogtland-items] instead of per-index postToggle1..4 —
+ * the guide's entries are now generated from src/photos/vogtland-guide/*,
+ * so a fixed set of named handlers no longer fits. Only one card open at a
+ * time, matching the mockup's own postVals() exactly: clicking the open
+ * one closes it, clicking another closes it and opens the new one.
+ */
+function setupVogtlandPostToggles(): void {
+  const container = root.querySelector('[data-vogtland-items]');
+  container?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-post-toggle]');
+    if (!btn) return;
+    e.preventDefault();
+    const card = btn.closest<HTMLElement>('[data-post]');
+    if (!card) return;
+    const wasActive = card.getAttribute('data-active') === '1';
+    container.querySelectorAll<HTMLElement>('[data-post]').forEach((el) => el.setAttribute('data-active', '0'));
+    if (!wasActive) card.setAttribute('data-active', '1');
   });
 }
 
@@ -354,9 +368,21 @@ function flyFlock(_e: Event): void {
   setTimeout(() => (flockBusy = false), Math.max(1200, longest * 1000 + 200));
 }
 
+/** Delegated so it still works once the church icon comes from a generated Ablauf entry rather than static markup. */
+function setupDovesEasterEgg(): void {
+  root.querySelector('[data-ablauf-items]')?.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-fly]')) {
+      popDove(e);
+    } else if (target.closest('[data-doves-trigger]')) {
+      flyFlock(e);
+    }
+  });
+}
+
 function popDove(e: Event): void {
   e.stopPropagation();
-  const n = e.currentTarget as HTMLElement;
+  const n = (e.target as HTMLElement).closest<HTMLElement>('[data-fly]');
   if (!n || n.dataset.popped) return;
   n.dataset.popped = '1';
   const r = n.getBoundingClientRect();
@@ -778,10 +804,6 @@ function buildInitialValues(): Values {
     setGate
   };
 
-  for (let n = 1; n <= 4; n++) {
-    values[`post${n}`] = '0';
-    values[`postToggle${n}`] = ((i: number) => () => postToggle(i))(n);
-  }
   return values;
 }
 
@@ -842,18 +864,17 @@ export function boot(container: HTMLElement): void {
   root.innerHTML = render(bodyRawHtml, values);
   bindEvents(root, values);
 
-  // Stamp data-post-id from each postcard's own toggle button (postToggleN)
-  // rather than DOM order — Vogtland's postcards happen to be sequential,
-  // but this stays robust if that ever changes.
-  root.querySelectorAll<HTMLElement>('[data-post]').forEach((el) => {
-    const btn = el.querySelector<HTMLElement>('[data-onclick^="postToggle"]');
-    const n = btn?.dataset.onclick?.replace('postToggle', '');
-    if (n) el.setAttribute('data-post-id', n);
-  });
-
   const storyWrap = root.querySelector('[data-story-items]');
   if (storyWrap) storyWrap.insertAdjacentHTML('beforeend', renderStoryRows());
   setupStoryFanToggles();
+
+  const ablaufRowsMount = root.querySelector('[data-ablauf-rows]');
+  if (ablaufRowsMount) ablaufRowsMount.outerHTML = renderAblaufRows();
+  setupDovesEasterEgg();
+
+  const vogtlandMount = root.querySelector('[data-vogtland-items]');
+  if (vogtlandMount) vogtlandMount.insertAdjacentHTML('beforeend', renderVogtlandCards());
+  setupVogtlandPostToggles();
 
   applyLang(root, 'de');
   applyResponsive();
