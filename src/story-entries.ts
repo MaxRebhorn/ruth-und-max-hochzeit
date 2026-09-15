@@ -100,11 +100,15 @@ function renderRow(entry: StoryEntry, index: number): string {
   const flexDir = flip ? 'row-reverse' : 'row';
   const textAlign = flip ? 'right' : 'left';
 
-  // One flex-wrap cluster holds the primary fan-stack plus any extra photos
-  // as flat thumbnails — no separate mini fan-stacks per extra 3, just one
-  // group that wraps naturally (sideways while there's room, onto new
-  // lines once tight) instead of extras floating off as their own row.
-  const cluster = `<div class="story-stack-cluster" style="display:flex;flex-wrap:wrap;gap:10px;flex:none">${primaryStack}${extraThumbs}</div>`;
+  // One cluster holds the primary fan-stack plus any extra photos as flat
+  // thumbnails. Extras always start on their own line below the primary
+  // stack (the flex-basis:100% break forces that regardless of viewport
+  // width) — putting them beside it let the fan's open-state translateX
+  // expand straight into the thumbnails and overlap them. Extras still wrap
+  // sideways among themselves if there are more than fit on one line.
+  const cluster = extraThumbs
+    ? `<div class="story-stack-cluster" style="display:flex;flex-wrap:wrap;gap:10px;flex:none">${primaryStack}<div style="flex-basis:100%;height:0"></div><div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px">${extraThumbs}</div></div>`
+    : primaryStack;
 
   return `
 <div data-reveal="1" style="position:relative;display:flex;justify-content:${justify};padding-bottom:14px"><div style="position:absolute;${dotSide}:30.5%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#f6f1e7;border:2.4px solid rgba(91,42,16,.55)"></div>
