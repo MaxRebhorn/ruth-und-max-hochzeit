@@ -55,6 +55,21 @@ export function parseEntry(raw: string): ParsedEntry {
   return { de, en, sv };
 }
 
+/**
+ * Splits one markdown file into several entries, separated by a line
+ * containing only `====`. Used for lists that don't need their own photo
+ * per item (FAQ, gift blacklist) — everything lives in one file instead of
+ * one subfolder per entry. Each chunk is parsed with `parseEntry()` as
+ * usual, so `---en---`/`---sv---` still work per entry.
+ */
+export function splitEntries(raw: string): string[] {
+  return raw
+    .replace(/\r\n/g, '\n')
+    .split(/^====\s*$/m)
+    .map((chunk) => chunk.trim())
+    .filter(Boolean);
+}
+
 /** Sorts by the leading `<number>-` prefix in a folder slug (e.g. "2-ankommen" before "10-x"), falling back to plain string order. */
 export function byOrderPrefix(a: string, b: string): number {
   const na = parseInt(a, 10);

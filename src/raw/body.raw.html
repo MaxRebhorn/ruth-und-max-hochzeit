@@ -228,12 +228,7 @@
 
 <h2 style="margin:0 0 4px;text-align:center;font:400 46px/1 Caveat,cursive"><span data-de="1">noch Fragen?</span><span data-en="1" style="display:none">questions?</span><span data-sv="1" style="display:none">frågor?</span></h2>
 <p style="margin:0 0 18px;text-align:center;font:500 12px/1 Karla,sans-serif;letter-spacing:.34em;opacity:.5">FAQ</p>
-<div style="display:flex;flex-direction:column;gap:11px;width:100%;max-width:400px;margin:0 auto">
-<details data-card="1" style="background:#fffdf8;border:1px solid rgba(91,42,16,.18);padding:15px 20px 17px;transform:rotate(-.5deg)"><summary style="font: 400 25px/1.2 Caveat,cursive; display: flex; align-items: center; justify-content: center; gap: 12px"><span><span data-de="1">Was ziehe ich an?</span><span data-en="1" style="display:none">What should I wear?</span></span><span data-chev="1" style="opacity:.5;font-size:26px;line-height:.8;transform-origin:50% 55%">›</span></summary><p style="margin:8px 0 0;text-align:center;font:300 13.5px/1.7 Karla,sans-serif"><span data-de="1">Festlich, gern bunt. Kein Weiß — das ist für einen Tag reserviert.</span><span data-en="1" style="display:none">Festive, colours welcome. No white — that one's reserved for a day.</span></p></details>
-<details data-card="1" style="background:#fffdf8;border:1px solid rgba(91,42,16,.18);padding:15px 20px 17px;transform:rotate(-.5deg)"><summary style="font:400 25px/1.2 Caveat,cursive;display:flex;align-items:center;justify-content:center;gap:12px"><span><span data-de="1">Sind Kinder willkommen?</span><span data-en="1" style="display:none">Are kids welcome?</span></span><span data-chev="1" style="opacity:.5;font-size:26px;line-height:.8;transform-origin:50% 55%">›</span></summary><p style="margin:8px 0 0;text-align:center;font:300 13.5px/1.7 Karla,sans-serif"><span data-de="1">Ja — sag uns nur bei der Anmeldung, wie viele mitkommen.</span><span data-en="1" style="display:none">Yes — just tell us how many in the RSVP.</span></p></details>
-<details data-card="1" style="background:#fffdf8;border:1px solid rgba(91,42,16,.18);padding:15px 20px 17px;transform:rotate(-.5deg)"><summary style="font:400 25px/1.2 Caveat,cursive;display:flex;align-items:center;justify-content:center;gap:12px"><span><span data-de="1">Wo kann ich parken?</span><span data-en="1" style="display:none">Where can I park?</span></span><span data-chev="1" style="opacity:.5;font-size:26px;line-height:.8;transform-origin:50% 55%">›</span></summary><p style="margin:8px 0 0;text-align:center;font:300 13.5px/1.7 Karla,sans-serif"><span data-de="1">Am Hof gibt es Plätze direkt an der Zufahrt.</span><span data-en="1" style="display:none">There is parking right by the farm entrance.</span></p><p style="margin:6px 0 0;text-align:center;font:400 11px/1.5 ui-monospace,Menlo,monospace;color:#a8562f">[Details ergänzen]</p></details>
-<details data-card="1" style="background:#fffdf8;border:1px solid rgba(91,42,16,.18);padding:15px 20px 17px;transform:rotate(-.5deg)"><summary style="font:400 25px/1.2 Caveat,cursive;display:flex;align-items:center;justify-content:center;gap:12px"><span><span data-de="1">Bis wann soll ich zusagen?</span><span data-en="1" style="display:none">When should I reply by?</span></span><span data-chev="1" style="opacity:.5;font-size:26px;line-height:.8;transform-origin:50% 55%">›</span></summary><p style="margin:8px 0 0;text-align:center;font:300 13.5px/1.7 Karla,sans-serif"><span data-de="1">Bitte bis zum 01.05.2027 — dann können wir gut planen.</span><span data-en="1" style="display:none">By 1 May 2027, so we can plan properly.</span></p></details>
-</div>
+<div data-faq-cards="1" style="display:flex;flex-direction:column;gap:11px;width:100%;max-width:400px;margin:0 auto"></div>
 </section>
 
 
@@ -245,12 +240,7 @@
 <div style="display:{{ wishWrapDisplay }};gap:16px">
 <div style="flex:1;border:1.5px solid rgba(209,102,90,.6);background:rgba(209,102,90,.07);padding:18px 18px 20px">
 <p style="margin:0 0 12px;font:400 28px/1 Caveat,cursive;color:#b5453a"><span data-de="1">bitte nicht:</span><span data-en="1" style="display:none">please not:</span><span data-sv="1" style="display:none">helst inte:</span></p>
-<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px">
-<li style="display:flex;gap:10px;font:300 14px/1.5 Karla,sans-serif"><span style="color:#b5453a">✕</span><span data-de="1">Handtücher &amp; Bettwäsche</span><span data-en="1" style="display:none">towels &amp; bed linen</span></li>
-<li style="display:flex;gap:10px;font:300 14px/1.5 Karla,sans-serif"><span style="color:#b5453a">✕</span><span data-de="1">Geschirr und Gläser</span><span data-en="1" style="display:none">crockery and glasses</span></li>
-<li style="display:flex;gap:10px;font:300 14px/1.5 Karla,sans-serif"><span style="color:#b5453a">✕</span><span data-de="1">Deko fürs Wohnzimmer</span><span data-en="1" style="display:none">living-room decor</span></li>
-<li style="display:flex;gap:10px;font:400 11px/1.6 ui-monospace,Menlo,monospace;color:#a8562f"><span style="color:#b5453a">✕</span>[weitere Punkte ergänzen]</li>
-</ul>
+<ul data-blacklist-items="1" style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px"></ul>
 </div>
 <div style="flex:1;margin-top:{{ wishGap2Margin }};border:1.5px solid rgba(191,224,173,.9);background:rgba(191,224,173,.22);padding:18px">
 <p style="margin:0 0 8px;font:400 28px/1 Caveat,cursive"><span data-de="1">darüber freuen wir uns:</span><span data-en="1" style="display:none">what we'd love:</span></p>

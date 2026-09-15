@@ -6,6 +6,8 @@ import { photoUrl } from './photos';
 import { renderStoryRows } from './story-entries';
 import { renderAblaufRows } from './ablauf-entries';
 import { renderVogtlandCards } from './vogtland-entries';
+import { renderFaqCards } from './faq-entries';
+import { renderBlacklistItems } from './wunschliste-entries';
 
 type Tier = 'trauung' | 'party' | 'alles';
 type Lang = 'de' | 'en' | 'sv';
@@ -875,6 +877,12 @@ export function boot(container: HTMLElement): void {
   const vogtlandMount = root.querySelector('[data-vogtland-items]');
   if (vogtlandMount) vogtlandMount.insertAdjacentHTML('beforeend', renderVogtlandCards());
   setupVogtlandPostToggles();
+
+  const faqMount = root.querySelector('[data-faq-cards]');
+  if (faqMount) faqMount.insertAdjacentHTML('beforeend', renderFaqCards());
+
+  const blacklistMount = root.querySelector('[data-blacklist-items]');
+  if (blacklistMount) blacklistMount.insertAdjacentHTML('beforeend', renderBlacklistItems());
 
   applyLang(root, 'de');
   applyResponsive();

@@ -102,6 +102,15 @@ All three use the same folder-name-prefix sort convention and the same
 `---en---`/`---sv---` translation-section format (shared parser:
 `src/entry-format.ts`).
 
+Two more lists are folder-free — no photo belongs to an entry, so it's one
+markdown file per list instead, with entries separated by a `====` line:
+
+- **FAQ** (`src/content/faq.md`, `src/faq-entries.ts`)
+- **Wunschliste "bitte nicht"-Liste** (`src/content/wunschliste-blacklist.md`,
+  `src/wunschliste-entries.ts`)
+
+Format: `src/content/README.md`.
+
 ## Develop
 
 ```
