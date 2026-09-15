@@ -24,6 +24,7 @@ optional Fließtext):
 | `hinweis` | nein | Kleiner gelber Hinweis-Kasten, z. B. `[Uhrzeit ergänzen]` |
 | `tier` | nein | `alle` (Standard, immer sichtbar) / `party` (nur ab Party-Einladung) / `ganzer-tag` (nur bei ganzer-Tag-Einladung) |
 | `doves` | nein | `ja` nur beim Kirche-Punkt lassen — startet das Tauben-Easter-Egg |
+| `tanzt` | nein | `ja` nur beim Afterparty-Punkt lassen — Discokugel schwingt, Tänzer wippen |
 
 Danach folgt optional ein Absatz Freitext (Beschreibung).
 

@@ -18,6 +18,7 @@ export interface AblaufEntry {
   body: { de: string; en: string; sv: string };
   icons: string[];
   doves: boolean;
+  tanzt: boolean;
 }
 
 const mdModules = import.meta.glob<string>('./photos/ablauf/*/entry.md', { eager: true, query: '?raw', import: 'default' });
@@ -39,17 +40,26 @@ export const ablaufEntries: AblaufEntry[] = Object.entries(mdModules)
       tier,
       body: { de: de.body, en: en.body || de.body, sv: sv.body || de.body },
       icons: photosInFolder(`ablauf/${slug}`),
-      doves: de.fields.doves === 'ja'
+      doves: de.fields.doves === 'ja',
+      tanzt: de.fields.tanzt === 'ja'
     };
   })
   .sort((a, b) => byOrderPrefix(a.slug, b.slug));
 
-function renderIcons(icons: string[], alt: string): string {
+function renderIcons(icons: string[], alt: string, tanzt: boolean): string {
   if (!icons.length) return '';
   if (icons.length === 1) {
     return `<img src="${icons[0]}" alt="${alt}" style="width:100%;height:auto;object-fit:contain;mix-blend-mode:multiply">`;
   }
-  // Two images: main + a smaller accent overlapping at the bottom (mirrors the mockup's disco-ball + dancers pairing).
+  if (tanzt) {
+    // Exact mockup animation: disco ball sways, dancers bounce — kept as its
+    // own case (rather than generic) so it survives folder-driven rendering.
+    // The flex/column wrapper is the icon slot itself (see iconWrapAttrs),
+    // matching the mockup's markup exactly (no extra nested div).
+    return `<img src="${icons[0]}" alt="${alt}" style="width:78%;height:auto;display:block;animation:sway 5.5s ease-in-out infinite;transform-origin:50% 0">
+<img src="${icons[1]}" alt="" style="width:90%;height:auto;display:block;margin-top:-22%;animation:dance 2.4s ease-in-out infinite;transform-origin:50% 96%">`;
+  }
+  // Two images, generic case: main + a smaller accent overlapping at the bottom.
   return `<div style="display:flex;flex-direction:column;align-items:center">
 <img src="${icons[0]}" alt="${alt}" style="width:78%;height:auto;display:block">
 <img src="${icons[1]}" alt="" style="width:90%;height:auto;display:block;margin-top:-18%">
@@ -87,8 +97,9 @@ function renderDoves(): string {
 function renderRow(entry: AblaufEntry, index: number): string {
   const flip = index % 2 === 1;
   const tierAttr = entry.tier === 'party' ? ' data-tier="party"' : entry.tier === 'ganzer-tag' ? ' data-tier="alles"' : '';
-  const icon = entry.icons.length ? renderIcons(entry.icons, entry.ort) : `<div class="raw-photo raw-photo-placeholder" style="aspect-ratio:1;width:100%">noch kein Bild</div>`;
-  const iconWrapAttrs = entry.doves ? ' data-doves-trigger style="position:relative;flex:none;width:min(180px,34%);cursor:pointer"' : ' style="flex:none;width:min(180px,34%)"';
+  const icon = entry.icons.length ? renderIcons(entry.icons, entry.ort, entry.tanzt) : `<div class="raw-photo raw-photo-placeholder" style="aspect-ratio:1;width:100%">noch kein Bild</div>`;
+  const iconWidth = entry.tanzt ? 'min(196px,42%)' : 'min(180px,34%)';
+  const iconWrapAttrs = entry.doves ? ` data-doves-trigger style="position:relative;flex:none;width:${iconWidth};cursor:pointer"` : ` style="flex:none;width:${iconWidth}${entry.tanzt ? ';display:flex;flex-direction:column;align-items:center' : ''}"`;
   const iconBlock = `<div${iconWrapAttrs}>${icon}${entry.doves ? renderDoves() : ''}</div>`;
 
   const linkHref = entry.link || (entry.karte ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(entry.karte)}` : '');

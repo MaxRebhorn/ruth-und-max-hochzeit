@@ -450,4 +450,15 @@ details[data-card][open] [data-chev] {
   [data-grow] img {
     width: min(38px, 9vw) !important;
   }
+
+  /* Flower wrappers are position:absolute siblings that paint above static
+     content in the same stacking context (positioned descendants paint after
+     normal-flow boxes even at z-index:0), so on mobile they sit visually on
+     top of the Wunschliste/Vogtland boxes and become hard to read. Push them
+     behind instead — their own ancestor wrapper is already position:relative
+     in the mockup markup, so negative z-index here keeps them behind its
+     content without touching any markup. */
+  [data-grow] {
+    z-index: -1 !important;
+  }
 }

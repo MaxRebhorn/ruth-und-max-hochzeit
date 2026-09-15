@@ -1,6 +1,7 @@
 zeit: ab 21:00
 titel: Afterparty Lauschgrün
 tier: party
+tanzt: ja
 
 tanzen, bis die Sonne wieder da ist
 
