@@ -9,146 +9,194 @@
     Übersetzungen
 -   Gäste: 60--80 Personen
 
-## 1. Zugriffssystem (Stufen 0--3)
+## 1. Zugriffssystem (3-tier, Token statt geteiltem Wort)
 
 ### 1.1 Konzepte
 
--   Einladungs-Stufe (0--3): wird pro Gast vergeben und steuert, was der
-    Gast sehen darf.
--   Anmeldung (RSVP): wird vom Gast selbst gewählt und darf nur Optionen
-    bis zur eigenen Stufe enthalten.
+Ersetzt die frühere 4-Stufen-/geteiltes-Token-Idee dieses Dokuments (siehe
+Git-Historie, falls die alte Fassung interessiert). Umgesetzt ist stattdessen:
 
-### 1.2 Stufen-Matrix
+-   Drei Stufen wie im Code bereits vorhanden: `trauung`, `party`, `alles`
+    (`GUEST_CODES`-Konzept in `src/app.ts`, wird durch das Folgende ersetzt).
+-   **Ein Token pro Einladung** (nicht pro Stufe) — identifiziert Gast *und*
+    Stufe in einem Schritt, keine Namens-/E-Mail-Eingabe nötig.
+-   Ein 4-stelliger Code (auf der physischen Einladung gedruckt) ist der
+    Rückfallweg für Gäste ohne funktionierenden QR-Code.
+-   Beides führt zur selben Identität, die anschließend als Upsert-Schlüssel
+    für alle Formulare (RSVP, Kuchenbuffet, Überraschung, Fragen,
+    Trauzeugen-Nachricht) mitgeschickt wird — kein Email-/Namens-Abgleich in
+    den Formularen selbst nötig, der Gast ist beim Ausfüllen schon bekannt.
 
-  ---------------------------------------------------------------------------------
-  Stufe                   Bedeutung               Sichtbar
-  ----------------------- ----------------------- ---------------------------------
-  0                       nur Trauung             Kirchen-Infos (wo/wann), Timeline
-                                                  nur bis zur Trauung
+### 1.2 Datenmodell (`Gäste`-Tab)
 
-  1                       Trauung + Afterparty    alles aus 0 + Afterparty (wo/wann
-                                                  in der Timeline) +
-                                                  Überraschungs-Formular
+Eine Zeile pro Einladung/Haushalt (nicht pro Einzelperson — passt zum
+RSVP-Formular, das schon eine „Anzahl"-Angabe hat):
 
-  2                       ganzer Tag              alles aus 1 + Essenswahl-Formular
+`Einladung-ID | Name | Stufe | Token | Code | E-Mail | Telefon | RSVP-Status | Notizen`
 
-  3                       von außerhalb           alles aus 2 +
-                                                  Übernachtungs-Infos/-Formular +
-                                                  Vogtland-Guide
-  ---------------------------------------------------------------------------------
+-   Wird vom Paar vorab gepflegt, bevor Einladungen verschickt werden.
+-   `Token`/`Code` werden über ein gebundenes Apps-Script-Menü
+    ("Tokens & Codes für neue Gäste erzeugen", `onOpen()`-Trigger) direkt in
+    Google Sheets erzeugt — kein externes Tool nötig.
+-   `Token`: `Utilities.getUuid()` (lang, nicht erratbar, wandert in den
+    QR-Link).
+-   `Code`: 4-stellig, zufällig, für die manuelle Eingabe — der Zahlenraum
+    ist bewusst klein und dadurch tippbar; Schutz kommt über die
+    Ratenbegrenzung (siehe 1.5), nicht über die Codelänge.
+-   `E-Mail`/`Telefon`/`RSVP-Status` werden vom Backend zurückgeschrieben,
+    sobald der Gast etwas einreicht — informativ, keine Zugriffsprüfung.
 
-Für Stufe 0 sind Afterparty-Daten, Essenswahl, Liedwünsche,
-Übernachtung, Vogtland und Überraschung verborgen.
+### 1.3 QR-Code & Link
 
-### 1.3 QR-Code & Level-Token
-
--   QR-Code enthält nur Stufe + Level-Token; keine persönlichen Daten.
--   Jede Stufe hat einen gemeinsamen Token (Shared Secret).
--   URL-Format: `https://<site>/?access=2&t=<token-stufe-2>`
--   Tokens liegen in der Repository-Config und in `apps-script.gs`.
--   Die vier geteilten Tokens sind bewusst keine echte
-    Sicherheitslösung. Eine vollständige Zugriffskontrolle mit
-    persönlichen Gast-Tokens und echtem Backend ist nicht vorgesehen.
+-   QR-Code enthält ausschließlich `?t=<token>`, keine weiteren
+    personenbezogenen Daten in der URL.
+-   URL-Format: `https://<site>/?t=<einladungs-token>`
+-   Ein Link ohne Token zeigt stattdessen das Gate mit dem 4-stelligen
+    Code-Feld.
 
 ### 1.4 Zugriffswege
 
-**QR-Link** - URL enthält `access` + `token`. - Stufe wird sofort
-freigegeben, ohne zusätzliche Abfrage.
+**QR-Link** — URL enthält `t`. `doGet(?action=guest_lookup&t=…)` wird beim
+Laden aufgerufen, liefert `{ name, stufe }` oder einen Fehler. Bei Treffer:
+Stufe wird freigegeben, `{ token, name, stufe }` landet in `localStorage`
+(ersetzt das bisherige reine `rm-guest`-Stufen-Flag) — bei Wiederbesuch auf
+demselben Gerät ist kein erneuter Call nötig.
 
-**Direkter Link ohne Token** - Zeigt zunächst nur den Zugang zum Gate
-mit Feldern für Name + E-Mail. - Apps Script wird über `guest`
-aufgerufen. - Der Endpoint prüft die Einladungsliste und liefert die
-Stufe oder `null`. - Bei Treffer: Freigabe; Stufe + E-Mail werden in
-`localStorage` gespeichert. - Bei Wiederbesuch auf demselben Gerät
-erfolgt die Freigabe direkt. - Bei `null`: Hinweis, dass die Person
-nicht in der Einladungsliste gefunden wurde.
+**Direkter Link ohne Token** — Gate zeigt ein Feld für den 4-stelligen Code.
+`doGet(?action=guest_lookup&code=…)`, gleiche Antwortform, gleiches
+`localStorage`-Verhalten bei Treffer. Bei Fehlversuch: Fehlermeldung, keine
+Sperre nach einem einzelnen Fehlversuch (siehe Ratenbegrenzung für den
+Schutz gegen wiederholtes Raten).
 
-Datenschutz: - Keine IP-Erfassung. - Keine Cookies zur Identifikation. -
-Name und E-Mail werden vom Gast zur Verifikation angegeben.
+Datenschutz: keine IP-Erfassung (Apps-Script-Web-Apps bekommen die
+Aufrufer-IP technisch gar nicht mitgeteilt — siehe 1.5), keine Cookies zur
+Identifikation außerhalb von `localStorage` auf dem Gerät des Gasts selbst.
 
-### 1.5 Fehler-/Latenzfall
+### 1.5 Fehler-/Latenz-/Ratenbegrenzungsfall
 
--   Der erste Apps-Script-Call kann 1--3 Sekunden dauern und
-    fehlschlagen.
--   Während der Anfrage wird ein Ladezustand angezeigt.
--   Bei Fehler oder Timeout bleibt die Seite gesperrt.
--   Es wird auf Neuladen oder die Nutzung des QR-Codes hingewiesen.
+-   Der Apps-Script-Call kann 1–3 Sekunden dauern und fehlschlagen —
+    während der Anfrage ein Ladezustand, bei Fehler/Timeout bleibt die Seite
+    gesperrt (Neuladen oder erneuter QR-Scan als Hinweis).
+-   Ratenbegrenzung für den 4-stelligen Code: Apps-Script-Web-Apps erhalten
+    keine Aufrufer-IP, ein Schutz pro Angreifer ist technisch nicht möglich.
+    Stattdessen ein **globaler** Zähler über `CacheService` — nach z. B. 10
+    fehlgeschlagenen Code-Versuchen von irgendwem innerhalb eines kurzen
+    Zeitfensters greift eine kurze Abkühlphase für alle. Bei 60–80 Gästen
+    kein praktisches Problem, macht aber stures Durchprobieren unpraktikabel.
+-   Nebenläufige Schreibzugriffe: Google Sheets ist nicht transaktional.
+    Der Upsert-Pfad (`Gast-Zeile finden → mergen → schreiben`) läuft unter
+    `LockService.getScriptLock()`, damit zwei gleichzeitige Einreichungen
+    sich nicht überschreiben.
 
 ## 2. Formularsystem
 
-Die Anmeldung wird auf mehrere Formulare verteilt.
+  ---------------------------------------------------------------------------------------------
+  \#     Formular          Ziel-Tab            Upsert-Schlüssel       Status
+  ------ ----------------- ------------------- ---------------------- -------------------------
+  1      Anmeldung (RSVP)  `RSVP`              Einladung-ID (Token)   gebaut, Upsert folgt
+                                                                       diesem Rework
 
-  ------------------------------------------------------------------------------------------
-  \#            Formular                   Stufe Felder               Ziel
-  ------------- -------------- ----------------- -------------------- ----------------------
-  1             Anmeldung                   alle Name, E-Mail,        RSVP
-                                                 Teilnahme-Auswahl,   
-                                                 Opt-in               
-                                                 „Info-Mail-Liste"    
+  2      Kuchenbuffet      `Kuchenbuffet`      — (append-only Liste,  gebaut
+                                                Einladung-ID nur als
+                                                Referenzspalte)
 
-  2             Essenswahl                    2+ vegan, vegetarisch,  RSVP
-                                                 glutenfrei,          
-                                                 laktosefrei,         
-                                                 Allergien (Freitext) 
+  3      Überraschung      `Überraschungen`    — (append-only)        gebaut, Backend folgt
+                                                (separate Datei, s.
+                                                3.1)
 
-  3             Liedwunsch                    1+ Spotify-Suche +      RSVP
-                                                 Freitext-Fallback    
+  4      Frage stellen     `Fragen`            — (append-only)        gebaut, Backend folgt
 
-  4             Überraschung                  1+ Freitext             Überraschungen-Sheet
+  5      Trauzeugen-       `Trauzeugen-        — (append-only,        gebaut, Backend folgt
+         Nachricht         Nachrichten`        separate Datei)
 
-  5             Übernachtung                   3 Schlafmöglichkeit    RSVP
-                                                 nötig? ja/nein +     
-                                                 Details              
-  ------------------------------------------------------------------------------------------
+  6      Essenswahl        `RSVP` (eigene      Einladung-ID (Token)   noch kein Formular, Spalten
+                            Spalten, reserviert)                      in RSVP schon reserviert
 
-Datenmodell: - Eine Zeile pro Gast im RSVP-Sheet. - Schlüssel ist die
-E-Mail-Adresse. - Jedes Formular aktualisiert nur seine eigenen
-Spalten. - Upsert erfolgt anhand der E-Mail-Adresse.
+  7      Liedwunsch        `RSVP`              Einladung-ID (Token)   noch kein Formular, Spalte
+                                                                       reserviert
+
+  8      Übernachtung      `RSVP`              Einladung-ID (Token)   noch kein Formular, Spalte
+                                                                       reserviert
+  ---------------------------------------------------------------------------------------------
+
+Datenmodell für RSVP: eine Zeile pro **Einladung** (nicht pro Gast-Formular),
+Schlüssel ist die `Einladung-ID` (aus dem Token aufgelöst), nicht die
+E-Mail-Adresse — die kommt oft erst mit der ersten Einreichung dazu.
+Upsert ist **merge-only**: ein leeres Feld in einer neuen Einreichung
+überschreibt nie einen vorher ausgefüllten Wert. Jede Einreichung landet
+zusätzlich unverändert im `RSVP-Log`-Tab (Audit-Trail, nie bearbeitet) —
+falls ein Upsert doch einmal etwas Unerwartetes tut, ist der Rohzustand
+nicht verloren.
 
 ## 3. Google-Sheets-Architektur / Apps Script
 
-### 3.1 Tabellen
+### 3.1 Zwei Dateien
 
-**RSVP** - Eine Zeile pro Gast. - Felder: Zeit, Name, E-Mail, Teilnahme,
-Essen, Allergien, Song, Übernachtung, Info-Mail-Opt-in. - Zugriff: nur
-Paar.
+**„Hochzeit"** (mit Ruth & Max geteilt) — Tabs: `Gäste`, `RSVP`, `RSVP-Log`,
+`Kuchenbuffet`, `Fragen`.
 
-**Überraschungen** - Felder: Zeit, Name, E-Mail, Überraschung. -
-Zugriff: nur Trauzeugen. - `SURPRISE_SHEET_ID` muss konfiguriert werden.
+**„Hochzeit – Geheim"** (gleicher Account, eigene Datei, nicht im täglichen
+Blick) — Tabs: `Überraschungen`, `Trauzeugen-Nachrichten`. Beide Abschnitte
+sind explizit dafür gedacht, dass das Brautpaar sie *nicht* sieht — die
+Trennung ist eine eigene Datei mit eigener Sheet-ID, nicht nur ein
+versteckter Tab in derselben Datei.
 
-**Fragen** - Felder: Zeit, Name, E-Mail, Frage. - Zugriff: nur Paar.
+Ein Apps-Script-Projekt bedient beide Dateien über je eine Sheet-ID als
+Script Property — keine zwei Deployments nötig, `SpreadsheetApp.openById()`
+funktioniert unabhängig davon, wie viele Dateien es sind.
 
-**Gäste** - Felder: Name, E-Mail, Stufe. - Einladungsliste, gepflegt vom
-Paar. - Wird vom Zugriffsgate gelesen. - Zugriff: nur Paar.
+### 3.2 Tabellen
 
-### 3.2 `doPost(e)`
+**`Gäste`** — `Einladung-ID, Name, Stufe, Token, Code, E-Mail, Telefon,
+RSVP-Status, Notizen`. Zugriff: nur Paar. Vom Zugriffsgate gelesen
+(`guest_lookup`).
 
-Bestehende Sicherheitsmechanismen bleiben erhalten: - Honeypot -
-Formel-Injection-Schutz durch Prefix `'` - Längenbegrenzungen
+**`RSVP`** — `Zeit, Einladung-ID, Name, E-Mail, Telefon, Anzahl, Teilnahme,
+Allergien, Song, Übernachtung, Nachricht, Essenswahl, Liedwunsch,
+Übernachtung-Details`. Eine Zeile pro Einladung, gemerged.
 
-JSON-Feld `type`: - `rsvp` - `essen` - `lied` - `ueberraschung` -
-`uebernachtung`
+**`RSVP-Log`** — dieselben Spalten wie `RSVP`, eine Zeile pro Einreichung,
+append-only.
 
-Upsert: - Zeile anhand der E-Mail suchen. - Existierende Zeile: Spalten
-des jeweiligen Formular-Typs aktualisieren. - Keine bestehende Zeile:
-neue Zeile anlegen.
+**`Kuchenbuffet`** — `Zeit, Einladung-ID, Beitrag, Stücke, Art, Kühlung
+nötig, vegan/vegetarisch, enthält Nüsse, braucht Kuchenplatte`.
+Append-only — eine Person kann mehrere Kuchen mitbringen.
 
-### 3.3 `doGet(e)`
+**`Fragen`** — `Zeit, Frage, Kontakt`. Append-only, Zugriff: nur Paar.
 
-CORS-fähig, JSON-Antworten.
+**`Überraschungen`** (in „Hochzeit – Geheim") — `Zeit, Von, Kontakt, Idee,
+Geheim`. Append-only, Zugriff: nur Trauzeugen.
 
-Endpoints:
+**`Trauzeugen-Nachrichten`** (in „Hochzeit – Geheim") — `Zeit, An, Name,
+Kontakt, Nachricht`. Append-only, Zugriff: nur Trauzeugen.
 
--   `?action=guest&name=&email=`
-    -   Antwort: `{ level: 0–3 | null }`
-    -   Abgleich gegen das Gäste-Sheet.
--   `?action=songs&q=…`
-    -   Spotify-Suche über einen Proxy.
--   `?action=mail_send&subject=&body=`
-    -   Mail-Versand an alle Opt-in-Adressen.
-    -   Wird vom CLI aufgerufen.
+### 3.3 `doPost(e)`
 
-### 3.4 E-Mail-Versand
+Bestehende Sicherheitsmechanismen bleiben erhalten: Honeypot,
+Formel-Injection-Schutz durch Prefix `'`, Längenbegrenzungen.
+
+JSON-Feld `type`: `rsvp`, `kuchen`, `ueberraschung`, `frage`, `trauzeugen`.
+Jede Anfrage trägt zusätzlich `token` (aus `localStorage`, siehe §1) — das
+ist der Upsert-Schlüssel für `rsvp`, und die Referenz-Spalte für `kuchen`.
+
+Upsert (`rsvp`): `Einladung-ID` aus dem Token auflösen (`Gäste`-Tab) →
+bestehende `RSVP`-Zeile für diese Einladung-ID suchen → nur nicht-leere
+Felder der Einreichung übernehmen (merge) → `Zeit` aktualisieren. Kein
+Treffer: neue Zeile anlegen. Parallel dazu immer ein append in `RSVP-Log`,
+unabhängig vom Upsert-Ergebnis. Läuft unter `LockService.getScriptLock()`.
+
+`kuchen`/`ueberraschung`/`frage`/`trauzeugen`: reine `appendRow_`-Aufrufe
+wie bisher, keine Upsert-Logik nötig.
+
+### 3.4 `doGet(e)`
+
+-   `?action=kuchen_list` — wie bisher, liefert die Kuchenliste für die
+    Live-Anzeige der Kuchentorte.
+-   `?action=guest_lookup&t=<token>` **oder** `&code=<4-stellig>` —
+    Antwort: `{ name, stufe }` bei Treffer, `{ error }` sonst. Der
+    `code`-Zweig läuft hinter der globalen Ratenbegrenzung aus §1.5.
+
+### 3.5 E-Mail-Versand
 
 -   Content bleibt im Repository in `content.json`.
 -   Apps Script überwacht das Repository nicht.
@@ -174,12 +222,14 @@ Endpoints:
 
 ## 5. Fragenverwaltung
 
--   FAQ bleibt statisch in `content.json`.
--   Formular „Frage stellen" mit Name, E-Mail und Frage.
--   Einsendung wird im Fragen-Sheet gespeichert.
--   Zusätzlich wird eine Mail an das Paar gesendet.
--   Antworten werden manuell in der FAQ-Config gepflegt.
--   Kein Live-Rendering der FAQ aus dem Sheet.
+-   FAQ ist markdown-getrieben (`src/content/faq.md`, siehe
+    `src/content/README.md`) — kein Live-Rendering aus dem Sheet.
+-   Formular „Frage stellen" (als letzte, eingeklappte Karte im FAQ-Bereich)
+    fragt Frage + Kontakt ab, kein Namensfeld im aktuellen Formular.
+-   Einsendung wird im `Fragen`-Tab gespeichert (siehe §3.2), kein
+    automatischer Mail-Versand ans Paar — die Sheet-Zeile ist die
+    Benachrichtigung.
+-   Antworten werden manuell in `faq.md` gepflegt.
 
 ## 6. Vogtland-Guide
 
@@ -223,14 +273,20 @@ Stufen-Tokens - Apps-Script-/Exec-URL - Site-URL für QR-Generierung
 
 Kein eigenes Framework. Kleine Node-Skripte über `package.json`-Scripts.
 
-### `wedding qr`
+### `wedding qr` / `wedding qr-batch`
 
-Beispiel:
+Umgesetzt (siehe `cli/qr.mjs`, `cli/qr-batch.mjs`), URL enthält jetzt `t=`
+(Einladungs-Token) statt `access`/Stufen-Token:
 
-`wedding qr --level 2 --out qr_stufe2.png`
+```
+wedding qr --token <einladungs-token> --out qr_einzelperson.png
+wedding qr-batch --csv gaeste-export.csv --outDir qr/
+```
 
-Funktion: - Erzeugt ein QR-PNG. - URL enthält `access` und den Token der
-jeweiligen Stufe.
+`qr-batch` liest einen von Hand aus dem `Gäste`-Tab exportierten CSV
+(Google Sheets → Datei → Herunterladen → .csv) und schreibt ein PNG pro
+Zeile — bewusst kein Apps-Script-Endpoint, der die ganze Gästeliste
+unauthentifiziert ausgibt.
 
 ### `wedding mail`
 
@@ -245,38 +301,55 @@ Kein `translate`-Befehl.
 
 ## 9. Bestehende technische Bestandteile
 
-Bleiben erhalten: - MapLibre-Karte für Anreise und Route - zwei
-Kartenmarker - FAQ-Struktur - WhatsApp-Notruf-/Trauzeugen-Sektion -
-Externalisierung über `content.json` - Debug-Lineal über `?debug=1` -
-RSVP → Google Sheets - Honeypot-Schutz - Formula-Injection-Schutz -
-2D-Fotosektion/Karussell mit Bildern aus `assets/carousel/`
+Bleiben erhalten: - Google Apps Script als einzige Backend-Schicht - RSVP +
+Kuchenbuffet → Google Sheets (jetzt per Einladungs-Token statt anonym) -
+FAQ-/Blacklist-/Story-/Ablauf-/Vogtland-Struktur über `src/content/` bzw.
+`src/photos/*/entry.md` (siehe `README.md`) - Honeypot-Schutz -
+Formula-Injection-Schutz
 
-Nicht vorgesehen: - echtes Backend - persönliche Gast-Tokens -
-automatischer Mail-Trigger - Spotify-Embed einer eigenen Playlist -
-automatische Scroll-/Highlight-Funktion bei Datenänderungen
+Nicht vorgesehen: - automatischer Mail-Trigger - Spotify-Embed einer
+eigenen Playlist - automatische Scroll-/Highlight-Funktion bei
+Datenänderungen - echte MapLibre-Karte für Anreise (Platzhalter bleibt
+bestehen, siehe `README.md` "Not yet wired up")
+
+Persönliche Gast-Tokens sind jetzt Teil des Designs (§1), nicht mehr
+ausgeschlossen — das war die zentrale Änderung dieses Reworks.
 
 ## 10. Technische Umsetzungsreihenfolge
 
-1.  `content.json` auf 2027 korrigieren.
-2.  `config.json` anlegen.
-3.  i18n-Dateistruktur anlegen.
-4.  Zugriffssystem implementieren:
-    -   Level-Token in URL
-    -   Sektionen nach Stufe filtern
-    -   `guest`-Endpoint
-    -   `localStorage`
-5.  Formulare aufteilen.
-6.  Upsert-Logik in `apps-script.gs` über `type` implementieren.
-7.  Gäste-Sheet anlegen.
-8.  `SURPRISE_SHEET_ID` eintragen.
-9.  Fragen-Sheet und „Frage stellen"-Formular implementieren.
-10. Spotify-Live-Suche über Apps-Script-Proxy implementieren.
-11. Vogtland-Guide und Übernachtungs-Formular implementieren.
-12. CLI-Befehle `qr` und `mail` implementieren.
-13. i18n-Lade- und Sprachwahl implementieren.
+Erledigt: RSVP/Kuchenbuffet-Formulare + Sheets (append-only), FAQ/Blacklist/
+Story/Ablauf/Vogtland als markdown-Content, Überraschung/Frage
+stellen/Trauzeugen-Formulare als UI (ohne Backend).
+
+Als Nächstes (dieses Rework, in Reihenfolge):
+
+1.  `Gäste`-Tab anlegen (`Einladung-ID, Name, Stufe, Token, Code, E-Mail,
+    Telefon, RSVP-Status, Notizen`) + `onOpen()`-Menü zur Token/Code-Erzeugung.
+2.  `RSVP`/`RSVP-Log`-Tabs auf das neue Schema umstellen, `Kuchenbuffet`
+    um `Einladung-ID`-Spalte erweitern.
+3.  „Hochzeit – Geheim"-Datei mit `Überraschungen`/`Trauzeugen-Nachrichten`
+    anlegen.
+4.  `apps-script.gs`: `getSheetByName` statt `.getSheets()[0]`,
+    `guest_lookup`-Endpoint, `LockService`-Upsert, `CacheService`-Ratenbegrenzung,
+    neue `doPost`-Fälle für `ueberraschung`/`frage`/`trauzeugen`.
+5.  `src/app.ts`: Gate auf Token/Code + async `guest_lookup` umstellen,
+    `GUEST_CODES`/`resolveCode()`-Stufen-Logik entfernen.
+6.  `src/raw/body.raw.html`: E-Mail-/Telefon-Feld im RSVP-Formular, Gate-Formular
+    auf Code-Eingabe umstellen.
+7.  `src/api.ts`: `submitSurprise`/`submitFrage`/`submitTrauzeugenMsg`,
+    Token in allen Payloads.
+8.  Danach, nicht Teil dieses Reworks: Spotify-Live-Suche,
+    Vogtland-Formular/Übernachtung, i18n-Dateistruktur (aktuell läuft
+    Übersetzung über `data-de`/`data-en`/`data-sv`-Spans direkt im Markup,
+    nicht über separate `content.*.json`-Dateien), Batch-QR-Generierung für
+    alle Einladungen.
 
 ## 11. Offene technische Punkte
 
+-   Batch-QR-Generierung für 60–80 Einladungen: `npm run wedding -- qr`
+    kann aktuell nur einen Tier-Link erzeugen, kein `--token`/Schleife über
+    den `Gäste`-Tab. Folgt, sobald der Kern-Mechanismus mit ein paar echten
+    Gästen getestet ist.
 -   Überraschungs-Formular: Stufe 1 oder Stufe 2?
 -   Spotify: eigene App / Client-Credentials im Spotify Developer
     Dashboard bereitstellen.

@@ -7,8 +7,17 @@ export interface KuchenEntry {
   kind: string;
 }
 
-export interface RsvpPayload {
+export interface GuestLookup {
   name: string;
+  stufe: 'trauung' | 'party' | 'alles';
+  token: string;
+}
+
+export interface RsvpPayload {
+  token: string;
+  name: string;
+  email: string;
+  phone: string;
   count: number;
   teilnahme: string;
   allergien: string;
@@ -18,6 +27,7 @@ export interface RsvpPayload {
 }
 
 export interface KuchenPayload {
+  token: string;
   who: string;
   what: string;
   slices: number;
@@ -26,6 +36,25 @@ export interface KuchenPayload {
   veganVeg: boolean;
   nuts: boolean;
   stand: boolean;
+}
+
+export interface SurprisePayload {
+  who: string;
+  contact: string;
+  idea: string;
+  secret: boolean;
+}
+
+export interface FragePayload {
+  question: string;
+  contact: string;
+}
+
+export interface TrauzeugenPayload {
+  towhom: string;
+  name: string;
+  contact: string;
+  message: string;
 }
 
 function isConfigured(config: Config): boolean {
@@ -44,6 +73,20 @@ export async function listKuchen(config: Config): Promise<KuchenEntry[] | null> 
   }
 }
 
+/** `t`/`code` are mutually exclusive — pass whichever the gate has (QR token vs typed-in fallback code). */
+export async function guestLookup(config: Config, params: { t?: string; code?: string }): Promise<GuestLookup | null> {
+  if (!isConfigured(config)) return null;
+  try {
+    const url = `${config.appsScriptUrl}?${new URLSearchParams({ action: 'guest_lookup', ...params })}`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = (await res.json()) as GuestLookup | { error: string };
+    return 'error' in data ? null : data;
+  } catch {
+    return null;
+  }
+}
+
 /** Fire-and-forget: the caller's own animation/local state is the primary UX, this just persists it. */
 export function submitRsvp(config: Config, payload: RsvpPayload): void {
   if (!isConfigured(config)) return;
@@ -53,6 +96,21 @@ export function submitRsvp(config: Config, payload: RsvpPayload): void {
 export function submitKuchen(config: Config, payload: KuchenPayload): void {
   if (!isConfigured(config)) return;
   post(config, { type: 'kuchen', ...payload });
+}
+
+export function submitSurprise(config: Config, payload: SurprisePayload): void {
+  if (!isConfigured(config)) return;
+  post(config, { type: 'ueberraschung', ...payload });
+}
+
+export function submitFrage(config: Config, payload: FragePayload): void {
+  if (!isConfigured(config)) return;
+  post(config, { type: 'frage', ...payload });
+}
+
+export function submitTrauzeugenMsg(config: Config, payload: TrauzeugenPayload): void {
+  if (!isConfigured(config)) return;
+  post(config, { type: 'trauzeugen', ...payload });
 }
 
 function post(config: Config, body: Record<string, unknown>): void {

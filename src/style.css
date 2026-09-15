@@ -461,4 +461,13 @@ details[data-card][open] [data-chev] {
   [data-grow] {
     z-index: -1 !important;
   }
+
+  /* The Überraschung hand (assets/hand-arm.png) is sized as min(230%,840px)
+     of its wrap, tuned for the desktop card (~1180px wide) — on a phone-width
+     wrap (~360-430px) that percentage barely differs from the 840px cap, so
+     the hand renders almost full-size and reaches way past the card instead
+     of just brushing in from the edge. Cap it much smaller on mobile. */
+  [data-surprise-hand-wrap] {
+    width: min(210%, 330px) !important;
+  }
 }

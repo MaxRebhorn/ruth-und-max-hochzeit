@@ -1,6 +1,6 @@
 import bodyRawHtml from './raw/body.raw.html?raw';
 import { render, bindEvents, applyLang, setConditional, type Values } from './dc-engine';
-import { submitRsvp, submitKuchen, listKuchen } from './api';
+import { submitRsvp, submitKuchen, submitSurprise as apiSubmitSurprise, submitFrage, submitTrauzeugenMsg, listKuchen, guestLookup } from './api';
 import type { Config } from './types';
 import { photoUrl } from './photos';
 import { renderStoryRows } from './story-entries';
@@ -8,15 +8,11 @@ import { renderAblaufRows } from './ablauf-entries';
 import { renderVogtlandCards } from './vogtland-entries';
 import { renderFaqCards } from './faq-entries';
 import { renderBlacklistItems } from './wunschliste-entries';
+import { sectionContentValues } from './section-content';
 
 type Tier = 'trauung' | 'party' | 'alles';
 type Lang = 'de' | 'en' | 'sv';
 
-const GUEST_CODES: Record<Tier, string[]> = {
-  trauung: ['trauung', 'kirche', 'glockenschlag', 'glocke'],
-  party: ['tanz', 'tanzschuh', 'party', 'discokugel'],
-  alles: ['ganzertag', 'ganzer tag', 'sonnenaufgang', 'hochzeit', 'kuchengabel']
-};
 
 const CAKE_TYPES: Record<string, [string, string]> = {
   Kuchen: ['#ecd8b4', '#c07a44'],
@@ -55,64 +51,80 @@ const state = {
 
 let root: HTMLElement;
 let config: Config = { appsScriptUrl: '', siteUrl: '' };
+/** The current guest's invitation token — set once the gate resolves (QR `?t=` or the 4-digit code), then rides along on every form submission as the upsert key. */
+let guestToken = '';
 
-function resolveCode(raw: string): Tier | 'admin' | null {
-  const v = raw
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-zäöüß ]/g, '');
-  if (!v) return null;
-  if (v === 'ruthundmax') return 'admin';
-  for (const tier of Object.keys(GUEST_CODES) as Tier[]) {
-    if (tier === v || GUEST_CODES[tier].includes(v)) return tier;
+interface CachedGuest {
+  token: string;
+  name: string;
+  stufe: Tier;
+}
+
+/** `localStorage` shape changed from a bare tier string to this — see the token-based gate rework in technical-spec.md §1. */
+function loadCachedGuest(): CachedGuest | null {
+  try {
+    const raw = localStorage.getItem('rm-guest');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<CachedGuest>;
+    if (parsed.token && (parsed.stufe === 'trauung' || parsed.stufe === 'party' || parsed.stufe === 'alles')) return parsed as CachedGuest;
+    return null;
+  } catch {
+    return null;
   }
-  return null;
+}
+
+function storeCachedGuest(guest: CachedGuest): void {
+  try {
+    localStorage.setItem('rm-guest', JSON.stringify(guest));
+  } catch {
+    /* private mode */
+  }
 }
 
 function applyGuest(tier: Tier | null): void {
   document.documentElement.setAttribute('data-guest', tier ?? 'none');
-  if (tier) {
-    try {
-      localStorage.setItem('rm-guest', tier);
-    } catch {
-      /* private mode */
-    }
-  }
   state.guest = tier;
   setConditional(root, 'gateOpen', !tier);
   refreshAdminPanel();
   setTimeout(layoutAblaufLine, 60);
 }
 
-function initGuest(): void {
-  let tier: Tier | null = null;
+/**
+ * QR link (`?t=<token>`) or a cached previous visit unlock instantly; a
+ * fresh token in the URL is looked up against the Gäste sheet first (async
+ * — see `gateLoading` in the gate markup for the in-flight state). No
+ * guest-facing path resolves a tier client-side anymore — every unlock
+ * round-trips through Apps Script's `guest_lookup`.
+ */
+async function initGuest(): Promise<void> {
   let admin = false;
   try {
-    const p = new URLSearchParams(location.search).get('g');
-    const resolved = p ? resolveCode(p) : null;
-    if (resolved === 'admin') {
-      admin = true;
-      tier = 'alles';
-    } else if (resolved) {
-      tier = resolved;
-    }
-    if (!tier) {
-      const cached = localStorage.getItem('rm-guest');
-      if (cached === 'trauung' || cached === 'party' || cached === 'alles') tier = cached;
-    }
     if (localStorage.getItem('rm-admin') === '1') admin = true;
   } catch {
     /* private mode */
   }
-  if (admin) {
-    try {
-      localStorage.setItem('rm-admin', '1');
-    } catch {
-      /* private mode */
-    }
-  }
   state.admin = admin;
-  applyGuest(tier);
+
+  const urlToken = new URLSearchParams(location.search).get('t');
+  const cached = loadCachedGuest();
+
+  if (urlToken && urlToken !== cached?.token) {
+    setConditional(root, 'gateLoading', true);
+    const result = await guestLookup(config, { t: urlToken });
+    setConditional(root, 'gateLoading', false);
+    if (result) {
+      guestToken = result.token;
+      storeCachedGuest({ token: result.token, name: result.name, stufe: result.stufe });
+      applyGuest(result.stufe);
+      return;
+    }
+  } else if (cached) {
+    guestToken = cached.token;
+    applyGuest(cached.stufe);
+    return;
+  }
+
+  applyGuest(admin ? 'alles' : null);
 }
 
 function refreshAdminPanel(): void {
@@ -510,19 +522,24 @@ function knockBox(): void {
  * The RSVP inputs have no `name` attributes in the mockup's own markup, so
  * fields are read positionally instead — stable regardless of guest tier,
  * since tier-gated fields are CSS-hidden (display:none), not removed from
- * the DOM. See the field-index table in the implementation plan.
+ * the DOM. Index table (0-based, in DOM order): 0 Name, 1 E-Mail,
+ * 2 Telefon, 3 Anzahl, 4 Trauung-checkbox, 5 Feier-checkbox,
+ * 6 Afterparty-checkbox, 7 Allergien, 8 Song, 9 Übernachtung-checkbox.
  */
 function persistRsvp(form: HTMLFormElement): void {
   const inputs = form.querySelectorAll<HTMLInputElement>('input');
   const textarea = form.querySelector<HTMLTextAreaElement>('textarea');
-  const teilnahme = [inputs[2]?.checked && 'Trauung', inputs[3]?.checked && 'Feier im Hof', inputs[4]?.checked && 'Afterparty'].filter(Boolean).join(', ');
+  const teilnahme = [inputs[4]?.checked && 'Trauung', inputs[5]?.checked && 'Feier im Hof', inputs[6]?.checked && 'Afterparty'].filter(Boolean).join(', ');
   submitRsvp(config, {
+    token: guestToken,
     name: inputs[0]?.value ?? '',
-    count: Number(inputs[1]?.value) || 0,
+    email: inputs[1]?.value ?? '',
+    phone: inputs[2]?.value ?? '',
+    count: Number(inputs[3]?.value) || 0,
     teilnahme,
-    allergien: inputs[5]?.value ?? '',
-    song: inputs[6]?.value ?? '',
-    uebernachtung: !!inputs[7]?.checked,
+    allergien: inputs[7]?.value ?? '',
+    song: inputs[8]?.value ?? '',
+    uebernachtung: !!inputs[9]?.checked,
     nachricht: textarea?.value ?? ''
   });
 }
@@ -606,6 +623,129 @@ function submit(e: Event): void {
   });
 }
 
+// -- Überraschung (hand reaches in, grabs the card, carries it off) ------------
+//
+// Mirrors the mockup's own `surprise` state (0 closed, 1 hand appears,
+// 2 hand slides in, 3 card grabbed, 4 carried off) — {{ }} bindings in
+// body.raw.html only resolve once at boot, so each transform/transition is
+// re-applied here directly via the `data-surprise-*` hooks, same approach as
+// the envelope-open animation above.
+
+let surpriseState = 0;
+let surpriseT1: number | undefined;
+let surpriseT2: number | undefined;
+
+function applySurpriseState(p: number): void {
+  setConditional(root, 'surpriseOpen', p < 4);
+  setConditional(root, 'surpriseDone', p === 4);
+  setConditional(root, 'surpriseHandIn', p >= 1 && p < 4);
+  const wrap = root.querySelector<HTMLElement>('[data-surprise-wrap]');
+  const hand = root.querySelector<HTMLElement>('[data-surprise-hand]');
+  const card = root.querySelector<HTMLElement>('[data-surprise-card]');
+  if (wrap) {
+    wrap.style.transform = p === 3 ? 'translateX(135%)' : 'none';
+    wrap.style.transition = p === 3 ? 'transform 1.2s cubic-bezier(.4,0,.85,.35)' : 'none';
+  }
+  if (hand) {
+    hand.style.transform = p <= 1 ? 'translateX(102%)' : 'translateX(7%)';
+    hand.style.transition = p <= 1 ? 'none' : 'transform 1.8s cubic-bezier(.22,.7,.25,1)';
+  }
+  if (card) {
+    card.style.transform = p <= 1 ? 'rotate(-.4deg)' : 'rotate(-1.4deg)';
+    card.style.transition = p <= 1 ? 'none' : 'transform 1.2s cubic-bezier(.3,.7,.3,1) .45s, box-shadow 1.2s ease .45s';
+    card.style.boxShadow = p <= 1 ? '0 3px 12px rgba(91,42,16,.09)' : '0 10px 26px rgba(91,42,16,.3)';
+  }
+}
+
+function surpriseGrabbed(): void {
+  if (surpriseState !== 2) return;
+  clearTimeout(surpriseT1);
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      if (surpriseState !== 2) return;
+      surpriseState = 3;
+      applySurpriseState(3);
+      surpriseT2 = window.setTimeout(() => {
+        if (surpriseState !== 3) return;
+        surpriseState = 4;
+        applySurpriseState(4);
+      }, 1450);
+    })
+  );
+}
+
+function submitSurprise(e: Event): void {
+  e.preventDefault();
+  if (surpriseState !== 0) return;
+  const form = e.target as HTMLFormElement;
+  apiSubmitSurprise(config, {
+    who: (form.elements.namedItem('who') as HTMLInputElement)?.value ?? '',
+    contact: (form.elements.namedItem('contact') as HTMLInputElement)?.value ?? '',
+    idea: (form.elements.namedItem('idea') as HTMLTextAreaElement)?.value ?? '',
+    secret: !!(form.elements.namedItem('secret') as HTMLInputElement)?.checked
+  });
+  surpriseState = 1;
+  applySurpriseState(1);
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      surpriseState = 2;
+      applySurpriseState(2);
+      surpriseT1 = window.setTimeout(surpriseGrabbed, 2400);
+    })
+  );
+}
+
+function resetSurprise(): void {
+  clearTimeout(surpriseT1);
+  clearTimeout(surpriseT2);
+  surpriseState = 0;
+  applySurpriseState(0);
+}
+
+function setupSurprise(): void {
+  const hand = root.querySelector<HTMLElement>('[data-surprise-hand]');
+  hand?.addEventListener('transitionend', (e) => {
+    if (e.target !== e.currentTarget || e.propertyName !== 'transform') return;
+    surpriseGrabbed();
+  });
+}
+
+// -- Frage stellen / die Trauzeugen --------------------------------------------
+
+function submitAsk(e: Event): void {
+  e.preventDefault();
+  const form = e.target as HTMLFormElement;
+  submitFrage(config, {
+    question: (form.elements.namedItem('question') as HTMLTextAreaElement)?.value ?? '',
+    contact: (form.elements.namedItem('askcontact') as HTMLInputElement)?.value ?? ''
+  });
+  setConditional(root, 'askOpen', false);
+  setConditional(root, 'askSent', true);
+}
+
+function resetAsk(): void {
+  setConditional(root, 'askOpen', true);
+  setConditional(root, 'askSent', false);
+}
+
+function submitWitness(e: Event): void {
+  e.preventDefault();
+  const form = e.target as HTMLFormElement;
+  submitTrauzeugenMsg(config, {
+    towhom: (form.elements.namedItem('towhom') as HTMLSelectElement)?.value ?? '',
+    name: (form.elements.namedItem('wname') as HTMLInputElement)?.value ?? '',
+    contact: (form.elements.namedItem('wcontact') as HTMLInputElement)?.value ?? '',
+    message: (form.elements.namedItem('wmsg') as HTMLTextAreaElement)?.value ?? ''
+  });
+  setConditional(root, 'witnessOpen', false);
+  setConditional(root, 'witnessSent', true);
+}
+
+function resetWitness(): void {
+  setConditional(root, 'witnessOpen', true);
+  setConditional(root, 'witnessSent', false);
+}
+
 // -- Kuchenbuffet ---------------------------------------------------------------
 
 function cakeLayerStyle(c: Cake, i: number, total: number): string {
@@ -662,6 +802,7 @@ function submitCake(e: Event): void {
   };
   const checkboxes = form.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
   submitKuchen(config, {
+    token: guestToken,
     who: cake.who,
     what: cake.name,
     slices: cake.slices,
@@ -686,25 +827,24 @@ function submitCake(e: Event): void {
 
 // -- gate -----------------------------------------------------------------------
 
-function gateSubmit(e: Event): void {
+async function gateSubmit(e: Event): Promise<void> {
   e.preventDefault();
   const form = e.target as HTMLFormElement;
-  const code = (form.elements.namedItem('code') as HTMLInputElement)?.value || '';
-  const resolved = resolveCode(code);
-  if (resolved === 'admin') {
-    state.admin = true;
-    try {
-      localStorage.setItem('rm-admin', '1');
-    } catch {
-      /* private mode */
-    }
-    state.gateError = '';
-    applyGuest('alles');
-  } else if (resolved) {
-    state.gateError = '';
-    applyGuest(resolved);
+  const code = ((form.elements.namedItem('code') as HTMLInputElement)?.value || '').trim();
+  if (!code) return;
+
+  state.gateError = '';
+  root.querySelectorAll<HTMLElement>('[data-gate-error]').forEach((el) => (el.textContent = ''));
+  setConditional(root, 'gateLoading', true);
+  const result = await guestLookup(config, { code });
+  setConditional(root, 'gateLoading', false);
+
+  if (result) {
+    guestToken = result.token;
+    storeCachedGuest({ token: result.token, name: result.name, stufe: result.stufe });
+    applyGuest(result.stufe);
   } else {
-    state.gateError = state.lang === 'en' ? 'Hmm, that word does not fit. Check your invitation?' : state.lang === 'sv' ? 'Hmm, ordet passar inte. Kolla inbjudan?' : 'Hmm, das Wort passt nicht. Schau nochmal auf die Einladung?';
+    state.gateError = state.lang === 'en' ? 'Hmm, that code does not fit. Check your invitation?' : state.lang === 'sv' ? 'Hmm, koden passar inte. Kolla inbjudan?' : 'Hmm, der Code passt nicht. Schau nochmal auf die Einladung?';
     root.querySelectorAll<HTMLElement>('[data-gate-error]').forEach((el) => (el.textContent = state.gateError));
   }
 }
@@ -793,6 +933,7 @@ function buildInitialValues(): Values {
     boxKnocked: false,
     knockBox,
     gateOpen: true,
+    gateLoading: false,
     gateError: '',
     gateSubmit,
     gateSecret,
@@ -803,7 +944,28 @@ function buildInitialValues(): Values {
     setTrauung: () => applyGuest('trauung'),
     setParty: () => applyGuest('party'),
     setAlles: () => applyGuest('alles'),
-    setGate
+    setGate,
+    submitSurprise,
+    resetSurprise,
+    surpriseOpen: true,
+    surpriseDone: false,
+    surpriseHandIn: false,
+    surpriseWrapT: 'none',
+    surpriseWrapTr: 'none',
+    surpriseHandT: 'translateX(102%)',
+    surpriseHandTr: 'none',
+    surpriseCardT: 'rotate(-.4deg)',
+    surpriseCardTr: 'none',
+    surpriseCardSh: '0 3px 12px rgba(91,42,16,.09)',
+    submitAsk,
+    resetAsk,
+    askOpen: true,
+    askSent: false,
+    submitWitness,
+    resetWitness,
+    witnessOpen: true,
+    witnessSent: false,
+    ...sectionContentValues
   };
 
   return values;
@@ -845,14 +1007,18 @@ function hydrateDropInPhotos(): void {
   });
 }
 
-/** Fetches config + real Kuchen submissions in the background; the page has already painted with the 2 demo cakes by the time this resolves. */
-async function loadRemoteState(): Promise<void> {
+/** `config.json` lives in this same repo (fast, same-origin) — awaited before `initGuest()` needs `config.appsScriptUrl` for its `guest_lookup` call. */
+async function loadConfig(): Promise<void> {
   try {
     const res = await fetch(`${import.meta.env.BASE_URL}config/config.json`);
     config = (await res.json()) as Config;
   } catch {
-    return; // stay on the built-in demo cakes
+    /* stay on the placeholder config — guestLookup/submit* calls just no-op via isConfigured() */
   }
+}
+
+/** Real Kuchen submissions, fetched in the background — the page has already painted with the 2 demo cakes by the time this resolves. */
+async function loadRemoteCakes(): Promise<void> {
   const real = await listKuchen(config);
   if (real) {
     state.cakes = real.map((k) => ({ name: k.what, who: k.who, slices: k.slices, kind: k.kind }));
@@ -879,14 +1045,19 @@ export function boot(container: HTMLElement): void {
   setupVogtlandPostToggles();
 
   const faqMount = root.querySelector('[data-faq-cards]');
-  if (faqMount) faqMount.insertAdjacentHTML('beforeend', renderFaqCards());
+  if (faqMount) faqMount.insertAdjacentHTML('afterbegin', renderFaqCards());
 
   const blacklistMount = root.querySelector('[data-blacklist-items]');
   if (blacklistMount) blacklistMount.insertAdjacentHTML('beforeend', renderBlacklistItems());
 
+  setupSurprise();
+
   applyLang(root, 'de');
   applyResponsive();
-  initGuest();
+  loadConfig().then(() => {
+    initGuest();
+    loadRemoteCakes();
+  });
   initReveal();
   setTimeout(layoutAblaufLine, 260);
   setTimeout(layoutAblaufLine, 1200);
@@ -901,6 +1072,5 @@ export function boot(container: HTMLElement): void {
   tickCountdown();
   setInterval(tickCountdown, 1000);
 
-  loadRemoteState();
   hydrateDropInPhotos();
 }

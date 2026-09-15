@@ -1,23 +1,16 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { writeFile } from 'node:fs/promises';
 import QRCode from 'qrcode';
+import { resolveSiteUrl } from './site-url.mjs';
 
-// Mirrors GUEST_CODES in src/app.ts — the canonical word used per tier's
-// shareable link (kept in sync manually; small enough that duplicating here
-// beats importing TS into a plain Node script).
-const TIER_CODE = { trauung: 'kirche', party: 'tanz', alles: 'hochzeit' };
-
-export async function qr({ tier, out }) {
-  if (!tier || !out || !(tier in TIER_CODE)) {
-    console.error('Usage: wedding qr --tier trauung|party|alles --out <file.png>');
+/** One QR for one invitation — the site only understands `?t=<token>` links now (see technical-spec.md §1). */
+export async function qr({ token, out, base }) {
+  if (!token || !out) {
+    console.error('Usage: wedding qr --token <einladungs-token> --out <file.png> [--base <url>]');
     process.exit(1);
   }
-  const config = JSON.parse(await readFile(new URL('../public/config/config.json', import.meta.url), 'utf8'));
-  if (config.siteUrl.includes('CHANGE-ME')) {
-    console.error('Set the real siteUrl in public/config/config.json first.');
-    process.exit(1);
-  }
-  const url = `${config.siteUrl}?g=${encodeURIComponent(TIER_CODE[tier])}`;
+  const siteUrl = await resolveSiteUrl(base);
+  const url = `${siteUrl.replace(/\/?$/, '/')}?t=${encodeURIComponent(token)}`;
   const buffer = await QRCode.toBuffer(url, { width: 512, margin: 2 });
   await writeFile(out, buffer);
-  console.log(`Wrote ${out} for tier "${tier}" → ${url}`);
+  console.log(`Wrote ${out} → ${url}`);
 }

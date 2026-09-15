@@ -119,6 +119,10 @@
 <form onSubmit="{{ submit }}" style="display:flex;flex-direction:column;gap:19px">
 <label style="display:block"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px">Name</span><input type="text" placeholder="Ruth Beispiel" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none"></label>
 
+<label style="display:block"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px"><span data-de="1">E-Mail</span><span data-en="1" style="display:none">email</span></span><input type="text" placeholder="ruth@beispiel.de" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none"></label>
+
+<label style="display:block"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px"><span data-de="1">Telefon</span><span data-en="1" style="display:none">phone</span></span><input type="text" placeholder="0170 1234567" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none"></label>
+
 <label style="display:block"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px"><span data-de="1">ich / wir kommen — Anzahl</span><span data-en="1" style="display:none">we're coming — how many</span></span><input type="number" min="1" max="12" placeholder="2" style="width:88px;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none"></label>
 
 <div><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:8px"><span data-de="1">zu was?</span><span data-en="1" style="display:none">to which parts?</span></span>
@@ -224,11 +228,97 @@
 
 
 
+<section data-screen-label="04b Überraschung" id="ueberraschung" data-tier="alles" data-w="cardMax" style="position:relative;padding:4px clamp(13px,3.4vw,26px) 46px;margin:0 auto;box-sizing:border-box;width:100%;max-width:{{ cardMax }};overflow:hidden">
+<h2 style="margin:0 0 2px;text-align:center;font:400 34px/1.1 Caveat,cursive"><span data-de="1">{{ ueb_titel_de }}</span><span data-en="1" style="display:none">{{ ueb_titel_en }}</span><span data-sv="1" style="display:none">{{ ueb_titel_sv }}</span></h2>
+<p style="margin:0 0 12px;text-align:center;font:400 16px/1.3 Caveat,cursive;opacity:.6"><span data-de="1">{{ ueb_untertitel_de }}</span><span data-en="1" style="display:none">{{ ueb_untertitel_en }}</span></p>
+
+<div data-surprise-wrap="1" style="position:relative;width:100%;transform:{{ surpriseWrapT }};transition:{{ surpriseWrapTr }};will-change:transform">
+<sc-if value="{{ surpriseHandIn }}" hint-placeholder-val="{{ false }}">
+<div data-surprise-hand-wrap="1" style="position:absolute;right:0;top:50%;z-index:0;width:min(230%,840px);transform:translateY(-50%);pointer-events:none"><img data-surprise-hand="1" src="assets/hand-arm.png" alt="" style="display:block;width:100%;height:auto;transform:{{ surpriseHandT }};transition:{{ surpriseHandTr }};will-change:transform"></div>
+</sc-if>
+<sc-if value="{{ surpriseOpen }}" hint-placeholder-val="{{ true }}">
+<div data-surprise-card="1" style="position:relative;z-index:1;width:100%;max-width:330px;margin:0 auto;background-color:#f6f1e7;background-image:url(assets/paper.png);background-size:320px;border:1px solid rgba(91,42,16,.22);padding:15px 14px 16px;box-shadow:{{ surpriseCardSh }};transform-origin:50% 50%;transform:{{ surpriseCardT }};transition:{{ surpriseCardTr }}">
+<form onSubmit="{{ submitSurprise }}" style="display:flex;flex-direction:column;gap:11px">
+<p style="margin:0;font:300 11.5px/1.55 Karla,sans-serif;opacity:.75"><span data-de="1">{{ ueb_formintro_de }}</span><span data-en="1" style="display:none">{{ ueb_formintro_en }}</span></p>
+<label style="display:flex;align-items:flex-start;gap:8px;font:300 12px/1.45 Karla,sans-serif;padding:8px 9px;border:1px dashed rgba(91,42,16,.35)"><input type="checkbox" name="secret" checked style="width:14px;height:14px;margin-top:1px;accent-color:#a8562f;flex:none"><span><span data-de="1">{{ ueb_geheim_de }}</span><span data-en="1" style="display:none">{{ ueb_geheim_en }}</span></span></label>
+<label style="display:block"><span style="display:block;font:400 18px/1 Caveat,cursive;margin-bottom:2px"><span data-de="1">{{ ueb_vonwem_de }}</span><span data-en="1" style="display:none">{{ ueb_vonwem_en }}</span></span><input type="text" name="who" placeholder="{{ ueb_vonwemplatzhalter_de }}" style="width:100%;border:none;border-bottom:1px solid rgba(91,42,16,.45);background:transparent;padding:4px 2px;font:300 12.5px Karla,sans-serif;outline:none"></label>
+<label style="display:block"><span style="display:block;font:400 18px/1 Caveat,cursive;margin-bottom:2px"><span data-de="1">{{ ueb_kontakt_de }}</span><span data-en="1" style="display:none">{{ ueb_kontakt_en }}</span></span><input type="text" name="contact" placeholder="{{ ueb_kontaktplatzhalter_de }}" style="width:100%;border:none;border-bottom:1px solid rgba(91,42,16,.45);background:transparent;padding:4px 2px;font:300 12.5px Karla,sans-serif;outline:none"><span style="display:block;margin-top:3px;font:300 10.5px/1.35 Karla,sans-serif;opacity:.6"><span data-de="1">{{ ueb_kontakthinweis_de }}</span><span data-en="1" style="display:none">{{ ueb_kontakthinweis_en }}</span></span></label>
+<label style="display:block"><span style="display:block;font:400 18px/1 Caveat,cursive;margin-bottom:2px"><span data-de="1">{{ ueb_idee_de }}</span><span data-en="1" style="display:none">{{ ueb_idee_en }}</span></span><textarea name="idea" rows="3" placeholder="{{ ueb_ideeplatzhalter_de }}" style="width:100%;box-sizing:border-box;resize:vertical;border:1px solid rgba(91,42,16,.3);background:transparent;padding:7px 8px;font:300 12.5px/1.55 Karla,sans-serif;outline:none"></textarea></label>
+<button type="submit" style="margin-top:1px;padding:10px;background:#5b2a10;color:#f6f1e7;border:none;font:400 21px/1 Caveat,cursive;cursor:pointer"><span data-de="1">{{ ueb_button_de }}</span><span data-en="1" style="display:none">{{ ueb_button_en }}</span><span data-sv="1" style="display:none">{{ ueb_button_sv }}</span></button>
+</form>
+</div>
+
+</sc-if>
+</div>
+
+<sc-if value="{{ surpriseDone }}" hint-placeholder-val="{{ false }}">
+<div style="width:100%;max-width:330px;margin:0 auto;background-color:#f6f1e7;background-image:url(assets/paper.png);background-size:320px;border:1px solid rgba(91,42,16,.22);padding:24px 16px 22px;text-align:center;box-shadow:0 3px 12px rgba(91,42,16,.09);transform:rotate(-.4deg)">
+<p style="margin:0;font:400 28px/1.2 Caveat,cursive"><span data-de="1">{{ ueb_donetitel_de }}</span><span data-en="1" style="display:none">{{ ueb_donetitel_en }}</span></p>
+<p style="margin:8px 0 0;font:300 13.5px/1.6 Karla,sans-serif;opacity:.75"><span data-de="1">{{ ueb_donetext_de }}</span><span data-en="1" style="display:none">{{ ueb_donetext_en }}</span></p>
+<p style="margin:14px 0 0;text-align:center;font:400 11px/1.6 ui-monospace,Menlo,monospace;color:#a8562f">{{ ueb_donehinweis_de }}</p>
+<button type="button" onClick="{{ resetSurprise }}" style="margin-top:10px;padding:7px 12px;background:transparent;border:1px solid rgba(91,42,16,.3);font:400 17px/1 Caveat,cursive;color:#5b2a10;cursor:pointer"><span data-de="1">{{ ueb_donebutton_de }}</span><span data-en="1" style="display:none">{{ ueb_donebutton_en }}</span></button>
+</div>
+</sc-if>
+
+</section>
+
+
+
 <section data-screen-label="05 FAQ" id="faq" data-w="cardMax" style="position: relative; padding: 14px clamp(13px,3.4vw,26px) 40px; overflow: hidden; margin: 0 auto; box-sizing: border-box; width: 100%; max-width: {{ cardMax }}"><div data-grow="40" style="position:absolute;left:0;top:11.2%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f3.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(47px,9.5vw,78px);height:auto;transform:translateX(-50%) rotate(101deg);transform-origin:50% 100%"></div><div data-grow="130" style="position:absolute;left:0;top:22.4%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f4.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(70px,14.3vw,117px);height:auto;transform:translateX(-50%) rotate(90deg);transform-origin:50% 100%"></div><div data-grow="220" style="position:absolute;left:0;top:34.3%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f5.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(90px,18.3vw,150px);height:auto;transform:translateX(-50%) rotate(83deg);transform-origin:50% 100%"></div><div data-grow="310" style="position:absolute;left:0;top:56.6%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f6.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(61px,12.4vw,102px);height:auto;transform:translateX(-50%) rotate(77deg);transform-origin:50% 100%"></div><div data-grow="400" style="position:absolute;left:0;top:69.7%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f1.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(50px,10.1vw,83px);height:auto;transform:translateX(-50%) rotate(86deg);transform-origin:50% 100%"></div><div data-grow="40" style="position:absolute;right:0;top:13.1%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f2.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(66px,13.4vw,110px);height:auto;transform:translateX(50%) rotate(-95deg);transform-origin:50% 100%"></div><div data-grow="130" style="position:absolute;right:0;top:20.5%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f3.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(52px,10.6vw,87px);height:auto;transform:translateX(50%) rotate(-101deg);transform-origin:50% 100%"></div><div data-grow="220" style="position:absolute;right:0;top:41.0%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f4.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(70px,14.3vw,117px);height:auto;transform:translateX(50%) rotate(-90deg);transform-origin:50% 100%"></div><div data-grow="310" style="position:absolute;right:0;top:55.5%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f5.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(90px,18.3vw,150px);height:auto;transform:translateX(50%) rotate(-83deg);transform-origin:50% 100%"></div><div data-grow="400" style="position:absolute;right:0;top:63.4%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f6.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(52px,10.5vw,86px);height:auto;transform:translateX(50%) rotate(-77deg);transform-origin:50% 100%"></div>
 
 <h2 style="margin:0 0 4px;text-align:center;font:400 46px/1 Caveat,cursive"><span data-de="1">noch Fragen?</span><span data-en="1" style="display:none">questions?</span><span data-sv="1" style="display:none">frågor?</span></h2>
 <p style="margin:0 0 18px;text-align:center;font:500 12px/1 Karla,sans-serif;letter-spacing:.34em;opacity:.5">FAQ</p>
-<div data-faq-cards="1" style="display:flex;flex-direction:column;gap:11px;width:100%;max-width:400px;margin:0 auto"></div>
+<div data-faq-cards="1" style="display:flex;flex-direction:column;gap:11px;width:100%;max-width:400px;margin:0 auto">
+<details data-card="1" style="background:#fffdf8;border:1px solid rgba(91,42,16,.18);padding:15px 20px 17px">
+<summary style="font:400 25px/1.2 Caveat,cursive;display:flex;align-items:center;justify-content:center;gap:12px"><span><span data-de="1">{{ ask_titel_de }}</span><span data-en="1" style="display:none">{{ ask_titel_en }}</span><span data-sv="1" style="display:none">{{ ask_titel_sv }}</span></span><span data-chev="1" style="opacity:.5;font-size:26px;line-height:.8;transform-origin:50% 55%">›</span></summary>
+<p style="margin:8px 0 12px;text-align:center;font:300 13.5px/1.7 Karla,sans-serif"><span data-de="1">{{ ask_intro_de }}</span><span data-en="1" style="display:none">{{ ask_intro_en }}</span><span data-sv="1" style="display:none">{{ ask_intro_sv }}</span></p>
+<sc-if value="{{ askOpen }}" hint-placeholder-val="{{ true }}">
+<form onSubmit="{{ submitAsk }}" style="display:flex;flex-direction:column;gap:10px">
+<label style="display:block"><span style="display:block;font:400 17px/1 Caveat,cursive;margin-bottom:2px"><span data-de="1">{{ ask_frage_de }}</span><span data-en="1" style="display:none">{{ ask_frage_en }}</span><span data-sv="1" style="display:none">{{ ask_frage_sv }}</span></span><textarea name="question" rows="3" placeholder="{{ ask_frageplatzhalter_de }}" style="width:100%;box-sizing:border-box;resize:vertical;border:1px solid rgba(91,42,16,.3);background:transparent;padding:7px 8px;font:300 12.5px/1.55 Karla,sans-serif;outline:none"></textarea></label>
+<label style="display:block"><span style="display:block;font:400 17px/1 Caveat,cursive;margin-bottom:2px"><span data-de="1">{{ ask_antwortan_de }}</span><span data-en="1" style="display:none">{{ ask_antwortan_en }}</span><span data-sv="1" style="display:none">{{ ask_antwortan_sv }}</span></span><input type="text" name="askcontact" placeholder="{{ ask_antwortanplatzhalter_de }}" style="width:100%;border:none;border-bottom:1px solid rgba(91,42,16,.45);background:transparent;padding:4px 2px;font:300 12.5px Karla,sans-serif;outline:none"></label>
+<button type="submit" style="padding:9px;background:#5b2a10;color:#f6f1e7;border:none;font:400 20px/1 Caveat,cursive;cursor:pointer"><span data-de="1">{{ ask_button_de }}</span><span data-en="1" style="display:none">{{ ask_button_en }}</span><span data-sv="1" style="display:none">{{ ask_button_sv }}</span></button>
+</form>
+</sc-if>
+<sc-if value="{{ askSent }}" hint-placeholder-val="{{ false }}">
+<div style="text-align:center">
+<p style="margin:0;font:400 24px/1.2 Caveat,cursive"><span data-de="1">{{ ask_donetitel_de }}</span><span data-en="1" style="display:none">{{ ask_donetitel_en }}</span><span data-sv="1" style="display:none">{{ ask_donetitel_sv }}</span></p>
+<p style="margin:6px 0 0;font:300 11.5px/1.55 Karla,sans-serif;opacity:.7"><span data-de="1">{{ ask_donetext_de }}</span><span data-en="1" style="display:none">{{ ask_donetext_en }}</span><span data-sv="1" style="display:none">{{ ask_donetext_sv }}</span></p>
+<button type="button" onClick="{{ resetAsk }}" style="margin-top:9px;padding:6px 11px;background:transparent;border:1px solid rgba(91,42,16,.3);font:400 16px/1 Caveat,cursive;color:#5b2a10;cursor:pointer"><span data-de="1">{{ ask_donebutton_de }}</span><span data-en="1" style="display:none">{{ ask_donebutton_en }}</span><span data-sv="1" style="display:none">{{ ask_donebutton_sv }}</span></button>
+</div>
+</sc-if>
+</details>
+</div>
+<div style="width:100%;max-width:400px;margin:7px auto 0;padding:16px 20px 18px;border:1px dashed rgba(91,42,16,.32);transform:rotate(-.4deg)">
+<p style="margin:0 0 2px;font:400 22px/1.1 Caveat,cursive"><span data-de="1">{{ wz_titel_de }}</span><span data-en="1" style="display:none">{{ wz_titel_en }}</span></p>
+<p style="margin:0 0 10px;font:300 11.5px/1.5 Karla,sans-serif;opacity:.7"><span data-de="1">{{ wz_intro_de }}</span><span data-en="1" style="display:none">{{ wz_intro_en }}</span></p>
+<div style="display:flex;flex-direction:column;gap:9px;margin-bottom:13px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-bottom:1px solid rgba(91,42,16,.16);padding-bottom:7px">
+<span style="font:400 18px/1.1 Caveat,cursive">{{ wz_witness1name_de }}</span>
+<a href="mailto:{{ wz_witness1email_de }}" style="font:300 11.5px/1.4 Karla,sans-serif">{{ wz_witness1email_de }}</a>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+<span style="font:400 18px/1.1 Caveat,cursive">{{ wz_witness2name_de }}</span>
+<a href="tel:{{ wz_witness2tel_de }}" style="font:300 11.5px/1.4 Karla,sans-serif">{{ wz_witness2phone_de }}</a>
+</div>
+</div>
+<sc-if value="{{ witnessOpen }}" hint-placeholder-val="{{ true }}">
+<form onSubmit="{{ submitWitness }}" style="display:flex;flex-direction:column;gap:10px;border-top:1px dashed rgba(91,42,16,.25);padding-top:12px">
+<p style="margin:0;font:300 11px/1.5 Karla,sans-serif;opacity:.65"><span data-de="1">{{ wz_oderschreib_de }}</span><span data-en="1" style="display:none">{{ wz_oderschreib_en }}</span><span data-sv="1" style="display:none">{{ wz_oderschreib_sv }}</span></p>
+<label style="display:block"><span style="display:block;font:400 17px/1 Caveat,cursive;margin-bottom:2px"><span data-de="1">{{ wz_anwen_de }}</span><span data-en="1" style="display:none">{{ wz_anwen_en }}</span><span data-sv="1" style="display:none">{{ wz_anwen_sv }}</span></span><select name="towhom" style="width:100%;border:none;border-bottom:1px solid rgba(91,42,16,.45);background:transparent;padding:4px 2px;font:300 12.5px Karla,sans-serif;color:#5b2a10;outline:none"><option>{{ wz_witness1name_de }}</option><option>{{ wz_witness2name_de }}</option><option>{{ wz_beide_de }}</option></select></label>
+<label style="display:block"><span style="display:block;font:400 17px/1 Caveat,cursive;margin-bottom:2px"><span data-de="1">{{ wz_deinname_de }}</span><span data-en="1" style="display:none">{{ wz_deinname_en }}</span><span data-sv="1" style="display:none">{{ wz_deinname_sv }}</span></span><input type="text" name="wname" placeholder="{{ wz_deinnameplatzhalter_de }}" style="width:100%;border:none;border-bottom:1px solid rgba(91,42,16,.45);background:transparent;padding:4px 2px;font:300 12.5px Karla,sans-serif;outline:none"></label>
+<label style="display:block"><span style="display:block;font:400 17px/1 Caveat,cursive;margin-bottom:2px"><span data-de="1">{{ wz_kontakt_de }}</span><span data-en="1" style="display:none">{{ wz_kontakt_en }}</span><span data-sv="1" style="display:none">{{ wz_kontakt_sv }}</span></span><input type="text" name="wcontact" placeholder="{{ wz_kontaktplatzhalter_de }}" style="width:100%;border:none;border-bottom:1px solid rgba(91,42,16,.45);background:transparent;padding:4px 2px;font:300 12.5px Karla,sans-serif;outline:none"></label>
+<label style="display:block"><span style="display:block;font:400 17px/1 Caveat,cursive;margin-bottom:2px"><span data-de="1">{{ wz_nachricht_de }}</span><span data-en="1" style="display:none">{{ wz_nachricht_en }}</span><span data-sv="1" style="display:none">{{ wz_nachricht_sv }}</span></span><textarea name="wmsg" rows="3" placeholder="{{ wz_nachrichtplatzhalter_de }}" style="width:100%;box-sizing:border-box;resize:vertical;border:1px solid rgba(91,42,16,.3);background:transparent;padding:7px 8px;font:300 12.5px/1.55 Karla,sans-serif;outline:none"></textarea></label>
+<button type="submit" style="padding:9px;background:transparent;color:#5b2a10;border:1px solid rgba(91,42,16,.45);font:400 19px/1 Caveat,cursive;cursor:pointer"><span data-de="1">{{ wz_button_de }}</span><span data-en="1" style="display:none">{{ wz_button_en }}</span><span data-sv="1" style="display:none">{{ wz_button_sv }}</span></button>
+</form>
+</sc-if>
+<sc-if value="{{ witnessSent }}" hint-placeholder-val="{{ false }}">
+<div style="border-top:1px dashed rgba(91,42,16,.25);padding-top:14px;text-align:center">
+<p style="margin:0;font:400 24px/1.2 Caveat,cursive"><span data-de="1">{{ wz_donetitel_de }}</span><span data-en="1" style="display:none">{{ wz_donetitel_en }}</span><span data-sv="1" style="display:none">{{ wz_donetitel_sv }}</span></p>
+<p style="margin:6px 0 0;font:300 11.5px/1.55 Karla,sans-serif;opacity:.7"><span data-de="1">{{ wz_donetext_de }}</span><span data-en="1" style="display:none">{{ wz_donetext_en }}</span><span data-sv="1" style="display:none">{{ wz_donetext_sv }}</span></p>
+<button type="button" onClick="{{ resetWitness }}" style="margin-top:9px;padding:6px 11px;background:transparent;border:1px solid rgba(91,42,16,.3);font:400 16px/1 Caveat,cursive;color:#5b2a10;cursor:pointer"><span data-de="1">{{ wz_donebutton_de }}</span><span data-en="1" style="display:none">{{ wz_donebutton_en }}</span><span data-sv="1" style="display:none">{{ wz_donebutton_sv }}</span></button>
+</div>
+</sc-if>
+</div>
 </section>
 
 
@@ -333,11 +423,12 @@
 <div style="width:100%;max-width:360px;text-align:center">
 <p style="margin:0;font:400 17px/1 Caveat,cursive;letter-spacing:.3em;opacity:.55">07.08.2027</p>
 <h2 style="margin:10px 0 0;font:400 52px/1.05 Caveat,cursive">Ruth &amp; Max</h2>
-<p style="margin:14px auto 0;max-width:300px;font:300 13.5px/1.7 Karla,sans-serif;opacity:.8"><span data-de="1">Schön, dass du da bist. Auf deiner Einladung steht ein Wort — tipp es hier ein, dann öffnet sich deine Seite.</span><span data-en="1" style="display:none">Lovely to see you. Your invitation carries a single word — type it in and your page opens.</span><span data-sv="1" style="display:none">Vad fint att du är här. På din inbjudan står ett ord — skriv in det och din sida öppnas.</span></p>
+<p style="margin:14px auto 0;max-width:300px;font:300 13.5px/1.7 Karla,sans-serif;opacity:.8"><span data-de="1">Schön, dass du da bist. Auf deiner Einladung steht ein 4-stelliger Code — tipp ihn hier ein, dann öffnet sich deine Seite.</span><span data-en="1" style="display:none">Lovely to see you. Your invitation carries a 4-digit code — type it in and your page opens.</span><span data-sv="1" style="display:none">Vad fint att du är här. På din inbjudan står en 4-siffrig kod — skriv in den och din sida öppnas.</span></p>
 <form onSubmit="{{ gateSubmit }}" style="margin-top:22px;display:flex;flex-direction:column;gap:14px">
-<input name="code" autocomplete="off" placeholder="…" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:7px 2px;font:300 15px Karla,sans-serif;outline:none;text-align:center">
+<input name="code" autocomplete="off" inputmode="numeric" maxlength="4" placeholder="1234" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:7px 2px;font:300 15px Karla,sans-serif;outline:none;text-align:center">
 <button type="submit" style="padding:12px;background:#5b2a10;color:#f6f1e7;border:none;font:400 25px/1 Caveat,cursive;cursor:pointer"><span data-de="1">aufmachen</span><span data-en="1" style="display:none">open</span><span data-sv="1" style="display:none">öppna</span></button>
 </form>
+<p data-if="gateLoading" style="display:none;margin:12px 0 0;font:300 12px/1.5 Karla,sans-serif;opacity:.6"><span data-de="1">einen Moment …</span><span data-en="1" style="display:none">one moment …</span><span data-sv="1" style="display:none">ett ögonblick …</span></p>
 <p data-gate-error="1" style="margin:12px 0 0;min-height:18px;font:300 12px/1.5 Karla,sans-serif;color:#a8562f">{{ gateError }}</p>
 <p onClick="{{ gateSecret }}" style="margin:24px 0 0;font:400 15px/1 Caveat,cursive;opacity:.35;cursor:default;user-select:none">R &amp; M</p>
 </div></div>

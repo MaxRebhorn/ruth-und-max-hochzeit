@@ -2,7 +2,9 @@
 
 Static site (Vite + TypeScript, no UI framework), hosted on GitHub Pages.
 Google Apps Script + Google Sheets is the intended eventual backend. See
-`technical-spec.md` for the full feature spec and
+`technical-spec.md` for the full feature spec, `ARCHITECTURE.md` for how the
+Sheets backend that exists today is actually laid out (data structures +
+request flows, with diagrams), and
 `/home/mrebhorn/.claude/plans/fancy-puzzling-deer.md` (or ask Claude) for the
 implementation plan this repo follows.
 
@@ -48,33 +50,43 @@ badly from the real design the first time around), the site is built by
 `src/raw/body.raw.html` / `src/raw/style.raw.css` over hand-writing new
 markup — that's what keeps this in sync with the design.
 
-### Real backend (RSVP + Kuchenbuffet)
+### Real backend (RSVP, Kuchenbuffet, Überraschung, Frage stellen, die Trauzeugen)
 
-RSVP and Kuchenbuffet submissions now persist for real via Google Apps
-Script + Sheets (`apps-script/apps-script.gs`), **without touching any
-markup/CSS** — `src/app.ts`'s existing envelope-close animation and cake
-tower DOM updates run exactly as before, with a fire-and-forget `fetch()`
-POST added alongside. The RSVP form has no `name`/email attributes in the
-mockup's own markup, so fields are read **positionally** (see the table in
-`src/app.ts`'s `persistRsvp()`) and submissions are **append-only** — no
-per-guest upsert, since there's no email to key on. The cake tower now
-hydrates from a real `kuchen_list` GET on boot (falls back to the 2 demo
-cakes if `public/config/config.json`'s `appsScriptUrl` is still a
-placeholder or the fetch fails), so it reflects real submissions across
-visitors and sessions once deployed.
+All five forms persist for real via Google Apps Script + Sheets
+(`apps-script/apps-script.gs`), **without touching any markup/CSS** beyond
+adding an E-Mail/Telefon field to RSVP (see below) — everything else is a
+`fetch()` POST alongside the existing UI. See `technical-spec.md` §1–3 for
+the full design; short version:
 
-Access is still the mockup's own 3-tier secret-word gate (trauung/party/
-alles) — a `?g=<code>` URL already unlocks instantly with no form shown at
-all, which is all three shareable QR links need. Generate them with
-`npm run wedding -- qr --tier alles --out alles.png` (see the CLI section).
+- Guests are identified by a **per-invitation token**, not a shared
+  tier-word. A QR link (`?t=<token>`) or a 4-digit fallback code (typed
+  into the gate) both resolve to `{ name, stufe, token }` via Apps Script's
+  `guest_lookup` action — see `src/app.ts`'s `initGuest()`/`gateSubmit()`.
+  That token then rides along on every submission as the upsert key.
+- **RSVP** upserts by that token (merge-only — a blank field in a
+  resubmission never blanks out a previously-filled one), plus every raw
+  submission also lands in an untouched `RSVP-Log` tab. Fields are still
+  read **positionally** off the form (no `name` attributes in the mockup's
+  markup) — see the index table in `src/app.ts`'s `persistRsvp()`.
+- **Kuchenbuffet, Fragen, Überraschungen, Trauzeugen-Nachrichten** stay
+  append-only, same as before, each submission tagged with the guest's
+  token where relevant.
+- Überraschungen/Trauzeugen-Nachrichten live in a **separate spreadsheet
+  file** from RSVP/Kuchen/Fragen — same Google account, just not one Ruth
+  or Max would open day-to-day, since the whole point of that section is
+  they aren't supposed to see it.
+- The cake tower hydrates from a real `kuchen_list` GET on boot (falls back
+  to the 2 demo cakes if `public/config/config.json`'s `appsScriptUrl` is
+  still a placeholder or the fetch fails).
+
+Setting up the guest list (`Gäste` tab, token/code generation) is documented
+in `apps-script/README.md`.
 
 ### Not yet wired up (later phase, per `technical-spec.md`)
 
-- The spec's 4-level QR/token **+** name/email background-check access
-  system — deliberately skipped for now in favor of the simpler 3-tier
-  instant-unlock above.
-- Essenswahl, Liedwunsch (Spotify search), Überraschung, Übernachtung, Frage
-  stellen — spec-only forms with no mockup design yet.
+- Essenswahl, Liedwunsch (Spotify search), Übernachtung — no form built yet;
+  their columns are already reserved on the `RSVP` tab so wiring them up
+  later doesn't need another sheet migration.
 - Real MapLibre map for Anfahrt, real Google Drive photo upload for Fotos,
   level-3 gating on Vogtland.
 
@@ -142,8 +154,24 @@ reimplementation) for visual comparison — see `reference/README.md`.
 ## CLI
 
 ```
-npm run wedding -- qr --tier alles --out qr_alles.png
+npm run wedding -- generate-qr Thomas 3 [--base <url>]
+npm run wedding -- qr --token <einladungs-token> --out qr_einzelperson.png
+npm run wedding -- qr-batch --csv gaeste-export.csv --outDir qr/
 ```
 
-Generates a QR code (and prints the plain link) for one of the three tiers
-(`trauung`, `party`, `alles`) using `public/config/config.json`'s `siteUrl`.
+`generate-qr <Name> <1|2|3>` (1=trauung, 2=+party, 3=+alles) is the
+one-guest-at-a-time path: generates a fresh Token/Code locally, writes the
+QR to `transfer/<name>.png` (git-ignored), and prints a ready-to-paste
+`Gäste`-tab row — it does **not** write to the live sheet itself (see the
+comment in `cli/generate-qr.mjs` for why: the `/exec` URL is public, so a
+remote "add guest" action would be an effectively unauthenticated way to
+inject rows). Paste the printed row into `Gäste` with `Einladung-ID` left
+blank, then run the sheet's own "Tokens & Codes für neue Gäste erzeugen"
+menu to fill that in.
+
+`qr` makes one QR code for a token you already have (e.g. already in the
+`Gäste` tab). `qr-batch` reads a CSV export of the whole `Gäste` tab
+(Google Sheets → File → Download → .csv) and writes one PNG per row, named
+`<Einladung-ID>-<name>.png`. All three use `public/config/config.json`'s
+`siteUrl` unless `--base <url>` overrides it (handy for testing against a
+tunnel without touching the committed config).
