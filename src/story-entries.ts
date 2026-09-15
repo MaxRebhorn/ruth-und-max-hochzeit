@@ -58,9 +58,8 @@ function renderLeaf(src: string, leaf: number, toggleLabel: string | null): stri
   return `<div data-leaf="${leaf}" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)">${inner}</div>`;
 }
 
-function renderStack(photos: string[], dir: 'r' | 'l', seed: number): string {
+function renderStack(photos: string[], dir: 'r' | 'l', seed: number, size: number): string {
   const count = photos.length;
-  const width = 220 + ((seed * 37) % 30);
   const rotate = ((seed % 2 ? 1 : -1) * (1.4 + (seed % 5) * 0.25)).toFixed(2);
   fanCounter += 1;
   const leaves = [
@@ -68,41 +67,51 @@ function renderStack(photos: string[], dir: 'r' | 'l', seed: number): string {
     count > 1 ? renderLeaf(photos[1], 1, null) : '',
     renderLeaf(photos[0], 0, count > 1 ? `+${count - 1}` : null)
   ].join('');
-  return `<div data-stack="1" data-dir="${dir}" data-open="0" data-fan-id="${fanCounter}" style="flex:none;width:min(${width}px,42%);aspect-ratio:196/244;position:relative;transform:rotate(${rotate}deg)">${leaves}</div>`;
+  return `<div data-stack="1" data-dir="${dir}" data-open="0" data-fan-id="${fanCounter}" style="flex:none;width:${size}px;aspect-ratio:196/244;position:relative;transform:rotate(${rotate}deg)">${leaves}</div>`;
 }
 
-function renderPlaceholderStack(): string {
-  return `<div style="flex:none;width:min(220px,42%);aspect-ratio:196/244;position:relative"><div class="raw-photo raw-photo-placeholder">noch kein Foto</div></div>`;
+function renderPlaceholderStack(size: number): string {
+  return `<div style="flex:none;width:${size}px;aspect-ratio:196/244;position:relative"><div class="raw-photo raw-photo-placeholder">noch kein Foto</div></div>`;
+}
+
+/** A plain (non-fanning) extra photo card — same polaroid look as a stack leaf, no toggle. */
+function renderExtraThumb(src: string): string {
+  return `<div style="flex:none;width:${EXTRA_SIZE}px;aspect-ratio:196/244;position:relative;box-sizing:border-box;padding:6px 6px 6px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)"><img class="raw-photo" src="${src}" alt=""></div>`;
 }
 
 function langSpans(text: LangText): string {
   return `<span data-de="1">${text.de}</span><span data-en="1" style="display:none">${text.en}</span><span data-sv="1" style="display:none">${text.sv}</span>`;
 }
 
+const PRIMARY_SIZE = 230; // the "hero" fan-stack — same footprint the mockup's own 9 entries always used
+const EXTRA_SIZE = 108; // extra photos beyond the first 3 read as small flat thumbnails, so 3+ fit per row even on mobile
+
 function renderRow(entry: StoryEntry, index: number): string {
   const flip = index % 2 === 1;
   const dir = flip ? 'l' : 'r';
-  const chunks: string[][] = [];
-  for (let i = 0; i < entry.photos.length; i += 3) chunks.push(entry.photos.slice(i, i + 3));
+  const primaryPhotos = entry.photos.slice(0, 3);
+  const extraPhotos = entry.photos.slice(3);
 
-  const primaryStack = chunks.length ? renderStack(chunks[0], dir, index) : renderPlaceholderStack();
-  const extraStacks = chunks
-    .slice(1)
-    .map((chunk, i) => renderStack(chunk, dir, index + i + 1))
-    .join('');
+  const primaryStack = primaryPhotos.length ? renderStack(primaryPhotos, dir, index, PRIMARY_SIZE) : renderPlaceholderStack(PRIMARY_SIZE);
+  const extraThumbs = extraPhotos.map(renderExtraThumb).join('');
 
   const dotSide = flip ? 'left' : 'right';
   const justify = flip ? 'flex-end' : 'flex-start';
   const flexDir = flip ? 'row-reverse' : 'row';
   const textAlign = flip ? 'right' : 'left';
 
+  // One flex-wrap cluster holds the primary fan-stack plus any extra photos
+  // as flat thumbnails — no separate mini fan-stacks per extra 3, just one
+  // group that wraps naturally (sideways while there's room, onto new
+  // lines once tight) instead of extras floating off as their own row.
+  const cluster = `<div class="story-stack-cluster" style="display:flex;flex-wrap:wrap;gap:10px;flex:none">${primaryStack}${extraThumbs}</div>`;
+
   return `
 <div data-reveal="1" style="position:relative;display:flex;justify-content:${justify};padding-bottom:14px"><div style="position:absolute;${dotSide}:30.5%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#f6f1e7;border:2.4px solid rgba(91,42,16,.55)"></div>
 <div style="width:min(100%,540px);display:flex;flex-wrap:wrap;flex-direction:${flexDir};align-items:center;gap:22px;text-align:${textAlign}">
-${primaryStack}
+${cluster}
 <div style="flex:1 1 190px;min-width:0"><p style="margin:0;font:400 60px/.9 Caveat,cursive">${entry.label}</p><p style="margin:8px 0 0;font:300 14px/1.65 Karla,sans-serif;text-wrap:pretty">${langSpans(entry.text)}</p></div>
 </div>
-${extraStacks ? `<div style="width:min(100%,540px);display:flex;flex-wrap:wrap;gap:14px;justify-content:${justify};margin-top:10px">${extraStacks}</div>` : ''}
 </div>`;
 }
 
