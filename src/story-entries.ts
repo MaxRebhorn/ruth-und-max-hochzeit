@@ -49,29 +49,32 @@ export const storyEntries: StoryEntry[] = Object.entries(mdModules)
 
 let fanCounter = 0;
 
-function renderLeaf(src: string, leaf: number, toggleLabel: string | null): string {
+function renderLeaf(src: string, leaf: number, toggleLabel: string | null, clickable: boolean): string {
   const inner = `<img class="raw-photo" src="${src}" alt="">${
     toggleLabel !== null
       ? `<button type="button" data-fan-toggle-btn style="position:absolute;left:0;right:0;bottom:0;height:26px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font:400 17px/1 Caveat,cursive;color:rgba(91,42,16,.6);letter-spacing:.04em"><span data-fanoc="open">${toggleLabel}</span><span data-fanoc="more">&#187;</span><span data-fanoc="close">&#215;</span></button>`
       : ''
   }`;
-  return `<div data-leaf="${leaf}" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12)">${inner}</div>`;
+  const cursor = clickable ? 'cursor:pointer;' : '';
+  return `<div data-leaf="${leaf}" style="position:absolute;inset:0;box-sizing:border-box;padding:8px 8px 26px;background:#fffdf8;border:1px solid rgba(91,42,16,.22);box-shadow:0 3px 10px rgba(91,42,16,.12);${cursor}">${inner}</div>`;
 }
 
 function renderStack(photos: string[], dir: 'r' | 'l', seed: number, size: number): string {
   const count = photos.length;
   const rotate = ((seed % 2 ? 1 : -1) * (1.4 + (seed % 5) * 0.25)).toFixed(2);
   fanCounter += 1;
+  const clickable = count > 1;
   const leaves = [
-    count > 2 ? renderLeaf(photos[2], 2, null) : '',
-    count > 1 ? renderLeaf(photos[1], 1, null) : '',
-    renderLeaf(photos[0], 0, count > 1 ? `+${count - 1}` : null)
+    count > 2 ? renderLeaf(photos[2], 2, null, clickable) : '',
+    count > 1 ? renderLeaf(photos[1], 1, null, clickable) : '',
+    renderLeaf(photos[0], 0, count > 1 ? `+${count - 1}` : null, clickable)
   ].join('');
   return `<div data-stack="1" data-dir="${dir}" data-open="0" data-fan-id="${fanCounter}" style="flex:none;width:min(${size}px,42%);aspect-ratio:196/244;position:relative;transform:rotate(${rotate}deg)">${leaves}</div>`;
 }
 
-function renderPlaceholderStack(size: number): string {
-  return `<div style="flex:none;width:min(${size}px,42%);aspect-ratio:196/244;position:relative"><div class="raw-photo raw-photo-placeholder">noch kein Foto</div></div>`;
+/** A photo-less entry (e.g. the future-facing closing row) — a plain frame with a large ellipsis instead of a stack, signalling "more to come" rather than "photo missing". */
+function renderFutureStack(size: number): string {
+  return `<div style="flex:none;width:min(${size}px,42%);aspect-ratio:196/244;position:relative;display:flex;align-items:center;justify-content:center"><span style="font:400 70px/1 Caveat,cursive;color:rgba(91,42,16,.55)">&hellip;</span></div>`;
 }
 
 /** A plain (non-fanning) extra photo card — same polaroid look as a stack leaf, no toggle. */
@@ -92,7 +95,7 @@ function renderRow(entry: StoryEntry, index: number): string {
   const primaryPhotos = entry.photos.slice(0, 3);
   const extraPhotos = entry.photos.slice(3);
 
-  const primaryStack = primaryPhotos.length ? renderStack(primaryPhotos, dir, index, PRIMARY_SIZE) : renderPlaceholderStack(PRIMARY_SIZE);
+  const primaryStack = primaryPhotos.length ? renderStack(primaryPhotos, dir, index, PRIMARY_SIZE) : renderFutureStack(PRIMARY_SIZE);
   const extraThumbs = extraPhotos.map(renderExtraThumb).join('');
 
   const dotSide = flip ? 'left' : 'right';
@@ -114,7 +117,7 @@ function renderRow(entry: StoryEntry, index: number): string {
 <div data-reveal="1" style="position:relative;display:flex;justify-content:${justify};padding-bottom:14px"><div style="position:absolute;${dotSide}:30.5%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#f6f1e7;border:2.4px solid rgba(91,42,16,.55)"></div>
 <div style="width:min(100%,540px);display:flex;flex-wrap:wrap;flex-direction:${flexDir};align-items:center;gap:22px;text-align:${textAlign}">
 ${cluster}
-<div style="flex:1 1 190px;min-width:0"><p style="margin:0;font:400 60px/.9 Caveat,cursive">${entry.label}</p><p style="margin:8px 0 0;font:300 14px/1.65 Karla,sans-serif;text-wrap:pretty">${langSpans(entry.text)}</p></div>
+<div style="flex:1 1 190px;min-width:0"><p class="story-label" style="margin:0;font:400 60px/.9 Caveat,cursive">${entry.label}</p><p class="story-text" style="margin:8px 0 0;font:300 14px/1.65 Karla,sans-serif;text-wrap:pretty">${langSpans(entry.text)}</p></div>
 </div>
 </div>`;
 }

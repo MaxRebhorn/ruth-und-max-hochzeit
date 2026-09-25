@@ -1,6 +1,6 @@
 Juli 2022
 
-ging es mit Interrail quer durch Europa
+erkundeten wir mit unseren Interrail-Tickets und viel zu vollen Rucksäcken Südeuropa. Von Reichenbach nach Florenz über Rom nach Venedig und von dort nach Split in Kroatien. Das ganze ging durch Villach auch wieder zurück. 
 
 ---en---
 we crossed Europe by Interrail

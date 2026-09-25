@@ -1,3 +1,5 @@
+import { setupTapePlayer } from './tape-player';
+import { tagsFor, tagLabel, suggestTags } from './allergy-tags';
 import bodyRawHtml from './raw/body.raw.html?raw';
 import { render, bindEvents, applyLang, setConditional, type Values } from './dc-engine';
 import { submitRsvp, submitKuchen, submitSurprise as apiSubmitSurprise, submitFrage, submitTrauzeugenMsg, listKuchen, guestLookup } from './api';
@@ -53,11 +55,13 @@ let root: HTMLElement;
 let config: Config = { appsScriptUrl: '', siteUrl: '' };
 /** The current guest's invitation token — set once the gate resolves (QR `?t=` or the 4-digit code), then rides along on every form submission as the upsert key. */
 let guestToken = '';
+let guestMembers: string[] = [];
 
 interface CachedGuest {
   token: string;
   name: string;
   stufe: Tier;
+  mitglieder?: string[];
 }
 
 /** `localStorage` shape changed from a bare tier string to this — see the token-based gate rework in technical-spec.md §1. */
@@ -81,9 +85,65 @@ function storeCachedGuest(guest: CachedGuest): void {
   }
 }
 
+/**
+ * Autocomplete for any `[data-allergy]` input: solid chips = tags the text
+ * already matches, dashed chips = clickable completions for the segment being
+ * typed. Picking one swaps that segment for the standardized tag word.
+ */
+function renderAllergyChips(input: HTMLInputElement): void {
+  let box = input.nextElementSibling as HTMLElement | null;
+  if (!box?.hasAttribute('data-chips')) {
+    box = document.createElement('div');
+    box.setAttribute('data-chips', '');
+    box.style.cssText = 'display:flex;flex-wrap:wrap;gap:5px;margin-top:5px';
+    input.after(box);
+  }
+  const cut = Math.max(input.value.lastIndexOf(','), input.value.lastIndexOf(';')) + 1;
+  const chip = 'font:400 12px/1 Karla,sans-serif;border-radius:10px;padding:3px 8px;color:#a8562f;';
+  const suggestions = suggestTags(input.value.slice(cut), input.value);
+  box.innerHTML =
+    tagsFor(input.value).filter((t) => !suggestions.includes(t)).map((t) => `<span style="${chip}background:rgba(168,86,47,.14)">${tagLabel(t, state.lang)}</span>`).join('') +
+    suggestions
+      .map((t) => `<button type="button" data-suggest="${t}" style="${chip}background:none;border:1px dashed rgba(168,86,47,.6);cursor:pointer">${tagLabel(t, state.lang)}</button>`)
+      .join('');
+  box.querySelectorAll<HTMLButtonElement>('[data-suggest]').forEach((btn) =>
+    btn.addEventListener('mousedown', (e) => {
+      e.preventDefault(); // keep focus in the input
+      const head = input.value.slice(0, cut).trimEnd();
+      input.value = `${head}${head ? ' ' : ''}${tagLabel(btn.dataset.suggest!, state.lang)}, `;
+      renderAllergyChips(input);
+    })
+  );
+}
+
+const PERSON_INPUT_STYLE = 'width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none';
+
+/** One extra person (linked guest or +1): a name, plus food/allergies for the tiers that get the meal. */
+function addPersonRow(name = ''): void {
+  const mount = root.querySelector('[data-persons]');
+  if (!mount) return;
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;flex-direction:column;gap:6px;border-left:2px solid rgba(91,42,16,.25);padding-left:10px;position:relative';
+  const ph = state.lang === 'en' ? ['Name', 'food / allergies'] : ['Name', 'Essen / Allergien'];
+  row.innerHTML =
+    `<input type="text" name="person-name" placeholder="${ph[0]}" style="${PERSON_INPUT_STYLE}">` +
+    `<input type="text" name="person-allergy" data-allergy data-tier="alles" placeholder="${ph[1]}" style="${PERSON_INPUT_STYLE}">` +
+    `<button type="button" aria-label="remove" style="position:absolute;top:0;right:0;background:none;border:none;font:400 20px/1 Karla,sans-serif;color:rgba(91,42,16,.6);cursor:pointer">×</button>`;
+  row.querySelector<HTMLInputElement>('input')!.value = name;
+  row.querySelector('button')!.addEventListener('click', () => row.remove());
+  mount.appendChild(row);
+}
+
+/** Pre-adds one row per linked guest from the sheet ('Gehört zu'), but never on top of rows the guest already has. */
+function prefillMitkommende(): void {
+  if (!guestMembers.length || root.querySelector('[data-persons] > *')) return;
+  guestMembers.forEach((n) => addPersonRow(n));
+}
+
 function applyGuest(tier: Tier | null): void {
   document.documentElement.setAttribute('data-guest', tier ?? 'none');
   state.guest = tier;
+  prefillMitkommende();
   setConditional(root, 'gateOpen', !tier);
   refreshAdminPanel();
   setTimeout(layoutAblaufLine, 60);
@@ -114,12 +174,14 @@ async function initGuest(): Promise<void> {
     setConditional(root, 'gateLoading', false);
     if (result) {
       guestToken = result.token;
-      storeCachedGuest({ token: result.token, name: result.name, stufe: result.stufe });
+      storeCachedGuest({ token: result.token, name: result.name, stufe: result.stufe, mitglieder: result.mitglieder });
+      guestMembers = result.mitglieder ?? [];
       applyGuest(result.stufe);
       return;
     }
   } else if (cached) {
     guestToken = cached.token;
+    guestMembers = cached.mitglieder ?? [];
     applyGuest(cached.stufe);
     return;
   }
@@ -316,11 +378,13 @@ function initReveal(): void {
 function setupStoryFanToggles(): void {
   const container = root.querySelector('[data-story-items]');
   container?.addEventListener('click', (e) => {
-    const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-fan-toggle-btn]');
-    if (!btn) return;
+    const target = e.target as HTMLElement;
+    const btn = target.closest<HTMLElement>('[data-fan-toggle-btn]');
+    const leaf = target.closest<HTMLElement>('[data-leaf]');
+    if (!btn && !leaf) return;
     e.preventDefault();
     e.stopPropagation();
-    const stack = btn.closest<HTMLElement>('[data-stack]');
+    const stack = (btn ?? leaf)?.closest<HTMLElement>('[data-stack]');
     if (!stack) return;
     const cur = Number(stack.dataset.open || '0');
     if (cur === 2) {
@@ -447,8 +511,58 @@ function countPop(): void {
 
 let envelopeTimers: number[] = [];
 
+/** The seal stays grey and inert until the page is really ready, filling red top→bottom as things arrive. */
+let sealReady = false;
+
+function setupLoadingSeal(guestReady: Promise<unknown>): void {
+  const seal = root.querySelector<HTMLElement>('[data-envelope-seal]');
+  const fill = root.querySelector<HTMLElement>('[data-seal-fill]');
+  const hint = root.querySelector<HTMLElement>('[data-envelope-hint]');
+  const loadingHint = root.querySelector<HTMLElement>('[data-envelope-loading]');
+  if (!seal || !fill || state.phase > 0) {
+    sealReady = true;
+    return;
+  }
+  seal.style.animationPlayState = 'paused';
+  seal.style.cursor = 'progress';
+  if (hint) hint.style.visibility = 'hidden';
+
+  const settle = (el: HTMLImageElement | HTMLLinkElement | undefined, src?: string) =>
+    new Promise<void>((resolve) => {
+      if (el instanceof HTMLImageElement && el.complete) return resolve();
+      const img = el ?? new Image();
+      img.addEventListener('load', () => resolve(), { once: true });
+      img.addEventListener('error', () => resolve(), { once: true }); // a broken image must not block the letter forever
+      if (src && img instanceof HTMLImageElement) img.src = src;
+    });
+  // Lazy photos stay lazy on purpose — waiting for every photo would keep phones on the seal for ages.
+  const tasks: Promise<unknown>[] = [
+    ...[...root.querySelectorAll<HTMLImageElement>('img:not([loading=lazy])')].map((img) => settle(img)),
+    settle(undefined, 'assets/paper.png'),
+    settle(undefined, 'assets/siegel.jpg'),
+    document.fonts?.ready ?? Promise.resolve(),
+    guestReady.catch(() => undefined)
+  ];
+  let done = 0;
+  tasks.forEach((t) => t.then(() => done++));
+  const deadline = performance.now() + 20000; // safety net: after 20 s open anyway
+  let shown = 0;
+  const step = () => {
+    const target = performance.now() > deadline ? 1 : done / tasks.length;
+    shown = Math.min(target, shown + Math.max(0.004, (target - shown) * 0.08)); // eased, never jumps
+    fill.style.height = `${(shown * 100).toFixed(1)}%`;
+    if (shown < 1) return void requestAnimationFrame(step);
+    sealReady = true;
+    seal.style.animationPlayState = '';
+    seal.style.cursor = 'pointer';
+    if (hint) hint.style.visibility = '';
+    if (loadingHint) loadingHint.style.display = 'none';
+  };
+  requestAnimationFrame(step);
+}
+
 function open(): void {
-  if (state.phase > 0) return;
+  if (state.phase > 0 || !sealReady) return;
   state.phase = 1;
   const seal = root.querySelector<HTMLElement>('[data-envelope-seal]');
   const hint = root.querySelector<HTMLElement>('[data-envelope-hint]');
@@ -479,6 +593,7 @@ function open(): void {
     window.setTimeout(() => {
       state.letterVisible = false;
       if (overlay) overlay.style.opacity = '0';
+      document.body.style.overflow = '';
     }, 2750)
   );
 }
@@ -505,6 +620,7 @@ function replay(): void {
     overlay.style.opacity = '1';
   }
   window.scrollTo(0, 0);
+  document.body.style.overflow = 'hidden';
 }
 
 // -- Fotos box ------------------------------------------------------------------
@@ -523,11 +639,15 @@ function knockBox(): void {
  * fields are read positionally instead — stable regardless of guest tier,
  * since tier-gated fields are CSS-hidden (display:none), not removed from
  * the DOM. Index table (0-based, in DOM order): 0 Name, 1 E-Mail,
- * 2 Telefon, 3 Anzahl, 4 Trauung-checkbox, 5 Feier-checkbox,
+ * 2 Telefon, 3 Anzahl (hidden, unused — count comes from the person list; person rows have `name` attrs so they're excluded from this positional list), 4 Trauung-checkbox, 5 Feier-checkbox,
  * 6 Afterparty-checkbox, 7 Allergien, 8 Song, 9 Übernachtung-checkbox.
  */
 function persistRsvp(form: HTMLFormElement): void {
-  const inputs = form.querySelectorAll<HTMLInputElement>('input');
+  const inputs = form.querySelectorAll<HTMLInputElement>('input:not([name])');
+  const extra = [...form.querySelectorAll<HTMLElement>('[data-persons] > *')]
+    .map((r) => ({ name: r.querySelector<HTMLInputElement>('[name=person-name]')?.value.trim() ?? '', allergien: r.querySelector<HTMLInputElement>('[name=person-allergy]')?.value.trim() ?? '', tags: tagsFor(r.querySelector<HTMLInputElement>('[name=person-allergy]')?.value ?? '') }))
+    .filter((p) => p.name);
+  const personen = [{ name: inputs[0]?.value ?? '', allergien: inputs[7]?.value ?? '', tags: tagsFor(inputs[7]?.value ?? '') }, ...extra];
   const textarea = form.querySelector<HTMLTextAreaElement>('textarea');
   const teilnahme = [inputs[4]?.checked && 'Trauung', inputs[5]?.checked && 'Feier im Hof', inputs[6]?.checked && 'Afterparty'].filter(Boolean).join(', ');
   submitRsvp(config, {
@@ -535,7 +655,9 @@ function persistRsvp(form: HTMLFormElement): void {
     name: inputs[0]?.value ?? '',
     email: inputs[1]?.value ?? '',
     phone: inputs[2]?.value ?? '',
-    count: Number(inputs[3]?.value) || 0,
+    count: personen.length,
+    mitkommende: extra.map((p) => p.name).join(', '),
+    personen,
     teilnahme,
     allergien: inputs[7]?.value ?? '',
     song: inputs[8]?.value ?? '',
@@ -841,7 +963,8 @@ async function gateSubmit(e: Event): Promise<void> {
 
   if (result) {
     guestToken = result.token;
-    storeCachedGuest({ token: result.token, name: result.name, stufe: result.stufe });
+    storeCachedGuest({ token: result.token, name: result.name, stufe: result.stufe, mitglieder: result.mitglieder });
+      guestMembers = result.mitglieder ?? [];
     applyGuest(result.stufe);
   } else {
     state.gateError = state.lang === 'en' ? 'Hmm, that code does not fit. Check your invitation?' : state.lang === 'sv' ? 'Hmm, koden passar inte. Kolla inbjudan?' : 'Hmm, der Code passt nicht. Schau nochmal auf die Einladung?';
@@ -1031,6 +1154,16 @@ export function boot(container: HTMLElement): void {
   const values = buildInitialValues();
   root.innerHTML = render(bodyRawHtml, values);
   bindEvents(root, values);
+  root.addEventListener('input', (e) => {
+    const t = e.target as HTMLInputElement;
+    if (t.matches?.('[data-allergy]')) renderAllergyChips(t);
+  });
+  root.querySelector('[data-add-person]')?.addEventListener('click', () => addPersonRow());
+
+  // Scrolling before the envelope is opened would let guests skip past the
+  // intro straight into the page — lock it until `open()`'s own timeout
+  // clears it once the seal animation has finished.
+  if (state.phase === 0) document.body.style.overflow = 'hidden';
 
   const storyWrap = root.querySelector('[data-story-items]');
   if (storyWrap) storyWrap.insertAdjacentHTML('beforeend', renderStoryRows());
@@ -1039,6 +1172,7 @@ export function boot(container: HTMLElement): void {
   const ablaufRowsMount = root.querySelector('[data-ablauf-rows]');
   if (ablaufRowsMount) ablaufRowsMount.outerHTML = renderAblaufRows();
   setupDovesEasterEgg();
+  setupTapePlayer(root);
 
   const vogtlandMount = root.querySelector('[data-vogtland-items]');
   if (vogtlandMount) vogtlandMount.insertAdjacentHTML('beforeend', renderVogtlandCards());
@@ -1054,9 +1188,9 @@ export function boot(container: HTMLElement): void {
 
   applyLang(root, 'de');
   applyResponsive();
-  loadConfig().then(() => {
-    initGuest();
+  const guestReady = loadConfig().then(() => {
     loadRemoteCakes();
+    return initGuest();
   });
   initReveal();
   setTimeout(layoutAblaufLine, 260);
@@ -1073,4 +1207,5 @@ export function boot(container: HTMLElement): void {
   setInterval(tickCountdown, 1000);
 
   hydrateDropInPhotos();
+  setupLoadingSeal(guestReady);
 }

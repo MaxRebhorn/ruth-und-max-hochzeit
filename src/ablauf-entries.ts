@@ -1,3 +1,4 @@
+import { renderTapePlayer } from './tape-player';
 import { photosInFolder } from './photos';
 import { parseEntry, byOrderPrefix, langSpans } from './entry-format';
 
@@ -52,12 +53,15 @@ function renderIcons(icons: string[], alt: string, tanzt: boolean): string {
     return `<img src="${icons[0]}" alt="${alt}" style="width:100%;height:auto;object-fit:contain;mix-blend-mode:multiply">`;
   }
   if (tanzt) {
+    // CURRENT STATE (before the tape player): ball sways 5.5 s, dancers bounce 2.4 s, both on fixed CSS
+    // loops. The tape player (tape-player.ts) now takes over the `data-ball`/`data-dancers` transforms
+    // while a song plays and hands them back to these CSS animations on stop.
     // Exact mockup animation: disco ball sways, dancers bounce — kept as its
     // own case (rather than generic) so it survives folder-driven rendering.
     // The flex/column wrapper is the icon slot itself (see iconWrapAttrs),
     // matching the mockup's markup exactly (no extra nested div).
-    return `<img src="${icons[0]}" alt="${alt}" style="width:78%;height:auto;display:block;animation:sway 5.5s ease-in-out infinite;transform-origin:50% 0">
-<img src="${icons[1]}" alt="" style="width:90%;height:auto;display:block;margin-top:-22%;animation:dance 2.4s ease-in-out infinite;transform-origin:50% 96%">`;
+    return `<img data-ball src="${icons[0]}" alt="${alt}" style="width:78%;height:auto;display:block;animation:sway 5.5s ease-in-out infinite;transform-origin:50% 0">
+<img data-dancers src="${icons[1]}" alt="" style="width:90%;height:auto;display:block;margin-top:-22%;animation:dance 2.4s ease-in-out infinite;transform-origin:50% 96%">`;
   }
   // Two images, generic case: main + a smaller accent overlapping at the bottom.
   return `<div style="display:flex;flex-direction:column;align-items:center">
@@ -98,7 +102,7 @@ function renderRow(entry: AblaufEntry, index: number): string {
   const flip = index % 2 === 1;
   const tierAttr = entry.tier === 'party' ? ' data-tier="party"' : entry.tier === 'ganzer-tag' ? ' data-tier="alles"' : '';
   const icon = entry.icons.length ? renderIcons(entry.icons, entry.ort, entry.tanzt) : `<div class="raw-photo raw-photo-placeholder" style="aspect-ratio:1;width:100%">noch kein Bild</div>`;
-  const iconWidth = entry.tanzt ? 'min(196px,42%)' : 'min(180px,34%)';
+  const iconWidth = entry.tanzt ? 'min(196px,42%)' : entry.slug === '2-ankommen' ? 'min(300px,57%)' : 'min(180px,34%)';
   const iconWrapAttrs = entry.doves ? ` data-doves-trigger style="position:relative;flex:none;width:${iconWidth};cursor:pointer"` : ` style="flex:none;width:${iconWidth}${entry.tanzt ? ';display:flex;flex-direction:column;align-items:center' : ''}"`;
   const iconBlock = `<div${iconWrapAttrs}>${icon}${entry.doves ? renderDoves() : ''}</div>`;
 
@@ -126,6 +130,7 @@ ${entry.ort ? `<p style="margin:2px 0 0;font:300 13px/1.5 Karla,sans-serif;opaci
 ${entry.body.de ? `<p style="margin:6px 0 0;font:300 13px/1.55 Karla,sans-serif;opacity:.7">${langSpans(entry.body.de, entry.body.en, entry.body.sv)}</p>` : ''}
 ${linkHtml}
 </div>
+${entry.tanzt ? renderTapePlayer() : ''}
 </div>`;
 }
 

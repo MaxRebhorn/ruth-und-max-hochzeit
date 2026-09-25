@@ -29,7 +29,8 @@ const SHEET_NAMES = {
   rsvp: 'RSVP',
   rsvpLog: 'RSVP-Log',
   kuchen: 'Kuchenbuffet',
-  fragen: 'Fragen'
+  fragen: 'Fragen',
+  personen: 'Personen'
 };
 
 const GEHEIM_SHEET_NAMES = {
@@ -37,15 +38,16 @@ const GEHEIM_SHEET_NAMES = {
   trauzeugen: 'Trauzeugen-Nachrichten'
 };
 
-const GAESTE_COLUMNS = ['Einladung-ID', 'Name', 'Stufe', 'Token', 'Code', 'E-Mail', 'Telefon', 'RSVP-Status', 'Notizen'];
+const GAESTE_COLUMNS = ['Einladung-ID', 'Name', 'Stufe', 'Token', 'Code', 'E-Mail', 'Telefon', 'RSVP-Status', 'Notizen', 'Gehört zu'];
 const RSVP_COLUMNS = [
   'Zeit', 'Einladung-ID', 'Name', 'E-Mail', 'Telefon', 'Anzahl', 'Teilnahme', 'Allergien', 'Song',
-  'Übernachtung', 'Nachricht', 'Essenswahl', 'Liedwunsch', 'Übernachtung-Details'
+  'Übernachtung', 'Nachricht', 'Essenswahl', 'Liedwunsch', 'Übernachtung-Details', 'Mitkommende'
 ];
 const KUCHEN_COLUMNS = [
   'Zeit', 'Einladung-ID', 'Name', 'Beitrag', 'Stücke', 'Art', 'Kühlung nötig', 'vegan/vegetarisch', 'enthält Nüsse',
   'braucht Kuchenplatte'
 ];
+const PERSONEN_COLUMNS = ['Zeit', 'Einladung-ID', 'Name', 'Allergien', 'Tags'];
 const FRAGEN_COLUMNS = ['Zeit', 'Frage', 'Kontakt'];
 const UEBERRASCHUNGEN_COLUMNS = ['Zeit', 'Von', 'Kontakt', 'Idee', 'Geheim'];
 const TRAUZEUGEN_COLUMNS = ['Zeit', 'An', 'Name', 'Kontakt', 'Nachricht'];
@@ -100,6 +102,19 @@ function doPost(e) {
           new Date(), clean_(body.towhom), clean_(body.name), clean_(body.contact), clean_(body.message)
         ]);
         return json_({ ok: true });
+      case 'add_guest': {
+        // Guarded by a secret that lives only in Script Properties (ADMIN_KEY) + the local .env — never shipped to browsers.
+        const key = PROPS.getProperty('ADMIN_KEY');
+        if (!key || body.adminKey !== key) return json_({ error: 'forbidden' });
+        const sheet = mainSheet_(SHEET_NAMES.gaeste);
+        // Same 'E'+n scheme as generateGuestTokens (n = data-row index). `guests` = batch, else the body itself is one guest.
+        // A guest with `zuName` is linked to that (already added) row instead of getting its own token/code.
+        (body.guests || [body]).forEach((g) => {
+          const main = g.zuName && findRowByColumn_(sheet, 'Name', g.zuName);
+          appendRow_(sheet, ['E' + sheet.getLastRow(), g.name, g.stufe, main ? '' : g.token, main ? '' : g.code, '', '', '', '', main ? main.values[0] : '']);
+        });
+        return json_({ ok: true });
+      }
       default:
         return json_({ error: 'unknown type' });
     }
@@ -120,7 +135,7 @@ function doPost(e) {
 function guestLookup_(token, code) {
   if (token) {
     const row = findGuestRow_('Token', token);
-    return row ? { name: row['Name'], stufe: row['Stufe'], token: row['Token'] } : { error: 'not found' };
+    return row ? guestResult_(row) : { error: 'not found' };
   }
   if (code) {
     if (isRateLimited_()) return { error: 'rate limited' };
@@ -132,9 +147,18 @@ function guestLookup_(token, code) {
     // Echo the real long-lived token back even though the guest typed the short
     // code — the client then uses the same token for every later submission,
     // regardless of which route (QR vs manual code) originally identified them.
-    return { name: row['Name'], stufe: row['Stufe'], token: row['Token'] };
+    return guestResult_(row);
   }
   return { error: 'missing token or code' };
+}
+
+/** `mitglieder` = names of Gäste rows whose 'Gehört zu' points at this guest's Einladung-ID (linked people without their own QR). */
+function guestResult_(row) {
+  const values = mainSheet_(SHEET_NAMES.gaeste).getDataRange().getValues();
+  const header = values[0];
+  const [nameCol, linkCol] = [header.indexOf('Name'), header.indexOf('Gehört zu')];
+  const mitglieder = linkCol === -1 || !row['Einladung-ID'] ? [] : values.slice(1).filter((r) => String(r[linkCol]).trim() === String(row['Einladung-ID'])).map((r) => r[nameCol]);
+  return { name: row['Name'], stufe: row['Stufe'], token: row['Token'], mitglieder };
 }
 
 function isRateLimited_() {
@@ -196,17 +220,31 @@ function upsertRsvp_(body) {
       appendRow_(rsvpSheet, rowValues);
     }
 
+    writePersonen_(einladungId, body.personen);
     if (einladungId) updateGuestStatus_(einladungId, body);
   } finally {
     lock.releaseLock();
   }
 }
 
+/** One row per attending person (with their own allergies); a re-submit replaces that invitation's earlier rows. */
+function writePersonen_(einladungId, personen) {
+  if (!Array.isArray(personen)) return;
+  const sheet = mainSheet_(SHEET_NAMES.personen);
+  if (einladungId) {
+    const values = sheet.getDataRange().getValues();
+    for (let i = values.length - 1; i >= 1; i--) if (String(values[i][1]) === String(einladungId)) sheet.deleteRow(i + 1);
+  }
+  const now = new Date();
+  personen.slice(0, 20).forEach((p) => appendRow_(sheet, [now, einladungId, clean_(p.name), clean_(p.allergien), clean_((p.tags || []).join(', '))]));
+}
+
 function rsvpRowValues_(einladungId, body) {
   return [
     new Date(), einladungId, clean_(body.name), clean_(body.email), clean_(body.phone), Number(body.count) || 0,
     clean_(body.teilnahme), clean_(body.allergien), clean_(body.song), !!body.uebernachtung, clean_(body.nachricht),
-    '', '', '' // Essenswahl / Liedwunsch / Übernachtung-Details — reserved until those forms exist
+    '', '', '', // Essenswahl / Liedwunsch / Übernachtung-Details — reserved until those forms exist
+    clean_(body.mitkommende)
   ];
 }
 
@@ -264,7 +302,7 @@ function installOnOpenTrigger_() {
 }
 
 function onOpen() {
-  SpreadsheetApp.getUi().createMenu('Hochzeit').addItem('Tokens & Codes für neue Gäste erzeugen', 'generateGuestTokens').addToUi();
+  SpreadsheetApp.getUi().createMenu('Hochzeit').addItem('Tokens & Codes für neue Gäste erzeugen', 'generateGuestTokens').addItem('Essens-Auszählung erzeugen', 'countTags').addToUi();
 }
 
 /** Fills blank Einladung-ID/Token/Code cells on the Gäste tab — safe to run repeatedly, only ever fills gaps. */
@@ -275,21 +313,23 @@ function generateGuestTokens() {
   const idCol = header.indexOf('Einladung-ID');
   const tokenCol = header.indexOf('Token');
   const codeCol = header.indexOf('Code');
+  const linkCol = header.indexOf('Gehört zu');
   const usedCodes = new Set(values.slice(1).map((r) => String(r[codeCol])).filter(Boolean));
 
   let updated = 0;
   for (let i = 1; i < values.length; i++) {
     const row = values[i];
     let changed = false;
+    const linked = linkCol !== -1 && row[linkCol];
     if (!row[idCol]) {
       sheet.getRange(i + 1, idCol + 1).setValue('E' + i);
       changed = true;
     }
-    if (!row[tokenCol]) {
+    if (!row[tokenCol] && !linked) {
       sheet.getRange(i + 1, tokenCol + 1).setValue(Utilities.getUuid());
       changed = true;
     }
-    if (!row[codeCol]) {
+    if (!row[codeCol] && !linked) {
       let code;
       do {
         code = String(Math.floor(1000 + Math.random() * 9000));
@@ -301,6 +341,18 @@ function generateGuestTokens() {
     if (changed) updated++;
   }
   SpreadsheetApp.getUi().alert(updated + ' Zeile(n) aktualisiert.');
+}
+
+/** Rebuilds the 'Auszählung' tab: how many people per tag, from the Personen tab's Tags column. */
+function countTags() {
+  const rows = mainSheet_(SHEET_NAMES.personen).getDataRange().getValues().slice(1);
+  const counts = {};
+  rows.forEach((r) => String(r[4]).split(',').map((t) => t.trim()).filter(Boolean).forEach((t) => (counts[t] = (counts[t] || 0) + 1)));
+  const ss = SpreadsheetApp.openById(PROPS.getProperty('HOCHZEIT_SHEET_ID'));
+  const sheet = ss.getSheetByName('Auszählung') || ss.insertSheet('Auszählung');
+  sheet.clear();
+  const table = [['Tag', 'Anzahl'], ['Personen gesamt', rows.length]].concat(Object.keys(counts).sort().map((t) => [t, counts[t]]));
+  sheet.getRange(1, 1, table.length, 2).setValues(table);
 }
 
 // --- sheets ------------------------------------------------------------
@@ -344,6 +396,8 @@ function columnsFor_(tabName) {
       return KUCHEN_COLUMNS;
     case SHEET_NAMES.fragen:
       return FRAGEN_COLUMNS;
+    case SHEET_NAMES.personen:
+      return PERSONEN_COLUMNS;
     case GEHEIM_SHEET_NAMES.ueberraschungen:
       return UEBERRASCHUNGEN_COLUMNS;
     case GEHEIM_SHEET_NAMES.trauzeugen:

@@ -250,6 +250,18 @@ summary {
     transform: translateX(-168%) rotate(-3deg);
   }
 }
+
+/* Story entry copy is sized for mobile inline (60px label / 14px text) —
+   on desktop's wider columns that reads tiny next to the polaroid stacks,
+   so bump it up above the mobile breakpoint. */
+@media (min-width: 860px) {
+  .story-label {
+    font-size: 76px !important;
+  }
+  .story-text {
+    font-size: 17px !important;
+  }
+}
 [data-stack] [data-fanoc='more'],
 [data-stack] [data-fanoc='close'] {
   display: none;

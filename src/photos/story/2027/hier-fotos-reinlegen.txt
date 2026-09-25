@@ -1,2 +1,0 @@
-Fotos hier reinlegen (beliebiger Dateiname, .jpg/.jpeg/.png/.webp).
-Siehe photos/README.md fuer Details.

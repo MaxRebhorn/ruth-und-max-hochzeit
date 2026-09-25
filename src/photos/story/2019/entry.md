@@ -1,6 +1,6 @@
 2019
 
-haben wir uns online kennengelernt — erster Kontakt, gemeinsames Zocken, endlose Telefonate
+Haben wir uns online kennengelernt. Darauf folgten viele viele Textnachrichten, gemeinsame Telefonate und natürlich auch viel zocken. Durch den Lockdown 2020 verbrachten wir viel Zeit online.
 
 ---en---
 we met online — first messages, gaming together, endless phone calls

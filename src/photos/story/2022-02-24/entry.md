@@ -1,6 +1,6 @@
 24. 02. 2022
 
-sind wir offiziell zusammengekommen
+sind wir ganz offiziell zusammengekommen. 
 
 ---en---
 we officially became a couple

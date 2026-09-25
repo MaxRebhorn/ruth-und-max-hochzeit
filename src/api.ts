@@ -11,6 +11,8 @@ export interface GuestLookup {
   name: string;
   stufe: 'trauung' | 'party' | 'alles';
   token: string;
+  /** Names linked to this guest in the sheet ('Gehört zu') — prefill for the RSVP's "who's coming" field. */
+  mitglieder?: string[];
 }
 
 export interface RsvpPayload {
@@ -19,6 +21,8 @@ export interface RsvpPayload {
   email: string;
   phone: string;
   count: number;
+  mitkommende: string;
+  personen: { name: string; allergien: string; tags: string[] }[];
   teilnahme: string;
   allergien: string;
   song: string;

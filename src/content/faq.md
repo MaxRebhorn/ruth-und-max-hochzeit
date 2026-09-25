@@ -1,6 +1,6 @@
 frage: Was ziehe ich an?
 
-Festlich, gern bunt. Kein Weiß — das ist für einen Tag reserviert.
+Festlich schick, gern bunt. Kein Weiß — das ist für einen Tag reserviert.
 
 ---en---
 frage: What should I wear?
