@@ -7,69 +7,41 @@
  * the RSVP song wish.
  */
 
-interface Track {
+export interface Track {
   title: string;
   artist: string;
   cover: string;
   preview: string;
 }
 
-const INK = 'rgba(91,42,16,.85)';
-const RUST = '#a8562f';
-
-const CSS = `
-@keyframes tapePop{0%{transform:scale(.2) rotate(-14deg);opacity:0}60%{transform:scale(1.08) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(-2deg)}}
-@keyframes reelSpin{to{transform:rotate(360deg)}}
-[data-tape] input{width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none}
-[data-tape] [data-hit]{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:none;border-bottom:1px dashed rgba(91,42,16,.2);padding:6px 2px;cursor:pointer;font:300 13px/1.3 Karla,sans-serif}
-[data-tape] [data-hit]:hover{background:rgba(243,220,147,.35)}
-[data-tape] [data-reel]{transform-origin:50% 50%}
-[data-tape][data-playing] [data-reel]{animation:reelSpin 1.6s linear infinite}
-`;
-
-const esc = (s: string): string => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
-
-function cassetteHtml(t: Track): string {
-  const label = esc(t.title.slice(0, 26));
-  const sub = esc(t.artist.slice(0, 30));
-  return `<div data-cassette style="position:relative;width:150px;height:96px;background:#3b2a20;border-radius:7px;box-shadow:0 3px 8px rgba(0,0,0,.3);transform:rotate(-2deg);animation:tapePop .55s cubic-bezier(.2,.9,.3,1.2) both">
-<div style="position:absolute;left:9px;right:9px;top:8px;height:44px;background:#f4ead2;border-radius:3px;padding:4px 7px;overflow:hidden">
-<p style="margin:0;font:400 17px/1 Caveat,cursive;color:${INK};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${label}</p>
-<p style="margin:2px 0 0;font:300 10px/1.2 Karla,sans-serif;color:${INK};opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sub}</p>
-<div style="position:absolute;left:0;right:0;bottom:0;height:4px;background:${RUST};opacity:.8"></div>
-</div>
-<svg viewBox="0 0 150 96" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">
-<path d="M30 96 L40 72 H110 L120 96" fill="#2a1d15"/>
-<g data-reel style="transform-box:fill-box"><circle cx="50" cy="62" r="9" fill="#f4ead2"/><path d="M50 55v14M43 62h14M45 57l10 10M55 57L45 67" stroke="#3b2a20" stroke-width="1.5"/></g>
-<g data-reel style="transform-box:fill-box"><circle cx="100" cy="62" r="9" fill="#f4ead2"/><path d="M100 55v14M93 62h14M95 57l10 10M105 57L95 67" stroke="#3b2a20" stroke-width="1.5"/></g>
-</svg></div>`;
-}
-
-export function renderTapePlayer(): string {
-  return `<style>${CSS}</style>
-<div data-tape="1" style="flex:1 1 100%;min-width:0;margin-top:6px;background:#fffdf8;border:1.5px solid rgba(91,42,16,.35);padding:14px 16px 16px;box-shadow:0 4px 14px rgba(91,42,16,.08)">
-<p style="margin:0 0 8px;font:400 24px/1 Caveat,cursive"><span data-de="1">dein Lied für die Tanzfläche</span><span data-en="1" style="display:none">your song for the dancefloor</span></p>
-<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
-<div style="flex:1 1 200px;min-width:0">
-<input data-tape-q type="text" placeholder="Lied oder Interpret suchen …" autocomplete="off">
-<div data-tape-hits style="margin-top:6px"></div>
-</div>
-<div style="flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:12px;margin:0 auto">
-<div data-tape-stage style="width:154px;height:100px;display:flex;align-items:center;justify-content:center"></div>
-<div style="width:188px;background:linear-gradient(#5a4436,#3b2a20);border-radius:9px;padding:12px 12px 10px;box-shadow:0 4px 10px rgba(0,0,0,.3)">
-<div data-tape-slot style="height:104px;background:#1c130e;border-radius:5px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 3px 8px rgba(0,0,0,.6);overflow:hidden">
-<span data-tape-empty style="font:300 11px Karla,sans-serif;color:#f4ead2;opacity:.45;letter-spacing:.1em">KASSETTE EINLEGEN</span></div>
-<div style="display:flex;align-items:center;gap:10px;margin-top:10px">
-<button data-tape-play type="button" disabled aria-label="Play" style="width:42px;height:34px;border-radius:5px;border:none;background:#e9dcbd;color:${INK};font:400 16px/1 Karla,sans-serif;cursor:pointer;opacity:.5">▶</button>
-<span data-tape-status style="font:400 12px/1.2 Karla,sans-serif;color:#f4ead2;opacity:.75;min-width:0">—</span>
-</div></div></div></div></div>`;
-}
-
-async function searchTracks(q: string): Promise<Track[]> {
+export async function searchTracks(q: string): Promise<Track[]> {
   const url = `https://itunes.apple.com/search?${new URLSearchParams({ term: q, media: 'music', entity: 'song', limit: '6', country: 'de' })}`;
   const res = await fetch(url);
   const data = (await res.json()) as { results: { trackName: string; artistName: string; artworkUrl100: string; previewUrl?: string }[] };
   return data.results.filter((r) => r.previewUrl).map((r) => ({ title: r.trackName, artist: r.artistName, cover: r.artworkUrl100, preview: r.previewUrl! }));
+}
+
+const INK = 'rgba(91,42,16,.85)';
+
+function asset(path: string): string {
+  return `${import.meta.env.BASE_URL}assets/${path}`;
+}
+
+const CSS = `
+[data-tape] [data-tape-play]:not(:disabled):hover{filter:brightness(.95)}
+[data-tape][data-playing] [data-tape-play]{filter:brightness(.9)}
+`;
+
+/** Small, decorative deck — the song search now lives in the RSVP form (searchTracks() above); this stays ready to play whatever gets wired to it from there later. */
+export function renderTapePlayer(): string {
+  return `<style>${CSS}</style>
+<div data-tape="1" style="flex:0 0 auto;width:150px;display:flex;flex-direction:column;align-items:center;gap:4px;margin:110px 0 0">
+<div data-tape-stage style="width:94px;height:62px;display:flex;align-items:center;justify-content:center"></div>
+<button data-tape-play type="button" disabled aria-label="Play/Stop" style="width:150px;height:124px;position:relative;border:none;background:none;padding:0;cursor:pointer;opacity:.5">
+<img data-tape-deck src="${asset('tape-player.svg')}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain">
+</button>
+<span data-tape-status style="font:400 11px/1.2 Karla,sans-serif;color:${INK};opacity:.75;min-width:0;text-align:center">—</span>
+</div>`;
 }
 
 interface Tempo {
@@ -141,78 +113,15 @@ function analyzeTempo(buf: AudioBuffer): Tempo {
   return { beat: lag * hopSec, offset: phase * hopSec };
 }
 
-export function setupTapePlayer(root: HTMLElement): void {
+/** Returns a `loadTrack` handle so a future caller (e.g. the RSVP-submitted song) can feed the deck a track — nothing calls it yet. */
+export function setupTapePlayer(root: HTMLElement): { loadTrack: (t: Track) => void } | void {
   const wrap = root.querySelector<HTMLElement>('[data-tape]');
   const ball = root.querySelector<HTMLElement>('[data-ball]');
   const dancers = root.querySelector<HTMLElement>('[data-dancers]');
   if (!wrap) return;
-  const q = wrap.querySelector<HTMLInputElement>('[data-tape-q]')!;
-  const hits = wrap.querySelector<HTMLElement>('[data-tape-hits]')!;
-  const stage = wrap.querySelector<HTMLElement>('[data-tape-stage]')!;
-  const slot = wrap.querySelector<HTMLElement>('[data-tape-slot]')!;
   const playBtn = wrap.querySelector<HTMLButtonElement>('[data-tape-play]')!;
   const status = wrap.querySelector<HTMLElement>('[data-tape-status]')!;
   const relayout = () => window.dispatchEvent(new Event('resize')); // the Ablauf line is measured from row heights
-
-  let timer = 0;
-  q.addEventListener('input', () => {
-    clearTimeout(timer);
-    const term = q.value.trim();
-    if (term.length < 2) {
-      hits.innerHTML = '';
-      return relayout();
-    }
-    timer = window.setTimeout(async () => {
-      try {
-        const tracks = await searchTracks(term);
-        hits.innerHTML = tracks.length
-          ? tracks.map((t, i) => `<button type="button" data-hit="${i}"><img src="${esc(t.cover)}" alt="" width="38" height="38" style="flex:none"><span><b style="font-weight:500">${esc(t.title)}</b><br>${esc(t.artist)}</span></button>`).join('')
-          : `<p style="margin:4px 0;font:300 12px Karla,sans-serif;opacity:.6">nichts gefunden</p>`;
-        hits.querySelectorAll<HTMLElement>('[data-hit]').forEach((b) => b.addEventListener('click', () => popCassette(tracks[Number(b.dataset.hit)])));
-      } catch {
-        hits.innerHTML = `<p style="margin:4px 0;font:300 12px Karla,sans-serif;opacity:.6">Suche gerade nicht erreichbar.</p>`;
-      }
-      relayout();
-    }, 350);
-  });
-
-  // -- cassette pops up on the stage; a click sends it flying into the deck -------
-  let staged: Track | null = null;
-  function popCassette(t: Track): void {
-    staged = t;
-    hits.innerHTML = '';
-    stage.innerHTML = `<button type="button" data-insert aria-label="Kassette einlegen" style="background:none;border:none;padding:0;cursor:pointer">${cassetteHtml(t)}</button>`;
-    stage.querySelector('[data-insert]')!.addEventListener('click', insert);
-    status.textContent = 'tippe die Kassette';
-    relayout();
-  }
-
-  function insert(): void {
-    const cass = stage.querySelector<HTMLElement>('[data-cassette]');
-    if (!cass || !staged) return;
-    const track = staged;
-    staged = null;
-    const from = cass.getBoundingClientRect();
-    const to = slot.getBoundingClientRect();
-    cass.style.animation = 'none';
-    cass.style.transition = 'transform .7s cubic-bezier(.5,0,.3,1)';
-    void cass.offsetWidth; // commit the start state first, otherwise the browser skips the transition (and its end event)
-    cass.style.transform = `translate(${to.left + to.width / 2 - (from.left + from.width / 2)}px, ${to.top + to.height / 2 - (from.top + from.height / 2)}px) scale(.9) rotate(0deg)`;
-    cass.style.zIndex = '5';
-    let done = false;
-    const land = () => {
-      if (done) return;
-      done = true;
-      stop();
-      slot.innerHTML = '';
-      cass.style.cssText = 'position:relative;width:150px;height:96px;background:#3b2a20;border-radius:7px;transform:scale(.9)';
-      slot.appendChild(cass);
-      stage.innerHTML = '';
-      loadTrack(track);
-    };
-    cass.addEventListener('transitionend', land, { once: true });
-    setTimeout(land, 900); // safety net (reduced-motion, background tab, …)
-  }
 
   // -- playback + beat-driven sway --------------------------------------------------
   // The preview is fetched and decoded into a buffer instead of streamed through an <audio> element:
@@ -275,7 +184,6 @@ export function setupTapePlayer(root: HTMLElement): void {
     source.start();
     playing = true;
     wrap!.setAttribute('data-playing', '');
-    playBtn.textContent = '❚❚';
     takeOver(ball);
     takeOver(dancers);
     tempo ??= analyzeTempo(decoded);
@@ -316,9 +224,10 @@ export function setupTapePlayer(root: HTMLElement): void {
     source = null;
     playing = false;
     wrap!.removeAttribute('data-playing');
-    playBtn.textContent = '▶';
     release();
   }
 
   playBtn.addEventListener('click', () => (playing ? stop() : void start()));
+
+  return { loadTrack };
 }

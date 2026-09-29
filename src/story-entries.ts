@@ -72,9 +72,9 @@ function renderStack(photos: string[], dir: 'r' | 'l', seed: number, size: numbe
   return `<div data-stack="1" data-dir="${dir}" data-open="0" data-fan-id="${fanCounter}" style="flex:none;width:min(${size}px,42%);aspect-ratio:196/244;position:relative;transform:rotate(${rotate}deg)">${leaves}</div>`;
 }
 
-/** A photo-less entry (e.g. the future-facing closing row) — a plain frame with a large ellipsis instead of a stack, signalling "more to come" rather than "photo missing". */
+/** A photo-less entry (e.g. the future-facing closing row) — an empty frame instead of a stack, no photo yet. */
 function renderFutureStack(size: number): string {
-  return `<div style="flex:none;width:min(${size}px,42%);aspect-ratio:196/244;position:relative;display:flex;align-items:center;justify-content:center"><span style="font:400 70px/1 Caveat,cursive;color:rgba(91,42,16,.55)">&hellip;</span></div>`;
+  return `<div style="flex:none;width:min(${size}px,42%);aspect-ratio:196/244"></div>`;
 }
 
 /** A plain (non-fanning) extra photo card — same polaroid look as a stack leaf, no toggle. */

@@ -5,12 +5,13 @@ Erledigtes abhaken (`[x]`), nicht löschen.
 
 ## P0 — Blockiert den Start
 
-- [ ] **Adresse festlegen.** `siteUrl` in `public/config/config.json` steht auf `CHANGE-ME`.
-      `vite.config.ts` hat `base: '/hochzeitswebsite/'`, der Git-Remote heißt aber `WeddingWebsiteMain`.
+- [ ] **Adresse festlegen — bewusst zuletzt, direkt vor Live-Gang.** `siteUrl` in
+      `public/config/config.json` steht auf `CHANGE-ME`. `vite.config.ts` hat
+      `base: '/hochzeitswebsite/'`, der Git-Remote heißt aber `WeddingWebsiteMain`.
       Pfad und Repo-Name (oder eigene Domain) müssen zusammenpassen.
-- [ ] **Apps Script neu deployen** (neuer Code: `add_guest`, `Gehört zu`, `Personen`, `Tags`, Auszählung).
-- [ ] `ADMIN_KEY` als Script-Property setzen und `WEDDING_ADMIN_KEY` in `.env` eintragen.
-- [ ] **Sheet-Überschriften ergänzen:** `Gehört zu` (Gäste J1), `Mitkommende` (RSVP + RSVP-Log O1), `Tags` (Personen E1).
+- [x] **Apps Script neu deployen** (neuer Code: `add_guest`, `Gehört zu`, `Personen`, `Tags`, Auszählung). In-place redeployt, `/exec`-URL unverändert, per `guest_lookup` getestet.
+- [x] `ADMIN_KEY` als Script-Property gesetzt (und `WEDDING_ADMIN_KEY` in `.env` — schon vorher lokal angelegt).
+- [x] **Sheet-Überschriften ergänzt:** `Gehört zu` (Gäste J1), `Mitkommende` (RSVP + RSVP-Log O1). `Tags` (Personen E1) legt das Script selbst an, sobald der Tab zum ersten Mal beschrieben wird — noch nicht getestet.
 - [ ] **Alles committen und pushen** (viele ungespeicherte Änderungen). GitHub Pages baut erst danach.
 
 ## P1 — Inhalt muss stimmen, bevor Gäste die Seite sehen

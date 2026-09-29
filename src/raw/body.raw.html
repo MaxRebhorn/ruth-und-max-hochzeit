@@ -80,15 +80,6 @@
 
 
 
-<div style="position:relative;width:100%;overflow:hidden"><div data-grow="40" style="position:absolute;left:0;top:8.3%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f3.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(48px,9.8vw,80px);height:auto;transform:translateX(-50%) rotate(101deg);transform-origin:50% 100%"></div><div data-grow="130" style="position:absolute;left:0;top:25.7%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f4.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(65px,13.2vw,108px);height:auto;transform:translateX(-50%) rotate(90deg);transform-origin:50% 100%"></div><div data-grow="220" style="position:absolute;left:0;top:47.6%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f5.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(90px,18.3vw,150px);height:auto;transform:translateX(-50%) rotate(83deg);transform-origin:50% 100%"></div><div data-grow="310" style="position:absolute;left:0;top:64.4%;width:0;height:0;transform-origin:left center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f6.png" alt="" style="position:absolute;left:0;bottom:0;width:clamp(52px,10.6vw,87px);height:auto;transform:translateX(-50%) rotate(77deg);transform-origin:50% 100%"></div><div data-grow="40" style="position:absolute;right:0;top:14.4%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f1.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(59px,12.1vw,99px);height:auto;transform:translateX(50%) rotate(-86deg);transform-origin:50% 100%"></div><div data-grow="130" style="position:absolute;right:0;top:28.2%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f2.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(66px,13.4vw,110px);height:auto;transform:translateX(50%) rotate(-95deg);transform-origin:50% 100%"></div><div data-grow="220" style="position:absolute;right:0;top:43.3%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f3.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(61px,12.4vw,102px);height:auto;transform:translateX(50%) rotate(-101deg);transform-origin:50% 100%"></div><div data-grow="310" style="position:absolute;right:0;top:64.1%;width:0;height:0;transform-origin:right center;pointer-events:none;z-index:0"><img src="assets/flowers/v2/f4.png" alt="" style="position:absolute;right:0;bottom:0;width:clamp(68px,13.8vw,113px);height:auto;transform:translateX(50%) rotate(-90deg);transform-origin:50% 100%"></div><section data-screen-label="04 Anfahrt" id="anfahrt" data-w="contentMax" style="position:relative;padding:14px clamp(13px,3.4vw,26px) 40px;max-width:{{ contentMax }};margin:0 auto;box-sizing:border-box">
-<h2 style="margin:0 0 16px;text-align:center;font:400 44px/1 Caveat,cursive"><span data-de="1">Anfahrt &amp; Übernachtung</span><span data-en="1" style="display:none">travel &amp; stay</span><span data-sv="1" style="display:none">resa &amp; boende</span></h2>
-<div style="height:186px;border:1px solid rgba(91,42,16,.2);background:#fffdf8"><image-slot id="map-sketch" shape="rect" placeholder="Karte / gezeichneter Wegplan"></image-slot></div>
-<div style="display:flex;flex-direction:column;gap:14px;margin-top:18px">
-<div><p style="margin: 0; font: 500 13px/1.3 Karla,sans-serif; text-align: center">Stadtkirche Mylau</p><p style="margin: 2px 0 0; font: 300 13px/1.5 Karla,sans-serif; opacity: .7; text-align: center">Kirchplatz, 08499 Mylau</p></div>
-<div><p style="margin: 0; font: 500 13px/1.3 Karla,sans-serif; text-align: center">Lauschgrüner Hof</p><p style="margin: 2px 0 0; font: 300 13px/1.5 Karla,sans-serif; opacity: .7; text-align: center">Lauschgrün, 08499 Mylau</p></div>
-
-</div>
-</section></div>
 
 
 
@@ -140,7 +131,7 @@
 
 <label style="display:block" data-tier="alles"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px"><span data-de="1">Essen / Allergien</span><span data-en="1" style="display:none">food / allergies</span></span><input type="text" data-allergy placeholder="vegetarisch, keine Nüsse …" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none"></label>
 
-<label style="display:block"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px"><span data-de="1">bringt mich auf die Tanzfläche</span><span data-en="1" style="display:none">gets me on the dancefloor</span></span><input type="text" placeholder="Song + Künstler" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none"></label>
+<label style="display:block;position:relative"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px"><span data-de="1">bringt mich auf die Tanzfläche</span><span data-en="1" style="display:none">gets me on the dancefloor</span></span><input type="text" data-song-input autocomplete="off" placeholder="Lied oder Interpret suchen …" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none"><div data-song-hits style="position:relative;margin-top:4px"></div></label>
 
 <label style="display:flex;align-items:center;gap:9px;font:300 13.5px Karla,sans-serif"><input type="checkbox" style="width:16px;height:16px;accent-color:#a8562f"><span data-de="1">Ich brauche eine Übernachtung</span><span data-en="1" style="display:none">I need somewhere to stay</span></label>
 
@@ -191,9 +182,9 @@
 <label style="display:block"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px">Name</span><input type="text" name="who" placeholder="Ruth Beispiel" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none"></label>
 <label style="display:block"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px"><span data-de="1">das bringe ich mit</span><span data-en="1" style="display:none">what I'm bringing</span></span><input type="text" name="what" placeholder="Käsekuchen mit Mandarinen" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none"></label>
 <div style="display:flex;gap:16px">
-<label style="display:block;flex:1"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px"><span data-de="1">für ca. … Stücke</span><span data-en="1" style="display:none">serves … slices</span></span><input type="number" name="slices" min="1" max="60" placeholder="12" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none"></label>
+<label style="display:block;flex:1"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px"><span data-de="1">für ca. … Portionen</span><span data-en="1" style="display:none">serves … portions</span></span><input type="number" name="slices" min="1" max="60" placeholder="12" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:5px 2px;font:300 14px Karla,sans-serif;outline:none"></label>
 <label style="display:block;flex:1"><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:3px"><span data-de="1">Art</span><span data-en="1" style="display:none">kind</span></span><select name="kind" style="width:100%;border:none;border-bottom:1.5px solid rgba(91,42,16,.45);background:transparent;padding:6px 2px;font:300 14px Karla,sans-serif;outline:none">
-<option>Kuchen</option><option>Torte</option><option>Muffins / Kleingebäck</option><option>Herzhaftes</option><option>Getränk</option>
+<option>Kuchen</option><option>Torte</option><option>Muffins / Kleingebäck</option><option>Herzhaftes</option>
 </select></label>
 </div>
 <div><span style="display:block;font:400 21px/1 Caveat,cursive;margin-bottom:8px"><span data-de="1">gut zu wissen</span><span data-en="1" style="display:none">good to know</span></span>
@@ -228,7 +219,6 @@
 <div style="width:96px;height:10px;border-radius:50%;background:linear-gradient(#ded2bb,#b9aa8e)"></div>
 </div>
 
-<p style="margin:14px 0 0;text-align:center;font:400 11px/1.6 ui-monospace,Menlo,monospace;color:#a8562f">[jeder neue Kuchen wird ein Boden]</p>
 </div>
 </section></div>
 
@@ -294,37 +284,6 @@
 </sc-if>
 </details>
 </div>
-<div style="width:100%;max-width:400px;margin:7px auto 0;padding:16px 20px 18px;border:1px dashed rgba(91,42,16,.32);transform:rotate(-.4deg)">
-<p style="margin:0 0 2px;font:400 22px/1.1 Caveat,cursive"><span data-de="1">{{ wz_titel_de }}</span><span data-en="1" style="display:none">{{ wz_titel_en }}</span></p>
-<p style="margin:0 0 10px;font:300 11.5px/1.5 Karla,sans-serif;opacity:.7"><span data-de="1">{{ wz_intro_de }}</span><span data-en="1" style="display:none">{{ wz_intro_en }}</span></p>
-<div style="display:flex;flex-direction:column;gap:9px;margin-bottom:13px">
-<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-bottom:1px solid rgba(91,42,16,.16);padding-bottom:7px">
-<span style="font:400 18px/1.1 Caveat,cursive">{{ wz_witness1name_de }}</span>
-<a href="mailto:{{ wz_witness1email_de }}" style="font:300 11.5px/1.4 Karla,sans-serif">{{ wz_witness1email_de }}</a>
-</div>
-<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
-<span style="font:400 18px/1.1 Caveat,cursive">{{ wz_witness2name_de }}</span>
-<a href="tel:{{ wz_witness2tel_de }}" style="font:300 11.5px/1.4 Karla,sans-serif">{{ wz_witness2phone_de }}</a>
-</div>
-</div>
-<sc-if value="{{ witnessOpen }}" hint-placeholder-val="{{ true }}">
-<form onSubmit="{{ submitWitness }}" style="display:flex;flex-direction:column;gap:10px;border-top:1px dashed rgba(91,42,16,.25);padding-top:12px">
-<p style="margin:0;font:300 11px/1.5 Karla,sans-serif;opacity:.65"><span data-de="1">{{ wz_oderschreib_de }}</span><span data-en="1" style="display:none">{{ wz_oderschreib_en }}</span><span data-sv="1" style="display:none">{{ wz_oderschreib_sv }}</span></p>
-<label style="display:block"><span style="display:block;font:400 17px/1 Caveat,cursive;margin-bottom:2px"><span data-de="1">{{ wz_anwen_de }}</span><span data-en="1" style="display:none">{{ wz_anwen_en }}</span><span data-sv="1" style="display:none">{{ wz_anwen_sv }}</span></span><select name="towhom" style="width:100%;border:none;border-bottom:1px solid rgba(91,42,16,.45);background:transparent;padding:4px 2px;font:300 12.5px Karla,sans-serif;color:#5b2a10;outline:none"><option>{{ wz_witness1name_de }}</option><option>{{ wz_witness2name_de }}</option><option>{{ wz_beide_de }}</option></select></label>
-<label style="display:block"><span style="display:block;font:400 17px/1 Caveat,cursive;margin-bottom:2px"><span data-de="1">{{ wz_deinname_de }}</span><span data-en="1" style="display:none">{{ wz_deinname_en }}</span><span data-sv="1" style="display:none">{{ wz_deinname_sv }}</span></span><input type="text" name="wname" placeholder="{{ wz_deinnameplatzhalter_de }}" style="width:100%;border:none;border-bottom:1px solid rgba(91,42,16,.45);background:transparent;padding:4px 2px;font:300 12.5px Karla,sans-serif;outline:none"></label>
-<label style="display:block"><span style="display:block;font:400 17px/1 Caveat,cursive;margin-bottom:2px"><span data-de="1">{{ wz_kontakt_de }}</span><span data-en="1" style="display:none">{{ wz_kontakt_en }}</span><span data-sv="1" style="display:none">{{ wz_kontakt_sv }}</span></span><input type="text" name="wcontact" placeholder="{{ wz_kontaktplatzhalter_de }}" style="width:100%;border:none;border-bottom:1px solid rgba(91,42,16,.45);background:transparent;padding:4px 2px;font:300 12.5px Karla,sans-serif;outline:none"></label>
-<label style="display:block"><span style="display:block;font:400 17px/1 Caveat,cursive;margin-bottom:2px"><span data-de="1">{{ wz_nachricht_de }}</span><span data-en="1" style="display:none">{{ wz_nachricht_en }}</span><span data-sv="1" style="display:none">{{ wz_nachricht_sv }}</span></span><textarea name="wmsg" rows="3" placeholder="{{ wz_nachrichtplatzhalter_de }}" style="width:100%;box-sizing:border-box;resize:vertical;border:1px solid rgba(91,42,16,.3);background:transparent;padding:7px 8px;font:300 12.5px/1.55 Karla,sans-serif;outline:none"></textarea></label>
-<button type="submit" style="padding:9px;background:transparent;color:#5b2a10;border:1px solid rgba(91,42,16,.45);font:400 19px/1 Caveat,cursive;cursor:pointer"><span data-de="1">{{ wz_button_de }}</span><span data-en="1" style="display:none">{{ wz_button_en }}</span><span data-sv="1" style="display:none">{{ wz_button_sv }}</span></button>
-</form>
-</sc-if>
-<sc-if value="{{ witnessSent }}" hint-placeholder-val="{{ false }}">
-<div style="border-top:1px dashed rgba(91,42,16,.25);padding-top:14px;text-align:center">
-<p style="margin:0;font:400 24px/1.2 Caveat,cursive"><span data-de="1">{{ wz_donetitel_de }}</span><span data-en="1" style="display:none">{{ wz_donetitel_en }}</span><span data-sv="1" style="display:none">{{ wz_donetitel_sv }}</span></p>
-<p style="margin:6px 0 0;font:300 11.5px/1.55 Karla,sans-serif;opacity:.7"><span data-de="1">{{ wz_donetext_de }}</span><span data-en="1" style="display:none">{{ wz_donetext_en }}</span><span data-sv="1" style="display:none">{{ wz_donetext_sv }}</span></p>
-<button type="button" onClick="{{ resetWitness }}" style="margin-top:9px;padding:6px 11px;background:transparent;border:1px solid rgba(91,42,16,.3);font:400 16px/1 Caveat,cursive;color:#5b2a10;cursor:pointer"><span data-de="1">{{ wz_donebutton_de }}</span><span data-en="1" style="display:none">{{ wz_donebutton_en }}</span><span data-sv="1" style="display:none">{{ wz_donebutton_sv }}</span></button>
-</div>
-</sc-if>
-</div>
 </section>
 
 
@@ -334,13 +293,13 @@
 <h2 style="margin:0 0 14px;text-align:center;font:400 46px/1 Caveat,cursive"><span data-de="1">Wunschliste</span><span data-en="1" style="display:none">gifts</span><span data-sv="1" style="display:none">önskelista</span></h2>
 <p style="margin:0 0 20px;text-align:center;font:300 13.5px/1.7 Karla,sans-serif"><span data-de="1">Das größte Geschenk ist, dass ihr da seid. Wenn ihr trotzdem etwas mitbringen wollt: hier die kurze Liste von Dingen, die wir <em>nicht</em> brauchen.</span><span data-en="1" style="display:none">Your being there is the gift. If you'd still like to bring something, here's the short list of what we <em>don't</em> need.</span></p>
 <div style="display:{{ wishWrapDisplay }};gap:16px">
-<div style="flex:1;border:1.5px solid rgba(209,102,90,.6);background:rgba(209,102,90,.07);padding:18px 18px 20px">
-<p style="margin:0 0 12px;font:400 28px/1 Caveat,cursive;color:#b5453a"><span data-de="1">bitte nicht:</span><span data-en="1" style="display:none">please not:</span><span data-sv="1" style="display:none">helst inte:</span></p>
-<ul data-blacklist-items="1" style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px"></ul>
-</div>
-<div style="flex:1;margin-top:{{ wishGap2Margin }};border:1.5px solid rgba(191,224,173,.9);background:rgba(191,224,173,.22);padding:18px">
+<div style="flex:1;border:1.5px solid rgba(191,224,173,.9);background:rgba(191,224,173,.22);padding:18px">
 <p style="margin:0 0 8px;font:400 28px/1 Caveat,cursive"><span data-de="1">darüber freuen wir uns:</span><span data-en="1" style="display:none">what we'd love:</span></p>
 <p style="margin:0;font:300 14px/1.65 Karla,sans-serif"><span data-de="1">Ein Beitrag zur Hochzeitsreise — oder etwas Selbstgemachtes, Eingekochtes, Gesungenes.</span><span data-en="1" style="display:none">A contribution to the honeymoon — or something homemade, home-canned, or sung.</span></p>
+</div>
+<div style="flex:1;margin-top:{{ wishGap2Margin }};border:1.5px solid rgba(209,102,90,.6);background:rgba(209,102,90,.07);padding:18px 18px 20px">
+<p style="margin:0 0 12px;font:400 28px/1 Caveat,cursive;color:#b5453a"><span data-de="1">bitte nicht:</span><span data-en="1" style="display:none">please not:</span><span data-sv="1" style="display:none">helst inte:</span></p>
+<ul data-blacklist-items="1" style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px"></ul>
 </div>
 </div>
 </section></div>
@@ -397,9 +356,7 @@
 <div data-w="navPanelMax" style="width:100%;max-width:{{ navPanelMax }};background:#f6f1e7;padding:74px 30px 30px;display:flex;flex-direction:column;gap:2px">
 <a href="#home" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10"><span data-de="1">Start</span><span data-en="1" style="display:none">Home</span><span data-sv="1" style="display:none">Start</span></a>
 <a href="#geschichte" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10"><span data-de="1">unsere Geschichte</span><span data-en="1" style="display:none">our story</span><span data-sv="1" style="display:none">vår historia</span></a>
-<a href="#ablauf" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10"><span data-de="1">Ablauf</span><span data-en="1" style="display:none">the day</span><span data-sv="1" style="display:none">dagen</span></a>
-<a href="#anfahrt" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10"><span data-de="1">Anfahrt</span><span data-en="1" style="display:none">travel</span><span data-sv="1" style="display:none">resa</span></a>
-<a href="#vogtland" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10"><span data-de="1">Vogtland</span><span data-en="1" style="display:none">Vogtland</span><span data-sv="1" style="display:none">Vogtland</span></a>
+<a href="#ablauf" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10"><span data-de="1">Ablauf</span><span data-en="1" style="display:none">the day</span><span data-sv="1" style="display:none">dagen</span></a><a href="#vogtland" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10"><span data-de="1">Vogtland</span><span data-en="1" style="display:none">Vogtland</span><span data-sv="1" style="display:none">Vogtland</span></a>
 <a href="#anmeldung" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10"><span data-de="1">Anmeldung</span><span data-en="1" style="display:none">RSVP</span><span data-sv="1" style="display:none">OSA</span></a>
 <a href="#kuchen" data-tier="alles" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10"><span data-de="1">Kuchenbuffet</span><span data-en="1" style="display:none">cake table</span><span data-sv="1" style="display:none">tårtbordet</span></a>
 <a href="#faq" style="font:400 34px/1.55 Caveat,cursive;color:#5b2a10">FAQ</a>
@@ -413,9 +370,11 @@
 <sc-if value="{{ letterVisible }}" hint-placeholder-val="{{ false }}">
 <div data-envelope-overlay="1" style="position:fixed;top:0;bottom:0;left:0;right:0;z-index:90;display:flex;justify-content:center;background:transparent;pointer-events:{{ overlayPE }};transition:opacity .6s;opacity:{{ overlayO }}">
 <div style="position:relative;width:100%;height:100%;max-width:none;perspective:1400px;overflow:hidden">
-<div style="position: absolute; top: 0; bottom: 0; left: 0; width: 50%; transform-origin: left center; transform-style: preserve-3d; backface-visibility: hidden; background-image: repeating-linear-gradient(48deg,rgba(168,205,228,.55) 0 3px,transparent 3px 11px); border-right: 1px solid rgba(91,42,16,.25); box-shadow: 6px 0 22px rgba(91,42,16,.12); transition: transform 1.15s cubic-bezier(.55,0,.35,1); transform: {{ flapL }}; background-color: #E0D5BE" data-envelope-flap="l"></div>
-<div style="position: absolute; top: 0; bottom: 0; right: 0; width: 50%; transform-origin: right center; transform-style: preserve-3d; backface-visibility: hidden; background-image: repeating-linear-gradient(-48deg,rgba(243,220,147,.75) 0 3px,transparent 3px 11px); box-shadow: -6px 0 22px rgba(91,42,16,.1); transition: transform 1.05s cubic-bezier(.55,0,.35,1); transform: {{ flapR }}; background-color: #E0D5BE" data-envelope-flap="r"></div>
-<button data-envelope-seal="1" onClick="{{ open }}" aria-label="Siegel öffnen" style="position: absolute; top: 50%; left: 50%; margin: -46px 0 0 -46px; width: 96px; height: 96px; border-radius: 49% 51% 47% 53%/52% 48% 52% 48%; border: none; padding: 0; cursor: pointer; box-shadow: inset 0 3px 7px rgba(255,255,255,.28),inset 0 -6px 12px rgba(60,12,8,.55),0 8px 18px rgba(60,20,10,.4); filter: saturate(1.05); transition: transform .5s cubic-bezier(.4,1.6,.5,1),opacity .5s; overflow: hidden; animation: pulse 2.6s ease-in-out infinite; transform: {{ sealT }}; opacity: {{ sealO }}; color: #AD4914; background-color: #8d8782"><span data-seal-fill="1" style="position:absolute;left:0;right:0;top:0;height:0;z-index:0;background:#7F0B0BEB"></span><span style="position:relative;z-index:1;display:block;width:100%;height:100%;background:url(assets/siegel.jpg) center/128% no-repeat;mix-blend-mode:multiply;opacity:.85;filter:drop-shadow(0 1px 0 rgba(255,220,200,.35))"></span><span style="position: absolute; inset: 0; pointer-events: none; left: -6px; top: -5px"></span></button>
+<div style="position: absolute; top: 0; bottom: 0; left: 0; width: 50%; transform-origin: left center; transform-style: preserve-3d; backface-visibility: hidden; background-image: linear-gradient(90deg,transparent 0%,rgba(91,42,16,.18) 100%),url(assets/paper.png); background-size: cover,320px; border-right: 1px solid rgba(91,42,16,.25); box-shadow: 6px 0 22px rgba(91,42,16,.12); transition: transform 1.15s cubic-bezier(.55,0,.35,1); transform: {{ flapL }}; background-color: #E0D5BE; z-index: 2" data-envelope-flap="l">
+<img data-floral-sprig="1" src="assets/floral-sprig.svg" alt="" aria-hidden="true" style="position: absolute; top: 50%; left: 100%; width: 130px; height: auto; margin: -166px 0 0 -44px; pointer-events: none; z-index: 0">
+<button data-envelope-seal="1" onClick="{{ open }}" aria-label="Siegel öffnen" style="position: absolute; top: 50%; left: 100%; z-index: 1; margin: -63px 0 0 -63px; width: 126px; height: 126px; border-radius: 49% 51% 47% 53%/52% 48% 52% 48%; border: none; padding: 0; cursor: pointer; box-shadow: inset 0 3px 7px rgba(255,255,255,.28),inset 0 -6px 12px rgba(60,12,8,.55),0 8px 18px rgba(60,20,10,.4); filter: saturate(1.05); transition: transform .5s cubic-bezier(.4,1.6,.5,1),opacity .5s; overflow: hidden; animation: pulse 2.6s ease-in-out infinite; transform: {{ sealT }}; opacity: {{ sealO }}; color: #AD4914; background-color: #8d8782"><span style="position:relative;z-index:0;display:block;width:100%;height:100%;background:url(assets/wappen.svg) center/128% no-repeat;filter:drop-shadow(0 1px 0 rgba(255,220,200,.35)) brightness(.88) contrast(1.9)"></span><span data-seal-fill="1" style="position:absolute;left:0;right:0;top:0;height:0;z-index:1;background:rgba(127,11,11,.55)"></span><span style="position: absolute; inset: 0; pointer-events: none; left: -6px; top: -5px"></span></button>
+</div>
+<div style="position: absolute; top: 0; bottom: 0; right: 0; width: 50%; transform-origin: right center; transform-style: preserve-3d; backface-visibility: hidden; background-image: linear-gradient(-90deg,transparent 0%,rgba(91,42,16,.18) 100%),url(assets/paper.png); background-size: cover,320px; box-shadow: -6px 0 22px rgba(91,42,16,.1); transition: transform 1.05s cubic-bezier(.55,0,.35,1); transform: {{ flapR }}; background-color: #E0D5BE; z-index: 1" data-envelope-flap="r"></div>
 <p data-envelope-hint="1" style="position:absolute;top:50%;left:0;right:0;margin:66px 0 0;text-align:center;font:400 21px/1.3 Caveat,cursive;color:rgba(91,42,16,.65);transition:opacity .4s;opacity:{{ sealO }}"><span data-de="1">auf das Siegel tippen</span><span data-en="1" style="display:none">tap the seal</span><span data-sv="1" style="display:none">tryck på sigillet</span></p>
 <p data-envelope-loading="1" style="position:absolute;top:50%;left:0;right:0;margin:66px 0 0;text-align:center;font:400 21px/1.3 Caveat,cursive;color:rgba(91,42,16,.65)"><span data-de="1">die Einladung wird geholt …</span><span data-en="1" style="display:none">fetching your invitation …</span><span data-sv="1" style="display:none">hämtar din inbjudan …</span></p>
 </div>
@@ -441,12 +400,3 @@
 </div></div>
 </sc-if>
 
-<sc-if value="{{ adminOn }}" hint-placeholder-val="{{ false }}">
-<div style="position:fixed;left:12px;bottom:12px;z-index:9999;display:flex;flex-direction:column;gap:5px;padding:9px 10px;background:#fffdf8;border:1px solid rgba(91,42,16,.25);box-shadow:0 4px 14px rgba(91,42,16,.18)">
-<p style="margin:0 0 2px;font:500 9px/1 Karla,sans-serif;letter-spacing:.18em;text-transform:uppercase;opacity:.5">Vorschau</p>
-<button type="button" data-tier-color="trauung" onClick="{{ setTrauung }}" style="border:none;background:transparent;cursor:pointer;font:400 19px/1 Caveat,cursive;text-align:left;color:{{ cTrauung }}">nur Trauung</button>
-<button type="button" data-tier-color="party" onClick="{{ setParty }}" style="border:none;background:transparent;cursor:pointer;font:400 19px/1 Caveat,cursive;text-align:left;color:{{ cParty }}">+ Party</button>
-<button type="button" data-tier-color="alles" onClick="{{ setAlles }}" style="border:none;background:transparent;cursor:pointer;font:400 19px/1 Caveat,cursive;text-align:left;color:{{ cAlles }}">ganzer Tag</button>
-<button type="button" onClick="{{ setGate }}" style="margin-top:3px;border:none;border-top:1px dashed rgba(91,42,16,.25);background:transparent;cursor:pointer;font:400 17px/1 Caveat,cursive;text-align:left;padding-top:5px;opacity:.65">Begrüßung</button>
-</div>
-</sc-if>

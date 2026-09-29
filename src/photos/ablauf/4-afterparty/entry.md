@@ -1,4 +1,4 @@
-zeit: ab 21:00
+zeit: ab 20:00
 titel: Afterparty Lauschgrün
 tier: party
 tanzt: ja
@@ -6,6 +6,6 @@ tanzt: ja
 tanzen, bis die Sonne wieder da ist
 
 ---en---
-zeit: from 21:00
+zeit: from 20:00
 
 dancing until sunrise

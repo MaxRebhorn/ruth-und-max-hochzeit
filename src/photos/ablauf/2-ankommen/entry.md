@@ -1,4 +1,4 @@
-hinweis: [Uhrzeit ergänzen]
+zeit: 14:00
 titel: ankommen in Lauschgrün
 ort: Lauschgrüner Hof
 karte: Lauschgrüner Hof

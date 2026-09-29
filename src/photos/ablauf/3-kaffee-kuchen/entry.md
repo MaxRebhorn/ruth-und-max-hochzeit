@@ -1,3 +1,4 @@
+zeit: 15:00
 titel: Kaffee trinken & Kuchenbuffet
 link: #kuchen
 linktext: Kuchen anmelden

@@ -123,6 +123,7 @@ function renderRow(entry: AblaufEntry, index: number): string {
   return `
 <div data-reveal="1"${tierAttr} style="position:relative;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start${flip ? ';flex-direction:row-reverse' : ''}">
 ${iconBlock}
+${entry.tanzt ? renderTapePlayer() : ''}
 <div style="flex:1 1 150px;min-width:0;padding-top:4px${flip ? ';text-align:right' : ''}">
 ${headline}
 ${entry.hinweis.de ? `<p style="margin:4px 0 0;font:400 11px/1.5 ui-monospace,Menlo,monospace;color:#a8562f;background:rgba(243,220,147,.4);padding:3px 6px;display:inline-block">${langSpans(entry.hinweis.de, entry.hinweis.en, entry.hinweis.sv)}</p>` : ''}
@@ -130,7 +131,6 @@ ${entry.ort ? `<p style="margin:2px 0 0;font:300 13px/1.5 Karla,sans-serif;opaci
 ${entry.body.de ? `<p style="margin:6px 0 0;font:300 13px/1.55 Karla,sans-serif;opacity:.7">${langSpans(entry.body.de, entry.body.en, entry.body.sv)}</p>` : ''}
 ${linkHtml}
 </div>
-${entry.tanzt ? renderTapePlayer() : ''}
 </div>`;
 }
 

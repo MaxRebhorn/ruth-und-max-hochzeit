@@ -1,10 +1,11 @@
 import type { Config } from './types';
 
+/** Field names match the `Kuchenbuffet` sheet's header row (kuchen_list returns raw column names, not the submit payload's who/what/slices/kind). */
 export interface KuchenEntry {
-  who: string;
-  what: string;
-  slices: number;
-  kind: string;
+  Name: string;
+  Beitrag: string;
+  Stücke: number;
+  Art: string;
 }
 
 export interface GuestLookup {

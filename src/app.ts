@@ -1,4 +1,4 @@
-import { setupTapePlayer } from './tape-player';
+import { setupTapePlayer, searchTracks, type Track } from './tape-player';
 import { tagsFor, tagLabel, suggestTags } from './allergy-tags';
 import bodyRawHtml from './raw/body.raw.html?raw';
 import { render, bindEvents, applyLang, setConditional, type Values } from './dc-engine';
@@ -37,10 +37,7 @@ const state = {
   navOpen: false,
   sent: false,
   cakeSent: false,
-  cakes: [
-    { name: 'Käsekuchen', who: 'Oma Renate', slices: 16, kind: 'Kuchen' },
-    { name: 'Schokotorte', who: 'Familie Beispiel', slices: 12, kind: 'Torte' }
-  ] as Cake[],
+  cakes: [] as Cake[],
   lang: 'de' as Lang,
   knock: 0,
   desktop: false,
@@ -138,6 +135,48 @@ function addPersonRow(name = ''): void {
 function prefillMitkommende(): void {
   if (!guestMembers.length || root.querySelector('[data-persons] > *')) return;
   guestMembers.forEach((n) => addPersonRow(n));
+}
+
+const escHtml = (s: string): string => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+/** Song wish for the RSVP: type-ahead over the iTunes Search API (same lookup the tape-player mockup used), picking a hit just fills the plain text field with "Title – Artist". */
+function setupSongSearch(): void {
+  const input = root.querySelector<HTMLInputElement>('[data-song-input]');
+  const hits = root.querySelector<HTMLElement>('[data-song-hits]');
+  if (!input || !hits) return;
+  let timer = 0;
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    const term = input.value.trim();
+    if (term.length < 2) {
+      hits.innerHTML = '';
+      return;
+    }
+    timer = window.setTimeout(async () => {
+      let tracks: Track[] = [];
+      try {
+        tracks = await searchTracks(term);
+      } catch {
+        hits.innerHTML = `<p style="margin:4px 0;font:300 12px Karla,sans-serif;opacity:.6">Suche gerade nicht erreichbar.</p>`;
+        return;
+      }
+      hits.innerHTML = tracks.length
+        ? tracks
+            .map(
+              (t, i) =>
+                `<button type="button" data-hit="${i}" style="display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:none;border-bottom:1px dashed rgba(91,42,16,.2);padding:6px 2px;cursor:pointer;font:300 13px/1.3 Karla,sans-serif"><img src="${escHtml(t.cover)}" alt="" width="34" height="34" style="flex:none"><span><b style="font-weight:500">${escHtml(t.title)}</b><br>${escHtml(t.artist)}</span></button>`
+            )
+            .join('')
+        : `<p style="margin:4px 0;font:300 12px Karla,sans-serif;opacity:.6">nichts gefunden</p>`;
+      hits.querySelectorAll<HTMLButtonElement>('[data-hit]').forEach((b) =>
+        b.addEventListener('click', () => {
+          const t = tracks[Number(b.dataset.hit)];
+          input.value = `${t.title} – ${t.artist}`;
+          hits.innerHTML = '';
+        })
+      );
+    }, 350);
+  });
 }
 
 function applyGuest(tier: Tier | null): void {
@@ -569,9 +608,10 @@ function open(): void {
   const flapL = root.querySelector<HTMLElement>('[data-envelope-flap="l"]');
   const flapR = root.querySelector<HTMLElement>('[data-envelope-flap="r"]');
   const overlay = root.querySelector<HTMLElement>('[data-envelope-overlay]');
+  // TEST: seal stays put and swings open with the left flap (it's nested inside it) instead of flying off — just a quick press bump for feedback.
   if (seal) {
-    seal.style.transform = 'scale(1.5) rotate(9deg)';
-    seal.style.opacity = '0';
+    seal.style.transform = 'scale(.9)';
+    envelopeTimers.push(window.setTimeout(() => { if (seal) seal.style.transform = 'scale(1)'; }, 160));
   }
   if (hint) hint.style.opacity = '0';
   envelopeTimers.push(
@@ -870,9 +910,10 @@ function resetWitness(): void {
 
 // -- Kuchenbuffet ---------------------------------------------------------------
 
-function cakeLayerStyle(c: Cake, i: number, total: number): string {
+function cakeLayerStyle(c: Cake, i: number, _total: number): string {
   const [sponge, filling] = CAKE_TYPES[c.kind] ?? ['#ecd8b4', '#c07a44'];
-  const w = Math.max(52, 100 - i * (44 / Math.max(1, total - 1 || 1)));
+  const maxSlices = Math.max(1, ...state.cakes.map((k) => k.slices || 0));
+  const w = 46 + ((c.slices || 0) / maxSlices) * 54; // wider bar = more slices, 46%–100%
   const rot = (i % 2 ? 0.6 : -0.6) * (1 + (i % 3) * 0.25);
   return (
     'display:flex;align-items:baseline;justify-content:center;gap:9px;box-sizing:border-box;padding:8px 12px 0;' +
@@ -1140,11 +1181,11 @@ async function loadConfig(): Promise<void> {
   }
 }
 
-/** Real Kuchen submissions, fetched in the background — the page has already painted with the 2 demo cakes by the time this resolves. */
+/** Real Kuchen submissions, fetched in the background — the tower starts empty and fills in once this resolves. */
 async function loadRemoteCakes(): Promise<void> {
   const real = await listKuchen(config);
   if (real) {
-    state.cakes = real.map((k) => ({ name: k.what, who: k.who, slices: k.slices, kind: k.kind }));
+    state.cakes = real.filter((k) => k.Beitrag).map((k) => ({ name: k.Beitrag, who: k.Name, slices: k.Stücke, kind: k.Art }));
     refreshCakeTower();
   }
 }
@@ -1154,11 +1195,14 @@ export function boot(container: HTMLElement): void {
   const values = buildInitialValues();
   root.innerHTML = render(bodyRawHtml, values);
   bindEvents(root, values);
+  const sprig = root.querySelector<HTMLElement>('[data-floral-sprig]');
+  if (sprig) sprig.style.transform = `rotate(${(-22 + Math.random() * 20).toFixed(1)}deg)`;
   root.addEventListener('input', (e) => {
     const t = e.target as HTMLInputElement;
     if (t.matches?.('[data-allergy]')) renderAllergyChips(t);
   });
   root.querySelector('[data-add-person]')?.addEventListener('click', () => addPersonRow());
+  setupSongSearch();
 
   // Scrolling before the envelope is opened would let guests skip past the
   // intro straight into the page — lock it until `open()`'s own timeout
