@@ -1,9 +1,9 @@
 24. 02. 2022
 
-sind wir ganz offiziell zusammengekommen. 
+sind wir ganz offiziell zusammengekommen.
 
 ---en---
-we officially became a couple
+we officially became a couple.
 
 ---sv---
-blev vi officiellt ett par
+blev vi officiellt ett par.

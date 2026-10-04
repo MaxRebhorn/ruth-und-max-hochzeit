@@ -19,7 +19,8 @@ export interface ParsedEntry {
 }
 
 function parseBlock(raw: string): ParsedBlock {
-  const lines = raw.replace(/\r\n/g, '\n').split('\n');
+  // Leading blank lines (left over after a `---en---` marker) must not end the field block before it starts.
+  const lines = raw.replace(/\r\n/g, '\n').replace(/^\s*\n/, '').split('\n');
   const fields: Record<string, string> = {};
   let i = 0;
   while (i < lines.length) {

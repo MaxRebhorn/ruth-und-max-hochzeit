@@ -13,4 +13,7 @@ linktext: sign up a cake
 close family & friends — and everything you bring along
 
 ---sv---
+titel: kaffe & tårtbuffé
 linktext: anmäl en tårta
+
+med nära familj & vänner — och allt ni tar med er

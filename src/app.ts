@@ -553,17 +553,27 @@ let envelopeTimers: number[] = [];
 /** The seal stays grey and inert until the page is really ready, filling red top→bottom as things arrive. */
 let sealReady = false;
 
+/** Mask tile for the pouring wax: opaque above a wavy line at 2/3 height, transparent below. Tall enough that the opaque part always covers the seal's top edge. */
+const SEAL_WAVE =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 300" preserveAspectRatio="none"><path d="M0 200 Q16 208 32 200 T64 200 V0 H0 Z"/></svg>';
+
 function setupLoadingSeal(guestReady: Promise<unknown>): void {
   const seal = root.querySelector<HTMLElement>('[data-envelope-seal]');
-  const fill = root.querySelector<HTMLElement>('[data-seal-fill]');
+  const wax = root.querySelector<HTMLElement>('[data-seal-wax]');
   const hint = root.querySelector<HTMLElement>('[data-envelope-hint]');
   const loadingHint = root.querySelector<HTMLElement>('[data-envelope-loading]');
-  if (!seal || !fill || state.phase > 0) {
+  if (!seal || !wax || state.phase > 0) {
     sealReady = true;
     return;
   }
   seal.style.animationPlayState = 'paused';
   seal.style.cursor = 'progress';
+  // While loading, only a faint mould shows; the wax pours in from the top behind a wavy surface.
+  const shadow = seal.style.boxShadow;
+  seal.style.boxShadow = 'inset 0 0 0 1.5px rgba(91,42,16,.22), inset 0 3px 8px rgba(91,42,16,.12)';
+  wax.style.maskImage = wax.style.webkitMaskImage = `url("data:image/svg+xml,${encodeURIComponent(SEAL_WAVE)}")`;
+  wax.style.maskSize = wax.style.webkitMaskSize = '64px 300%';
+  wax.style.maskRepeat = wax.style.webkitMaskRepeat = 'repeat-x';
   if (hint) hint.style.visibility = 'hidden';
 
   const settle = (el: HTMLImageElement | HTMLLinkElement | undefined, src?: string) =>
@@ -574,23 +584,43 @@ function setupLoadingSeal(guestReady: Promise<unknown>): void {
       img.addEventListener('error', () => resolve(), { once: true }); // a broken image must not block the letter forever
       if (src && img instanceof HTMLImageElement) img.src = src;
     });
-  // Lazy photos stay lazy on purpose — waiting for every photo would keep phones on the seal for ages.
+  // The whole page loads behind the seal: lazy photos (and ones in hidden sections) would otherwise pop in after opening.
+  const imgs = [...root.querySelectorAll<HTMLImageElement>('img')];
+  imgs.forEach((img) => (img.loading = 'eager'));
   const tasks: Promise<unknown>[] = [
-    ...[...root.querySelectorAll<HTMLImageElement>('img:not([loading=lazy])')].map((img) => settle(img)),
+    ...imgs.map((img) => settle(img)),
     settle(undefined, 'assets/paper.png'),
     settle(undefined, 'assets/siegel.jpg'),
+    document.readyState === 'complete' ? Promise.resolve() : new Promise((r) => window.addEventListener('load', r, { once: true })), // CSS backgrounds, scripts
     document.fonts?.ready ?? Promise.resolve(),
     guestReady.catch(() => undefined)
   ];
   let done = 0;
   tasks.forEach((t) => t.then(() => done++));
-  const deadline = performance.now() + 20000; // safety net: after 20 s open anyway
+  const deadline = performance.now() + 60000; // safety net for a stalled request: after 60 s open anyway
   let shown = 0;
-  const step = () => {
-    const target = performance.now() > deadline ? 1 : done / tasks.length;
-    shown = Math.min(target, shown + Math.max(0.004, (target - shown) * 0.08)); // eased, never jumps
-    fill.style.height = `${(shown * 100).toFixed(1)}%`;
+  // The wave line sits at 2H - 2H·p inside the seal, so p 105% → 45% runs it from just above the seal to just below it.
+  // Its sideways drift is tied to progress, so the wax only moves while something is loading.
+  const pour = (f: number) => {
+    wax.style.maskPosition = wax.style.webkitMaskPosition = `${(f * 64 * 5).toFixed(1)}px ${(105 - f * 60).toFixed(1)}%`;
+  };
+  pour(0);
+  let last = performance.now();
+  const step = (now: number) => {
+    const dt = Math.min(0.1, (now - last) / 1000);
+    last = now;
+    // The last 20 % of loading only creeps (max ~82 % full), so the seal clearly looks unfinished until it really is clickable.
+    const x = done / tasks.length;
+    const finished = performance.now() > deadline || x >= 1;
+    const target = finished ? 1 : x < 0.8 ? x * 0.95 : 0.76 + (x - 0.8) * 0.3;
+    // Wax pours at a capped speed (seal fills per second): a fast start can't fill it early, so slow late loads still have room to show.
+    // Once everything is there it may pour a bit faster, so fast connections don't wait for nothing.
+    const maxRate = finished ? 0.35 : 0.12;
+    shown = Math.min(target, shown + Math.min(maxRate, Math.max(0.03, (target - shown) * 3)) * dt);
+    pour(shown);
     if (shown < 1) return void requestAnimationFrame(step);
+    wax.style.maskImage = wax.style.webkitMaskImage = '';
+    seal.style.boxShadow = shadow;
     sealReady = true;
     seal.style.animationPlayState = '';
     seal.style.cursor = 'pointer';
@@ -598,11 +628,22 @@ function setupLoadingSeal(guestReady: Promise<unknown>): void {
     if (loadingHint) loadingHint.style.display = 'none';
   };
   requestAnimationFrame(step);
+  // The sprig fades in once its image is there, instead of popping in half-loaded.
+  const sprig = root.querySelector<HTMLImageElement>('[data-floral-sprig]');
+  if (sprig) {
+    sprig.style.opacity = '0';
+    settle(sprig).then(() => {
+      void sprig.offsetWidth; // commit opacity 0 first, so a cached image still fades instead of jumping in
+      sprig.style.transition = 'opacity .9s ease';
+      sprig.style.opacity = '';
+    });
+  }
 }
 
 function open(): void {
   if (state.phase > 0 || !sealReady) return;
   state.phase = 1;
+  window.scrollTo(0, 0);
   const seal = root.querySelector<HTMLElement>('[data-envelope-seal]');
   const hint = root.querySelector<HTMLElement>('[data-envelope-hint]');
   const flapL = root.querySelector<HTMLElement>('[data-envelope-flap="l"]');
@@ -634,6 +675,7 @@ function open(): void {
       state.letterVisible = false;
       if (overlay) overlay.style.opacity = '0';
       document.body.style.overflow = '';
+      window.scrollTo(0, 0);
     }, 2750)
   );
 }
@@ -1208,6 +1250,9 @@ export function boot(container: HTMLElement): void {
   // intro straight into the page — lock it until `open()`'s own timeout
   // clears it once the seal animation has finished.
   if (state.phase === 0) document.body.style.overflow = 'hidden';
+  // A reload must not land mid-page behind the envelope — always start at the top.
+  history.scrollRestoration = 'manual';
+  window.scrollTo(0, 0);
 
   const storyWrap = root.querySelector('[data-story-items]');
   if (storyWrap) storyWrap.insertAdjacentHTML('beforeend', renderStoryRows());

@@ -6,4 +6,7 @@ tier: alle
 doves: ja
 
 ---en---
-titel: Ceremony with Holy Communion
+titel: ceremony with Holy Communion
+
+---sv---
+titel: vigsel med nattvard

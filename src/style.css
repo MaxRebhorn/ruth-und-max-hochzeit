@@ -483,3 +483,12 @@ details[data-card][open] [data-chev] {
     width: min(210%, 330px) !important;
   }
 }
+
+/* Soft paper patch behind Ablauf texts, so the dotted connector line runs behind them instead of through them. */
+.ab-halo {
+  background: rgba(243, 238, 228, 0.92);
+  box-shadow: 0 0 10px 6px rgba(243, 238, 228, 0.92);
+  border-radius: 6px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}

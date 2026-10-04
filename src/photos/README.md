@@ -68,7 +68,7 @@ bitten, es zu tun), dann sind sie online.
 
 ## Vogtland-Ausflugsfotos & Siegel/Deko
 
-Die vier Vogtland-Fotos (Brücke, Talsperre, Burg, Bad Schlema) und die
+Die vier Vogtland-Fotos (Brücke, Talsperre, Burg, Klingenthal) und die
 Deko-Grafiken (Blumen, Tauben, Siegel usw.) liegen woanders
 (`public/assets/vogtland/`, `public/assets/flowers/`, …) und sind schon
 fertig da — die müsst ihr nicht anfassen, außer ihr wollt sie ersetzen (dann

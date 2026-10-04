@@ -6,3 +6,6 @@ tier: ganzer-tag
 
 ---en---
 titel: arriving in Lauschgrün
+
+---sv---
+titel: ankomst i Lauschgrün

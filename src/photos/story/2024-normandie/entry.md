@@ -1,9 +1,9 @@
 Sommer 2024
 
-wurde aus einem ursprünglichen Paarurlaub ein Trip mit der Freundesgruppe in die Normandie. Neben unzähligen Museumsbesuchen besuchten wir auch den Mont-Saint-Michel und Caen.  
+wurde aus einem ursprünglich geplanten Paarurlaub ein Trip mit der Freundesgruppe in die Normandie. Neben unzähligen Museen besuchten wir auch den Mont-Saint-Michel und Caen.
 
 ---en---
-we travelled to Normandy with friends
+what was meant to be a trip for two turned into a holiday in Normandy with our group of friends. Besides countless museums, we also visited Mont-Saint-Michel and Caen.
 
 ---sv---
-åkte vi till Normandie med vänner
+blev en planerad parsemester en resa till Normandie med kompisgänget. Förutom otaliga museer besökte vi också Mont-Saint-Michel och Caen.

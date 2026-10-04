@@ -18,17 +18,31 @@ donebutton: noch eine Überraschung melden
 ---en---
 titel: planning a surprise?
 untertitel: speech, song, game, fireworks — tell us, not them
-formintro: So nothing collides: note briefly what you're planning. We'll coordinate quietly.
+formintro: So nothing overlaps: note briefly what you're planning. We'll coordinate quietly.
 geheim: the couple must not know about this
 vonwem: from whom?
 kontakt: email or phone
 kontakthinweis: only for follow-up questions — nobody else sees it
 idee: the idea
+ideeplatzhalter: Four of us will sing — we need 5 minutes and a mic.
 button: hand it over secretly
 donetitel: note collected.
 donetext: The couple won't hear a thing. We'll be in touch if we need anything.
+donehinweis: [this form has self-destructed]
 donebutton: report another surprise
 
 ---sv---
 titel: planerar du en överraskning?
+untertitel: tal, sång, lek, fyrverkeri — berätta för oss, inte för dem
+formintro: Så att inget krockar: skriv kort vad du planerar. Vi samordnar i bakgrunden.
+geheim: brudparet får inte veta något om det här
+vonwem: från vem?
+kontakt: e-post eller telefon
+kontakthinweis: bara för följdfrågor — ingen annan ser det
+idee: idén
+ideeplatzhalter: Vi sjunger fyra stycken, behöver 5 minuter och en mikrofon.
 button: lämna i hemlighet
+donetitel: lappen hämtad.
+donetext: Brudparet får inte veta något. Vi hör av oss om vi behöver något.
+donehinweis: [det här formuläret har förstört sig självt]
+donebutton: anmäl en till överraskning

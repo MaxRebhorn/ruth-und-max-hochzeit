@@ -20,25 +20,30 @@ donetext: Lena und Jonas melden sich bei dir.
 donebutton: noch eine Nachricht
 
 ---en---
-titel: the witnesses
-intro: they coordinate everything secret — write to them directly
+titel: best man & maid of honour
+intro: they're in charge of all the secrets — write to them directly
 oderschreib: or write here — we'll pass it on
 anwen: to whom?
 beide: both
 deinname: your name
 kontakt: email or phone
 nachricht: message
-button: send to the witnesses
+nachrichtplatzhalter: I have an idea for the champagne reception …
+button: send it to them
 donetitel: on its way.
 donetext: Lena and Jonas will get back to you.
 donebutton: another message
 
 ---sv---
+titel: bröllopsvittnena
+intro: de håller i allt hemligt — skriv direkt till dem
 oderschreib: eller skriv här — vi vidarebefordrar
 anwen: till vem?
+beide: båda
 deinname: ditt namn
 kontakt: e-post eller telefon
 nachricht: meddelande
+nachrichtplatzhalter: Jag har en idé till champagneminglet …
 button: skicka till vittnena
 donetitel: på väg.
 donetext: Lena och Jonas hör av sig.
