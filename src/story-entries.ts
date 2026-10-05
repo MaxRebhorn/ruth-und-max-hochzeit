@@ -117,7 +117,7 @@ function renderRow(entry: StoryEntry, index: number): string {
 <div data-reveal="1" style="position:relative;display:flex;justify-content:${justify};padding-bottom:14px"><div style="position:absolute;${dotSide}:30.5%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#f6f1e7;border:2.4px solid rgba(91,42,16,.55)"></div>
 <div style="width:min(100%,540px);display:flex;flex-wrap:wrap;flex-direction:${flexDir};align-items:center;gap:22px;text-align:${textAlign}">
 ${cluster}
-<div style="flex:1 1 190px;min-width:0"><p class="story-label" style="margin:0;font:400 60px/.9 Caveat,cursive">${entry.label}</p><p class="story-text" style="margin:8px 0 0;font:300 14px/1.65 Karla,sans-serif;text-wrap:pretty">${langSpans(entry.text)}</p></div>
+<div style="flex:1 1 190px;min-width:0"><p class="story-label" style="margin:0;font:400 60px/.9 Caveat,cursive"><span class="line-halo">${entry.label}</span></p><p class="story-text" style="margin:8px 0 0;font:300 14px/1.65 Karla,sans-serif;text-wrap:pretty"><span class="line-halo">${langSpans(entry.text)}</span></p></div>
 </div>
 </div>`;
 }

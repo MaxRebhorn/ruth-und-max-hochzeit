@@ -1,10 +1,9 @@
 /**
- * MOCKUP: cassette + tape deck next to the dancing disco ball (Ablauf →
- * Afterparty). Search a song (iTunes Search API — CORS-open, 30 s previews),
- * a cassette pops up, gets "inserted" into the deck, and on play the bass
- * level (Web Audio AnalyserNode) drives how far the ball and the dancers sway.
- * Nothing is saved anywhere yet — see the note in the chat about wiring it to
- * the RSVP song wish.
+ * Cassette dock + tape deck next to the dancing disco ball (Ablauf →
+ * Afterparty). Every song wish typed into the RSVP form lands here as a
+ * cassette (`setSongs`); tapping one opens the deck, slides it in, and on play
+ * the beat (Web Audio AnalyserNode) drives how far the ball and the dancers sway.
+ * Previews come from the iTunes Search API (CORS-open, 30 s clips).
  */
 
 export interface Track {
@@ -12,6 +11,17 @@ export interface Track {
   artist: string;
   cover: string;
   preview: string;
+}
+
+/** One song wish. `track` is missing for plain-text wishes (search was down or nothing matched). */
+export interface Song {
+  label: string;
+  track?: Track;
+}
+
+export interface TapeHandle {
+  /** Syncs the dock with the current wish list; cassettes new to the list pop up at `from` and fly into the dock. */
+  setSongs: (songs: Song[], from?: DOMRect) => void;
 }
 
 export async function searchTracks(q: string): Promise<Track[]> {
@@ -30,19 +40,53 @@ function asset(path: string): string {
 const CSS = `
 [data-tape] [data-tape-play]:not(:disabled):hover{filter:brightness(.95)}
 [data-tape][data-playing] [data-tape-play]{filter:brightness(.9)}
+[data-cassette]:hover{transform:rotate(0deg) translateY(-3px)!important}
 `;
 
-/** Small, decorative deck — the song search now lives in the RSVP form (searchTracks() above); this stays ready to play whatever gets wired to it from there later. */
+const CASSETTE_W = 62;
+
+// The opened deck art is drawn ~19 % larger and further left than the closed one. The closed deck is shown at
+// the opened size and spot, so opening it for a cassette doesn't make it jump (measured from both SVGs' ink).
+const CLOSED_FIT = 'translate(-28.3px,-21.4px) scale(1.191)';
+
+/** Deck with a dock for the guests' song cassettes on its left. */
 export function renderTapePlayer(): string {
   return `<style>${CSS}</style>
-<div data-tape="1" style="flex:0 0 auto;width:150px;display:flex;flex-direction:column;align-items:center;gap:4px;margin:110px 0 0">
+<div style="flex:0 1 auto;max-width:100%;display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:110px 0 0">
+<div data-tape-dock style="display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:flex-end;gap:8px 6px;max-width:${CASSETTE_W * 3 + 12}px;padding-bottom:30px"></div>
+<div data-tape="1" style="flex:0 0 auto;width:150px;display:flex;flex-direction:column;align-items:center;gap:4px">
 <div data-tape-stage style="width:94px;height:62px;display:flex;align-items:center;justify-content:center"></div>
 <button data-tape-play type="button" disabled aria-label="Play/Stop" style="width:150px;height:124px;position:relative;border:none;background:none;padding:0;cursor:pointer;opacity:.5">
-<img data-tape-deck src="${asset('tape-player.svg')}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain">
+<img data-tape-deck src="${asset('tape-player.svg')}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform-origin:0 0;transform:${CLOSED_FIT}">
 </button>
 <span data-tape-status style="font:400 11px/1.2 Karla,sans-serif;color:${INK};opacity:.75;min-width:0;text-align:center">—</span>
+</div>
 </div>`;
 }
+
+function escHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+}
+
+function cassetteHtml(label: string, tilt: number): string {
+  return `<button type="button" data-cassette aria-label="Kassette einlegen: ${escHtml(label)}" title="${escHtml(label)}" style="flex:none;width:${CASSETTE_W}px;border:none;padding:0;background:none;cursor:pointer;transform:rotate(${tilt}deg);transition:transform .2s">
+<img src="${asset('tape-cassette.svg')}" alt="" style="display:block;width:100%;aspect-ratio:1592/999">
+<span style="display:block;max-width:100%;margin-top:1px;font:400 12px/1.1 Caveat,cursive;color:${INK};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(label)}</span>
+</button>`;
+}
+
+const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/** A fixed-position copy of `el` that animates from its own spot, so the real element can stay put in the layout. */
+function ghostOf(el: HTMLElement): HTMLElement {
+  const r = el.getBoundingClientRect();
+  const g = el.cloneNode(true) as HTMLElement;
+  g.style.cssText += `;position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;margin:0;z-index:200;pointer-events:none;transition:none`;
+  document.body.appendChild(g);
+  return g;
+}
+
+const centerDelta = (from: DOMRect, to: DOMRect) => [from.left + from.width / 2 - (to.left + to.width / 2), from.top + from.height / 2 - (to.top + to.height / 2)];
 
 interface Tempo {
   beat: number; // seconds per beat
@@ -113,9 +157,9 @@ function analyzeTempo(buf: AudioBuffer): Tempo {
   return { beat: lag * hopSec, offset: phase * hopSec };
 }
 
-/** Returns a `loadTrack` handle so a future caller (e.g. the RSVP-submitted song) can feed the deck a track — nothing calls it yet. */
-export function setupTapePlayer(root: HTMLElement): { loadTrack: (t: Track) => void } | void {
+export function setupTapePlayer(root: HTMLElement): TapeHandle | void {
   const wrap = root.querySelector<HTMLElement>('[data-tape]');
+  const dock = root.querySelector<HTMLElement>('[data-tape-dock]');
   const ball = root.querySelector<HTMLElement>('[data-ball]');
   const dancers = root.querySelector<HTMLElement>('[data-dancers]');
   if (!wrap) return;
@@ -229,5 +273,105 @@ export function setupTapePlayer(root: HTMLElement): { loadTrack: (t: Track) => v
 
   playBtn.addEventListener('click', () => (playing ? stop() : void start()));
 
-  return { loadTrack };
+  // -- cassette dock: one cassette per song wish; tap one to put it in the deck ----------
+  const deckImg = wrap.querySelector<HTMLImageElement>('[data-tape-deck]')!;
+  const cassettes = new Map<string, { song: Song; el: HTMLElement }>();
+  let inserted: string | null = null;
+
+  function resetDeck(): void {
+    if (playing) stop();
+    inserted = null;
+    bytes = null;
+    playBtn.disabled = true;
+    playBtn.style.opacity = '.5';
+    status.textContent = cassettes.size ? 'Kassette antippen' : '—';
+  }
+
+  async function insert(label: string): Promise<void> {
+    const entry = cassettes.get(label);
+    if (!entry || inserted === label) return;
+    if (playing) stop();
+    const previous = inserted ? cassettes.get(inserted) : null;
+    inserted = label;
+    deckImg.src = asset('tape-player-opened.svg');
+    deckImg.style.transform = 'none';
+    if (!reducedMotion()) {
+      const g = ghostOf(entry.el);
+      const to = playBtn.getBoundingClientRect();
+      const slot = new DOMRect(to.left + to.width * 0.44 - 1, to.top + to.height * 0.55 - 1, 2, 2); // the opened deck's cassette window
+      const [dx, dy] = centerDelta(slot, g.getBoundingClientRect());
+      entry.el.style.visibility = 'hidden';
+      await g.animate(
+        [
+          { transform: 'none' },
+          { transform: `translate(${dx * 0.6}px,${dy * 0.6 - 30}px) rotate(-6deg)`, offset: 0.55 },
+          { transform: `translate(${dx}px,${dy}px) scale(.42)`, opacity: 1, offset: 0.85 },
+          { transform: `translate(${dx}px,${dy + 4}px) scale(.38)`, opacity: 0 }
+        ],
+        { duration: 750, easing: 'cubic-bezier(.45,0,.3,1)' }
+      ).finished;
+      g.remove();
+    }
+    entry.el.style.display = 'none';
+    entry.el.style.visibility = '';
+    if (previous) previous.el.style.display = ''; // the old cassette goes back on the shelf
+    deckImg.src = asset('tape-player.svg');
+    deckImg.style.transform = CLOSED_FIT;
+    if (inserted !== label) return; // another cassette was tapped meanwhile
+    status.textContent = `${label} · sucht Hörprobe …`;
+    // Plain-text wishes get one more search try here, in case Apple Music was down when they were typed.
+    entry.song.track ??= await searchTracks(label).then((r) => r[0], () => undefined);
+    if (inserted !== label) return;
+    if (entry.song.track) loadTrack(entry.song.track);
+    else {
+      bytes = null;
+      playBtn.disabled = true;
+      playBtn.style.opacity = '.5';
+      status.textContent = `${label} · keine Hörprobe gefunden`;
+    }
+  }
+
+  function setSongs(songs: Song[], from?: DOMRect): void {
+    if (!dock) return;
+    const labels = new Set(songs.map((s) => s.label));
+    cassettes.forEach(({ el }, label) => {
+      if (labels.has(label)) return;
+      el.remove();
+      cassettes.delete(label);
+      if (inserted === label) resetDeck();
+    });
+    songs.forEach((song, i) => {
+      const known = cassettes.get(song.label);
+      if (known) {
+        known.song.track ??= song.track;
+        return;
+      }
+      dock.insertAdjacentHTML('beforeend', cassetteHtml(song.label, [-4, 3, -2, 5, -3][i % 5]));
+      const el = dock.lastElementChild as HTMLElement;
+      el.addEventListener('click', () => void insert(song.label));
+      cassettes.set(song.label, { song: { ...song }, el });
+      const to = el.getBoundingClientRect();
+      if (!from || !to.width || reducedMotion()) return; // dock hidden for this guest tier, or no motion wanted
+      // Pop up at the song field, then fly up the page into the dock.
+      const g = ghostOf(el);
+      const [dx, dy] = centerDelta(from, to);
+      el.style.visibility = 'hidden';
+      g.animate(
+        [
+          { transform: `translate(${dx}px,${dy}px) scale(.2) rotate(-14deg)`, opacity: 0 },
+          { transform: `translate(${dx}px,${dy - 40}px) scale(1.15) rotate(4deg)`, opacity: 1, offset: 0.25 },
+          { transform: `translate(${dx}px,${dy - 40}px) scale(1) rotate(-2deg)`, offset: 0.35 },
+          { transform: 'none' }
+        ],
+        { duration: 1400, easing: 'cubic-bezier(.45,0,.25,1)' }
+      ).finished.finally(() => {
+        g.remove();
+        el.style.visibility = '';
+      });
+    });
+    if (!inserted) status.textContent = cassettes.size ? 'Kassette antippen' : '—';
+    relayout();
+  }
+
+  return { setSongs };
 }

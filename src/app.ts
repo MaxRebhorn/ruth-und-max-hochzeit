@@ -1,4 +1,4 @@
-import { setupTapePlayer, searchTracks, type Track } from './tape-player';
+import { setupTapePlayer, searchTracks, type Track, type TapeHandle } from './tape-player';
 import { tagsFor, tagLabel, suggestTags } from './allergy-tags';
 import bodyRawHtml from './raw/body.raw.html?raw';
 import { render, bindEvents, applyLang, setConditional, type Values } from './dc-engine';
@@ -139,42 +139,102 @@ function prefillMitkommende(): void {
 
 const escHtml = (s: string): string => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
-/** Song wish for the RSVP: type-ahead over the iTunes Search API (same lookup the tape-player mockup used), picking a hit just fills the plain text field with "Title – Artist". */
-function setupSongSearch(): void {
+/** Song wishes are a comma-separated list in one text field; this splits it into the single songs. */
+function songList(value: string): string[] {
+  return value.split(',').map((s) => s.trim()).filter(Boolean);
+}
+
+const SONG_TEXT = {
+  down: { de: 'Suche gerade nicht erreichbar', en: 'search is unavailable right now', sv: 'sökningen fungerar inte just nu' },
+  none: { de: 'nichts gefunden', en: 'nothing found', sv: 'inget hittades' },
+  plain: { de: 'als Text übernehmen', en: 'use as typed', sv: 'använd som text' }
+};
+
+/**
+ * Song wishes for the RSVP. Type-ahead over the iTunes Search API in a dropdown that floats over the form;
+ * picking a hit, pressing Enter or typing a comma finishes a song and adds ", " for the next one. Each finished
+ * song flies into the cassette dock by the tape deck. If the search is down or finds nothing, the typed text
+ * itself is the wish (plain-text fallback) — the field's text is what gets submitted either way.
+ */
+function setupSongSearch(tape: TapeHandle | void): void {
   const input = root.querySelector<HTMLInputElement>('[data-song-input]');
   const hits = root.querySelector<HTMLElement>('[data-song-hits]');
   if (!input || !hits) return;
+  const known = new Map<string, Track>(); // label → track, for songs picked from the search
   let timer = 0;
+  let query = 0;
+
+  const close = () => {
+    hits.innerHTML = '';
+    hits.style.display = 'none';
+  };
+  const show = (html: string) => {
+    hits.innerHTML = html;
+    hits.style.display = '';
+  };
+  const tail = () => input.value.split(',').pop()!.trim();
+  // While typing, the last segment is still in progress; once the field is left, it counts too.
+  const sync = () => {
+    const labels = songList(input.value);
+    if (document.activeElement === input && tail()) labels.pop();
+    tape?.setSongs(labels.map((label) => ({ label, track: known.get(label) })), input.getBoundingClientRect());
+  };
+  const finish = (label: string) => {
+    const done = songList(input.value);
+    done.pop();
+    if (!label) return;
+    input.value = `${[...done, label].join(', ')}, `;
+    close();
+    sync();
+  };
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // Enter finishes the song instead of sending the whole RSVP
+      finish(tail());
+    } else if (e.key === 'Escape') close();
+  });
+  input.addEventListener('blur', () => {
+    setTimeout(close, 150);
+    sync();
+  });
+  hits.addEventListener('pointerdown', (e) => e.preventDefault()); // keep focus in the field while picking
+
   input.addEventListener('input', () => {
     clearTimeout(timer);
-    const term = input.value.trim();
-    if (term.length < 2) {
-      hits.innerHTML = '';
-      return;
-    }
+    sync();
+    const term = tail();
+    if (term.length < 2) return close();
+    const t = (k: keyof typeof SONG_TEXT) => SONG_TEXT[k][state.lang];
+    const plainRow = `<button type="button" data-plain style="display:block;width:100%;text-align:left;background:none;border:none;padding:8px 4px;cursor:pointer;font:300 13px/1.3 Karla,sans-serif;color:#a8562f">„${escHtml(term)}“ ${t('plain')} ↵</button>`;
+    const id = ++query;
     timer = window.setTimeout(async () => {
       let tracks: Track[] = [];
+      let down = false;
       try {
         tracks = await searchTracks(term);
       } catch {
-        hits.innerHTML = `<p style="margin:4px 0;font:300 12px Karla,sans-serif;opacity:.6">Suche gerade nicht erreichbar.</p>`;
-        return;
+        down = true;
       }
-      hits.innerHTML = tracks.length
-        ? tracks
-            .map(
-              (t, i) =>
-                `<button type="button" data-hit="${i}" style="display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:none;border-bottom:1px dashed rgba(91,42,16,.2);padding:6px 2px;cursor:pointer;font:300 13px/1.3 Karla,sans-serif"><img src="${escHtml(t.cover)}" alt="" width="34" height="34" style="flex:none"><span><b style="font-weight:500">${escHtml(t.title)}</b><br>${escHtml(t.artist)}</span></button>`
-            )
-            .join('')
-        : `<p style="margin:4px 0;font:300 12px Karla,sans-serif;opacity:.6">nichts gefunden</p>`;
+      if (id !== query || document.activeElement !== input) return; // a newer search is running, or the field was left
+      const note = (msg: string) => `<p style="margin:0;padding:8px 4px 0;font:300 12px Karla,sans-serif;opacity:.6">${msg}</p>`;
+      show(
+        tracks
+          .map(
+            (tr, i) =>
+              `<button type="button" data-hit="${i}" style="display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:none;border-bottom:1px dashed rgba(91,42,16,.2);padding:6px 4px;cursor:pointer;font:300 13px/1.3 Karla,sans-serif"><img src="${escHtml(tr.cover)}" alt="" width="34" height="34" style="flex:none"><span><b style="font-weight:500">${escHtml(tr.title)}</b><br>${escHtml(tr.artist)}</span></button>`
+          )
+          .join('') + (down ? note(t('down')) : tracks.length ? '' : note(t('none'))) + plainRow
+      );
       hits.querySelectorAll<HTMLButtonElement>('[data-hit]').forEach((b) =>
         b.addEventListener('click', () => {
-          const t = tracks[Number(b.dataset.hit)];
-          input.value = `${t.title} – ${t.artist}`;
-          hits.innerHTML = '';
+          const tr = tracks[Number(b.dataset.hit)];
+          const label = `${tr.title} – ${tr.artist}`;
+          known.set(label, tr);
+          finish(label);
         })
       );
+      hits.querySelector('[data-plain]')?.addEventListener('click', () => finish(term));
     }, 350);
   });
 }
@@ -742,7 +802,7 @@ function persistRsvp(form: HTMLFormElement): void {
     personen,
     teilnahme,
     allergien: inputs[7]?.value ?? '',
-    song: inputs[8]?.value ?? '',
+    song: songList(inputs[8]?.value ?? '').join(', '),
     uebernachtung: !!inputs[9]?.checked,
     nachricht: textarea?.value ?? ''
   });
@@ -882,6 +942,7 @@ function submitSurprise(e: Event): void {
   e.preventDefault();
   if (surpriseState !== 0) return;
   const form = e.target as HTMLFormElement;
+  if (!(form.elements.namedItem('idea') as HTMLTextAreaElement)?.value.trim()) return; // only spaces: nothing to send
   apiSubmitSurprise(config, {
     who: (form.elements.namedItem('who') as HTMLInputElement)?.value ?? '',
     contact: (form.elements.namedItem('contact') as HTMLInputElement)?.value ?? '',
@@ -1213,6 +1274,49 @@ function hydrateDropInPhotos(): void {
   });
 }
 
+// -- Göltzschtal train ----------------------------------------------------------
+
+/** Deck line of bruecke.svg (x → y in its 600×271 viewBox), measured from the drawing; the train rides on it. */
+const BRIDGE_DECK: [number, number][] = [[40, 45], [110, 51.1], [250, 51.9], [290, 53.4], [310, 55.9], [330, 58.8], [350, 61.6], [370, 63.5], [390, 64.4], [450, 66.1], [530, 67.2], [560, 67.6]];
+/** Perspective: the far (left) end of the bridge is tiny, the near end large. Scale 1 = the train's original size in the drawing. */
+const BRIDGE_SCALE: [number, number][] = [[40, 0.3], [150, 0.55], [333, 1], [560, 1.2]];
+
+function lerpTable(table: [number, number][], x: number): number {
+  const i = Math.max(1, table.findIndex(([tx]) => tx >= x));
+  const [x0, y0] = table[i - 1];
+  const [x1, y1] = table[i] ?? table[table.length - 1];
+  return x1 === x0 ? y1 : y0 + ((y1 - y0) * (Math.min(Math.max(x, x0), x1) - x0)) / (x1 - x0);
+}
+
+/**
+ * Drives zug.svg along the deck. The train's bottom-left body corner (its transform-origin) sits 4.2 units
+ * (scaled) above the deck; its rotation follows the deck's local slope minus the 5.15° tilt it is drawn with.
+ */
+function startBridgeTrain(): void {
+  const train = root.querySelector<HTMLElement>('[data-bridge-train]');
+  if (!train || matchMedia('(prefers-reduced-motion: reduce)').matches) return; // stays parked at its original spot
+  const frames: Keyframe[] = [];
+  const N = 48;
+  const drive = 0.72; // share of each loop spent driving; the rest it is gone
+  for (let i = 0; i <= N; i++) {
+    const t = i / N;
+    const x = 40 + 470 * t ** 1.25; // slower while far away, like real perspective
+    const s = lerpTable(BRIDGE_SCALE, x);
+    const len = 61 * s;
+    const angle = (Math.atan2(lerpTable(BRIDGE_DECK, x + len) - lerpTable(BRIDGE_DECK, x), len) * 180) / Math.PI - 5.15;
+    const y = lerpTable(BRIDGE_DECK, x) - 4.2 * s;
+    frames.push({
+      offset: t * drive,
+      left: `${(((x - 1.83) / 600) * 100).toFixed(2)}%`,
+      top: `${(((y - 13.1) / 271) * 100).toFixed(2)}%`,
+      transform: `rotate(${angle.toFixed(2)}deg) scale(${s.toFixed(3)})`,
+      opacity: t < 0.06 ? t / 0.06 : t > 0.9 ? (1 - t) / 0.1 : 1
+    });
+  }
+  frames.push({ ...frames[frames.length - 1], offset: 1, opacity: 0 });
+  train.animate(frames, { duration: 8500, iterations: Infinity, direction: 'reverse' }); // drives right → left, from near to far
+}
+
 /** `config.json` lives in this same repo (fast, same-origin) — awaited before `initGuest()` needs `config.appsScriptUrl` for its `guest_lookup` call. */
 async function loadConfig(): Promise<void> {
   try {
@@ -1244,7 +1348,6 @@ export function boot(container: HTMLElement): void {
     if (t.matches?.('[data-allergy]')) renderAllergyChips(t);
   });
   root.querySelector('[data-add-person]')?.addEventListener('click', () => addPersonRow());
-  setupSongSearch();
 
   // Scrolling before the envelope is opened would let guests skip past the
   // intro straight into the page — lock it until `open()`'s own timeout
@@ -1261,7 +1364,7 @@ export function boot(container: HTMLElement): void {
   const ablaufRowsMount = root.querySelector('[data-ablauf-rows]');
   if (ablaufRowsMount) ablaufRowsMount.outerHTML = renderAblaufRows();
   setupDovesEasterEgg();
-  setupTapePlayer(root);
+  setupSongSearch(setupTapePlayer(root));
 
   const vogtlandMount = root.querySelector('[data-vogtland-items]');
   if (vogtlandMount) vogtlandMount.insertAdjacentHTML('beforeend', renderVogtlandCards());
@@ -1296,5 +1399,6 @@ export function boot(container: HTMLElement): void {
   setInterval(tickCountdown, 1000);
 
   hydrateDropInPhotos();
+  startBridgeTrain();
   setupLoadingSeal(guestReady);
 }

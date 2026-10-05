@@ -1,9 +1,18 @@
-# Aufgabe: Apps Script neu deployen + Sheet für neue Features vorbereiten
+# Aufgabe: Apps Script neu deployen
 
 Für einen Browser-Claude (Claude in Chrome / computer use), eingeloggt im
-Google-Account von Max/Ruth. Ziel: die neue `apps-script.gs`-Version (Gehört
-zu, Personen-Tab, Essens-Auszählung, `add_guest`) live schalten, ohne die
-`/exec`-URL zu ändern (sonst zeigt `public/config/config.json` ins Leere).
+Google-Account von Max/Ruth. Ziel: die neue `apps-script.gs`-Version live
+schalten, ohne die `/exec`-URL zu ändern (sonst zeigt
+`public/config/config.json` ins Leere).
+
+**Was neu ist (Stand 04.10.2026):** Überraschungen, bei denen „Das Brautpaar
+darf nichts davon wissen" NICHT angehakt ist, landen zusätzlich im normalen
+Spreadsheet „Hochzeit" im neuen Tab `Überraschungen (offen)`. Das geheime
+Spreadsheet bekommt weiterhin alle. Leere Überraschungen werden ignoriert.
+
+Außerdem neu: die Aktion `guest_list` für die passwortgeschützte QR-Seite
+(`/hochzeitswebsite/qr/`). Sie liefert alle Einladungen mit Token, aber nur
+mit dem richtigen `QR_PASSWORD` (siehe Schritt 2).
 
 Live-Links stehen in `apps-script/LINKS.md` — hier die aktuell relevanten:
 
@@ -39,14 +48,15 @@ Der komplette Code steht deshalb hier unten, 1:1 wie im Repo.
  * Trauzeugen-Nachrichten) stays append-only, same as before.
  *
  * Two spreadsheet files, each with several named tabs:
- *   HOCHZEIT_SHEET_ID        — Gäste, RSVP, RSVP-Log, Kuchenbuffet, Fragen
- *                               (shared with Ruth & Max)
+ *   HOCHZEIT_SHEET_ID        — Gäste, RSVP, RSVP-Log, Kuchenbuffet, Fragen,
+ *                               Überraschungen (offen) (shared with Ruth & Max)
  *   HOCHZEIT_GEHEIM_SHEET_ID — Überraschungen, Trauzeugen-Nachrichten
  *                               (same account, separate file — the couple
  *                               isn't meant to see this one day-to-day)
  *
  * Script properties required (Project Settings > Script properties):
- *   HOCHZEIT_SHEET_ID, HOCHZEIT_GEHEIM_SHEET_ID, ADMIN_KEY
+ *   HOCHZEIT_SHEET_ID, HOCHZEIT_GEHEIM_SHEET_ID, ADMIN_KEY,
+ *   QR_PASSWORD (password for the QR page /qr/ — without it, guest_list stays closed)
  */
 
 const PROPS = PropertiesService.getScriptProperties();
@@ -57,7 +67,10 @@ const SHEET_NAMES = {
   rsvpLog: 'RSVP-Log',
   kuchen: 'Kuchenbuffet',
   fragen: 'Fragen',
-  personen: 'Personen'
+  personen: 'Personen',
+  // Surprises the guest did NOT mark as secret — the couple may see these. Not plain 'Überraschungen':
+  // columnsFor_ looks tabs up by name, and the secret file already has a tab with that name.
+  ueberraschungenOffen: 'Überraschungen (offen)'
 };
 
 const GEHEIM_SHEET_NAMES = {
@@ -77,9 +90,12 @@ const KUCHEN_COLUMNS = [
 const PERSONEN_COLUMNS = ['Zeit', 'Einladung-ID', 'Name', 'Allergien', 'Tags'];
 const FRAGEN_COLUMNS = ['Zeit', 'Frage', 'Kontakt'];
 const UEBERRASCHUNGEN_COLUMNS = ['Zeit', 'Von', 'Kontakt', 'Idee', 'Geheim'];
+const UEBERRASCHUNGEN_OFFEN_COLUMNS = ['Zeit', 'Von', 'Kontakt', 'Idee'];
 const TRAUZEUGEN_COLUMNS = ['Zeit', 'An', 'Name', 'Kontakt', 'Nachricht'];
 
 const RATE_LIMIT_KEY = 'code_fail_count';
+// Own counter for the QR page, so someone hammering its password can't lock guests out of the 4-digit code gate.
+const QR_RATE_LIMIT_KEY = 'qr_fail_count';
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_SECONDS = 60;
 
@@ -119,16 +135,36 @@ function doPost(e) {
       case 'frage':
         appendRow_(mainSheet_(SHEET_NAMES.fragen), [new Date(), clean_(body.question), clean_(body.contact)]);
         return json_({ ok: true });
-      case 'ueberraschung':
+      case 'ueberraschung': {
+        if (!String(body.idea ?? '').trim()) return json_({ error: 'empty' }); // no blank rows
+        const now = new Date();
+        // The secret file always gets every surprise, so the Trauzeugen keep the full overview for coordinating.
         appendRow_(geheimSheet_(GEHEIM_SHEET_NAMES.ueberraschungen), [
-          new Date(), clean_(body.who), clean_(body.contact), clean_(body.idea), !!body.secret
+          now, clean_(body.who), clean_(body.contact), clean_(body.idea), !!body.secret
         ]);
+        // Not secret → the couple may know, so it also lands in their own sheet.
+        if (!body.secret) {
+          appendRow_(mainSheet_(SHEET_NAMES.ueberraschungenOffen), [now, clean_(body.who), clean_(body.contact), clean_(body.idea)]);
+        }
         return json_({ ok: true });
+      }
       case 'trauzeugen':
         appendRow_(geheimSheet_(GEHEIM_SHEET_NAMES.trauzeugen), [
           new Date(), clean_(body.towhom), clean_(body.name), clean_(body.contact), clean_(body.message)
         ]);
         return json_({ ok: true });
+      case 'guest_list': {
+        // Every guest with their token, for the QR page (/qr/). The site is static, so this password check is
+        // the only real protection. Sent in the POST body (not the URL), and wrong passwords count into the
+        // global throttle as the 4-digit codes use, but with its own counter.
+        if (isRateLimited_(QR_RATE_LIMIT_KEY)) return json_({ error: 'rate limited' });
+        const password = PROPS.getProperty('QR_PASSWORD');
+        if (!password || body.password !== password) {
+          registerFailedAttempt_(QR_RATE_LIMIT_KEY);
+          return json_({ error: 'forbidden' });
+        }
+        return json_(guestList_());
+      }
       case 'add_guest': {
         // Guarded by a secret that lives only in Script Properties (ADMIN_KEY) + the local .env — never shipped to browsers.
         const key = PROPS.getProperty('ADMIN_KEY');
@@ -188,15 +224,33 @@ function guestResult_(row) {
   return { name: row['Name'], stufe: row['Stufe'], token: row['Token'], mitglieder };
 }
 
-function isRateLimited_() {
-  const cache = CacheService.getScriptCache();
-  return (Number(cache.get(RATE_LIMIT_KEY)) || 0) >= RATE_LIMIT_MAX;
+/** Guests that have their own invitation (a token) — linked people ('Gehört zu') come along as `mitglieder`. */
+function guestList_() {
+  const values = mainSheet_(SHEET_NAMES.gaeste).getDataRange().getValues();
+  const header = values[0];
+  const col = (name) => header.indexOf(name);
+  const rows = values.slice(1);
+  return rows
+    .filter((r) => String(r[col('Token')]).trim())
+    .map((r) => ({
+      id: String(r[col('Einladung-ID')]),
+      name: String(r[col('Name')]),
+      stufe: String(r[col('Stufe')]),
+      token: String(r[col('Token')]).trim(),
+      code: String(r[col('Code')]),
+      mitglieder: col('Gehört zu') === -1 ? [] : rows.filter((m) => String(m[col('Gehört zu')]).trim() === String(r[col('Einladung-ID')])).map((m) => String(m[col('Name')]))
+    }));
 }
 
-function registerFailedAttempt_() {
+function isRateLimited_(key = RATE_LIMIT_KEY) {
   const cache = CacheService.getScriptCache();
-  const count = Number(cache.get(RATE_LIMIT_KEY)) || 0;
-  cache.put(RATE_LIMIT_KEY, String(count + 1), RATE_LIMIT_WINDOW_SECONDS);
+  return (Number(cache.get(key)) || 0) >= RATE_LIMIT_MAX;
+}
+
+function registerFailedAttempt_(key = RATE_LIMIT_KEY) {
+  const cache = CacheService.getScriptCache();
+  const count = Number(cache.get(key)) || 0;
+  cache.put(key, String(count + 1), RATE_LIMIT_WINDOW_SECONDS);
 }
 
 function findGuestRow_(column, value) {
@@ -425,6 +479,8 @@ function columnsFor_(tabName) {
       return FRAGEN_COLUMNS;
     case SHEET_NAMES.personen:
       return PERSONEN_COLUMNS;
+    case SHEET_NAMES.ueberraschungenOffen:
+      return UEBERRASCHUNGEN_OFFEN_COLUMNS;
     case GEHEIM_SHEET_NAMES.ueberraschungen:
       return UEBERRASCHUNGEN_COLUMNS;
     case GEHEIM_SHEET_NAMES.trauzeugen:
@@ -452,22 +508,19 @@ function json_(obj) {
 }
 ```
 
-## Schritt 2 — ADMIN_KEY setzen
+## Schritt 2 — Script-Properties prüfen und QR_PASSWORD setzen
 
-Neue Property, damit `add_guest` (CLI-Import) nicht offen für jeden ist.
+Zahnrad links → **Projekteinstellungen** → **Script-Properties**.
 
-1. Zahnrad links → **Projekteinstellungen** → runter scrollen zu
-   **Script-Properties** → **Property hinzufügen**.
-2. Key: `ADMIN_KEY`
-3. Wert: **exakt** dieser String (liegt schon lokal in `.env` als
-   `WEDDING_ADMIN_KEY`, muss 1:1 übereinstimmen):
-
-   ```
-   011618c1957583d16a6d6a0204c479950ad6c03c39b84156
-   ```
-
-`HOCHZEIT_SHEET_ID` und `HOCHZEIT_GEHEIM_SHEET_ID` sind schon gesetzt —
-nicht anfassen, nur prüfen dass sie noch da sind.
+1. Prüfen, dass `HOCHZEIT_SHEET_ID`, `HOCHZEIT_GEHEIM_SHEET_ID` und
+   `ADMIN_KEY` da sind. Nicht ändern.
+2. **Property hinzufügen** → Key: `QR_PASSWORD`, Wert: ein Passwort, das
+   Max/Ruth im Chat nennen. Das Passwort NICHT in diese Datei, ins Repo oder
+   in eine Commit-Nachricht schreiben. Es schützt die komplette Gästeliste
+   samt Tokens. Lang wählen (mindestens 12 Zeichen): die Seite ist
+   öffentlich erreichbar, falsche Versuche bremst nur eine globale Sperre
+   (10 Fehlversuche pro Minute, eigener Zähler — blockiert nicht die
+   4-stelligen Gäste-Codes).
 
 ## Schritt 3 — In-place neu deployen (URL bleibt gleich)
 
@@ -488,33 +541,25 @@ erzeugen und `config.json` bricht.
    Falls nicht identisch: stoppen, nichts committen, im Chat melden statt
    config.json zu ändern.
 
-## Schritt 4 — Spaltenüberschriften ergänzen (kosmetisch, aber schnell)
+## Schritt 4 — Nichts am Sheet zu tun
 
-Das Script schreibt neue Spalten bereits an der richtigen Position (Code
-adressiert Spalten über feste Reihenfolge, nicht über die Kopfzeile) — diese
-Überschriften sind nur dafür da, dass Ruth/Max beim Öffnen der Tabelle
-verstehen, was in der Spalte steht. Im Spreadsheet „Hochzeit":
-
-1. Tab `Gäste`: Zelle **J1** → `Gehört zu`
-2. Tab `RSVP`: Zelle **O1** → `Mitkommende`
-3. Tab `RSVP-Log`: Zelle **O1** → `Mitkommende`
-
-`Personen` und `Auszählung` sind neue Tabs — die legt das Script selbst mit
-Kopfzeile an, sobald sie zum ersten Mal beschrieben/gelesen werden bzw. das
-Menü „Essens-Auszählung erzeugen" einmal läuft. Nichts zu tun.
+Den Tab `Überraschungen (offen)` legt das Script selbst mit Kopfzeile an,
+sobald die erste nicht-geheime Überraschung eingeht.
 
 ## Schritt 5 — Testen
 
-1. Tabelle „Hochzeit" neu laden (F5). Im Menü sollte **Hochzeit → Tokens &
-   Codes für neue Gäste erzeugen** und **Hochzeit → Essens-Auszählung
-   erzeugen** erscheinen.
-2. Testabruf im Browser (Token aus der Tabelle einsetzen):
-   ```
-   <exec-URL>?action=guest_lookup&t=<ein-Token-aus-Gäste-Tab>
-   ```
-   Erwartete Antwort jetzt zusätzlich mit `"mitglieder":[]` (leeres Array,
-   solange niemand über „Gehört zu" verlinkt ist).
-3. Ergebnis kurz im Chat bestätigen (geklappt / Fehlermeldung + wo).
+1. Auf der Website im Bereich „Planst du eine Überraschung?" eine Test-Idee
+   abschicken, Haken „Das Brautpaar darf nichts davon wissen" **entfernen**.
+2. Prüfen: Die Zeile steht im geheimen Spreadsheet (Tab `Überraschungen`,
+   Spalte Geheim = FALSE) **und** im Spreadsheet „Hochzeit" im neuen Tab
+   `Überraschungen (offen)`.
+3. Noch eine Test-Idee **mit** Haken abschicken: die darf nur im geheimen
+   Spreadsheet stehen.
+4. Beide Testzeilen danach löschen.
+5. `https://<website>/hochzeitswebsite/qr/` öffnen: mit falschem Passwort
+   muss „Passwort falsch." kommen, mit `QR_PASSWORD` erscheint pro
+   Einladung eine Karte mit QR-Code.
+6. Ergebnis kurz im Chat bestätigen.
 
 ## Danach (nicht Teil dieser Aufgabe)
 

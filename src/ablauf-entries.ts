@@ -109,16 +109,16 @@ function renderRow(entry: AblaufEntry, index: number): string {
   const linkHref = entry.link || (entry.karte ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(entry.karte)}` : '');
   const linkAttrs = entry.link ? '' : ' target="_blank" rel="noreferrer"';
   const linkHtml = linkHref
-    ? `<a href="${linkHref}"${linkAttrs} style="display:inline-block;margin-top:6px;font:500 11px/1 Karla,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:13px 6px 4px;margin:-13px -6px -2px;border-bottom:1.5px solid rgba(168,86,47,.5)" class="ab-halo">${langSpans(entry.linktext.de, entry.linktext.en, entry.linktext.sv)}</a>`
+    ? `<a href="${linkHref}"${linkAttrs} style="display:inline-block;margin-top:6px;font:500 11px/1 Karla,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:13px 6px 4px;margin:-13px -6px -2px;border-bottom:1.5px solid rgba(168,86,47,.5)"><span class="line-halo">${langSpans(entry.linktext.de, entry.linktext.en, entry.linktext.sv)}</span></a>`
     : '';
 
   // Items with a time show it big (34px script) + title small (15px sans);
   // items without one (arrival, cake table) show the title itself big
   // instead — matches the mockup's own two title treatments exactly.
   const headline = entry.zeit.de
-    ? `<p style="margin:0;font:400 34px/1 Caveat,cursive"><span class="ab-halo">${langSpans(entry.zeit.de, entry.zeit.en, entry.zeit.sv)}</span></p>
-<p style="margin:4px 0 0;font:400 15px/1.35 Karla,sans-serif"><span class="ab-halo">${langSpans(entry.titel.de, entry.titel.en, entry.titel.sv)}</span></p>`
-    : `<p style="margin:0;font:400 clamp(24px,6vw,32px)/1.05 Caveat,cursive"><span class="ab-halo">${langSpans(entry.titel.de, entry.titel.en, entry.titel.sv)}</span></p>`;
+    ? `<p style="margin:0;font:400 34px/1 Caveat,cursive"><span class="line-halo">${langSpans(entry.zeit.de, entry.zeit.en, entry.zeit.sv)}</span></p>
+<p style="margin:4px 0 0;font:400 15px/1.35 Karla,sans-serif"><span class="line-halo">${langSpans(entry.titel.de, entry.titel.en, entry.titel.sv)}</span></p>`
+    : `<p style="margin:0;font:400 clamp(24px,6vw,32px)/1.05 Caveat,cursive"><span class="line-halo">${langSpans(entry.titel.de, entry.titel.en, entry.titel.sv)}</span></p>`;
 
   return `
 <div data-reveal="1"${tierAttr} style="position:relative;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start${flip ? ';flex-direction:row-reverse' : ''}">
@@ -127,8 +127,8 @@ ${entry.tanzt ? renderTapePlayer() : ''}
 <div style="flex:1 1 150px;min-width:0;padding-top:4px${flip ? ';text-align:right' : ''}">
 ${headline}
 ${entry.hinweis.de ? `<p style="margin:4px 0 0;font:400 11px/1.5 ui-monospace,Menlo,monospace;color:#a8562f;background:rgba(243,220,147,.4);padding:3px 6px;display:inline-block">${langSpans(entry.hinweis.de, entry.hinweis.en, entry.hinweis.sv)}</p>` : ''}
-${entry.ort ? `<p style="margin:2px 0 0;font:300 13px/1.5 Karla,sans-serif"><span class="ab-halo"><span style="opacity:.7">${entry.ort}</span></span></p>` : ''}
-${entry.body.de ? `<p style="margin:6px 0 0;font:300 13px/1.55 Karla,sans-serif;"><span class="ab-halo"><span style="opacity:.7">${langSpans(entry.body.de, entry.body.en, entry.body.sv)}</span></span></p>` : ''}
+${entry.ort ? `<p style="margin:2px 0 0;font:300 13px/1.5 Karla,sans-serif"><span class="line-halo"><span style="opacity:.7">${entry.ort}</span></span></p>` : ''}
+${entry.body.de ? `<p style="margin:6px 0 0;font:300 13px/1.55 Karla,sans-serif;"><span class="line-halo"><span style="opacity:.7">${langSpans(entry.body.de, entry.body.en, entry.body.sv)}</span></span></p>` : ''}
 ${linkHtml}
 </div>
 </div>`;

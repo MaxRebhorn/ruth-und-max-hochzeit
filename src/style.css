@@ -484,11 +484,45 @@ details[data-card][open] [data-chev] {
   }
 }
 
-/* Soft paper patch behind Ablauf texts, so the dotted connector line runs behind them instead of through them. */
-.ab-halo {
+/* Soft paper patch behind Ablauf/story texts, so the dotted connector line (and its dots) run behind them instead of through them. */
+.line-halo {
+  position: relative;
   background: rgba(243, 238, 228, 0.92);
   box-shadow: 0 0 10px 6px rgba(243, 238, 228, 0.92);
   border-radius: 6px;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
+}
+/* The story date has a line height below 1, so per-line halos would cover the line above; one box instead. */
+.story-label .line-halo {
+  display: inline-block;
+}
+
+/* Watercolour garlands left and right of the big section headings. */
+.flower-divider {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(4px, 1.5vw, 12px);
+}
+.flower-divider > span {
+  flex: 0 1 auto; /* min-width stays auto, so a single word is never squeezed into the garlands */
+  text-wrap: balance; /* long headings wrap onto two lines on phones instead of pushing the garlands off-screen */
+}
+.flower-divider::before,
+.flower-divider::after {
+  content: '';
+  flex: 0 10 190px; /* the garlands give way first; the text only wraps once they're down to their minimum */
+  min-width: 40px;
+  aspect-ratio: 2.5;
+  background: center / contain no-repeat;
+  filter: saturate(0.85) sepia(0.05) opacity(0.95); /* muted, so the watercolours sit back behind the heading */
+}
+.flower-divider::before {
+  background-image: url('/assets/flowers/Links.svg');
+  transform: translateY(8%);
+}
+.flower-divider::after {
+  background-image: url('/assets/flowers/Rechts.svg');
+  transform: translateY(-12%);
 }

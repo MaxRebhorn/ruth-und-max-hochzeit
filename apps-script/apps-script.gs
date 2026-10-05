@@ -12,14 +12,15 @@
  * Trauzeugen-Nachrichten) stays append-only, same as before.
  *
  * Two spreadsheet files, each with several named tabs:
- *   HOCHZEIT_SHEET_ID        — Gäste, RSVP, RSVP-Log, Kuchenbuffet, Fragen
- *                               (shared with Ruth & Max)
+ *   HOCHZEIT_SHEET_ID        — Gäste, RSVP, RSVP-Log, Kuchenbuffet, Fragen,
+ *                               Überraschungen (offen) (shared with Ruth & Max)
  *   HOCHZEIT_GEHEIM_SHEET_ID — Überraschungen, Trauzeugen-Nachrichten
  *                               (same account, separate file — the couple
  *                               isn't meant to see this one day-to-day)
  *
  * Script properties required (Project Settings > Script properties):
- *   HOCHZEIT_SHEET_ID, HOCHZEIT_GEHEIM_SHEET_ID
+ *   HOCHZEIT_SHEET_ID, HOCHZEIT_GEHEIM_SHEET_ID, ADMIN_KEY,
+ *   QR_PASSWORD (password for the QR page /qr/ — without it, guest_list stays closed)
  */
 
 const PROPS = PropertiesService.getScriptProperties();
@@ -30,7 +31,10 @@ const SHEET_NAMES = {
   rsvpLog: 'RSVP-Log',
   kuchen: 'Kuchenbuffet',
   fragen: 'Fragen',
-  personen: 'Personen'
+  personen: 'Personen',
+  // Surprises the guest did NOT mark as secret — the couple may see these. Not plain 'Überraschungen':
+  // columnsFor_ looks tabs up by name, and the secret file already has a tab with that name.
+  ueberraschungenOffen: 'Überraschungen (offen)'
 };
 
 const GEHEIM_SHEET_NAMES = {
@@ -50,9 +54,12 @@ const KUCHEN_COLUMNS = [
 const PERSONEN_COLUMNS = ['Zeit', 'Einladung-ID', 'Name', 'Allergien', 'Tags'];
 const FRAGEN_COLUMNS = ['Zeit', 'Frage', 'Kontakt'];
 const UEBERRASCHUNGEN_COLUMNS = ['Zeit', 'Von', 'Kontakt', 'Idee', 'Geheim'];
+const UEBERRASCHUNGEN_OFFEN_COLUMNS = ['Zeit', 'Von', 'Kontakt', 'Idee'];
 const TRAUZEUGEN_COLUMNS = ['Zeit', 'An', 'Name', 'Kontakt', 'Nachricht'];
 
 const RATE_LIMIT_KEY = 'code_fail_count';
+// Own counter for the QR page, so someone hammering its password can't lock guests out of the 4-digit code gate.
+const QR_RATE_LIMIT_KEY = 'qr_fail_count';
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_SECONDS = 60;
 
@@ -92,16 +99,36 @@ function doPost(e) {
       case 'frage':
         appendRow_(mainSheet_(SHEET_NAMES.fragen), [new Date(), clean_(body.question), clean_(body.contact)]);
         return json_({ ok: true });
-      case 'ueberraschung':
+      case 'ueberraschung': {
+        if (!String(body.idea ?? '').trim()) return json_({ error: 'empty' }); // no blank rows
+        const now = new Date();
+        // The secret file always gets every surprise, so the Trauzeugen keep the full overview for coordinating.
         appendRow_(geheimSheet_(GEHEIM_SHEET_NAMES.ueberraschungen), [
-          new Date(), clean_(body.who), clean_(body.contact), clean_(body.idea), !!body.secret
+          now, clean_(body.who), clean_(body.contact), clean_(body.idea), !!body.secret
         ]);
+        // Not secret → the couple may know, so it also lands in their own sheet.
+        if (!body.secret) {
+          appendRow_(mainSheet_(SHEET_NAMES.ueberraschungenOffen), [now, clean_(body.who), clean_(body.contact), clean_(body.idea)]);
+        }
         return json_({ ok: true });
+      }
       case 'trauzeugen':
         appendRow_(geheimSheet_(GEHEIM_SHEET_NAMES.trauzeugen), [
           new Date(), clean_(body.towhom), clean_(body.name), clean_(body.contact), clean_(body.message)
         ]);
         return json_({ ok: true });
+      case 'guest_list': {
+        // Every guest with their token, for the QR page (/qr/). The site is static, so this password check is
+        // the only real protection. Sent in the POST body (not the URL), and wrong passwords count into the
+        // global throttle as the 4-digit codes use, but with its own counter.
+        if (isRateLimited_(QR_RATE_LIMIT_KEY)) return json_({ error: 'rate limited' });
+        const password = PROPS.getProperty('QR_PASSWORD');
+        if (!password || body.password !== password) {
+          registerFailedAttempt_(QR_RATE_LIMIT_KEY);
+          return json_({ error: 'forbidden' });
+        }
+        return json_(guestList_());
+      }
       case 'add_guest': {
         // Guarded by a secret that lives only in Script Properties (ADMIN_KEY) + the local .env — never shipped to browsers.
         const key = PROPS.getProperty('ADMIN_KEY');
@@ -161,15 +188,33 @@ function guestResult_(row) {
   return { name: row['Name'], stufe: row['Stufe'], token: row['Token'], mitglieder };
 }
 
-function isRateLimited_() {
-  const cache = CacheService.getScriptCache();
-  return (Number(cache.get(RATE_LIMIT_KEY)) || 0) >= RATE_LIMIT_MAX;
+/** Guests that have their own invitation (a token) — linked people ('Gehört zu') come along as `mitglieder`. */
+function guestList_() {
+  const values = mainSheet_(SHEET_NAMES.gaeste).getDataRange().getValues();
+  const header = values[0];
+  const col = (name) => header.indexOf(name);
+  const rows = values.slice(1);
+  return rows
+    .filter((r) => String(r[col('Token')]).trim())
+    .map((r) => ({
+      id: String(r[col('Einladung-ID')]),
+      name: String(r[col('Name')]),
+      stufe: String(r[col('Stufe')]),
+      token: String(r[col('Token')]).trim(),
+      code: String(r[col('Code')]),
+      mitglieder: col('Gehört zu') === -1 ? [] : rows.filter((m) => String(m[col('Gehört zu')]).trim() === String(r[col('Einladung-ID')])).map((m) => String(m[col('Name')]))
+    }));
 }
 
-function registerFailedAttempt_() {
+function isRateLimited_(key = RATE_LIMIT_KEY) {
   const cache = CacheService.getScriptCache();
-  const count = Number(cache.get(RATE_LIMIT_KEY)) || 0;
-  cache.put(RATE_LIMIT_KEY, String(count + 1), RATE_LIMIT_WINDOW_SECONDS);
+  return (Number(cache.get(key)) || 0) >= RATE_LIMIT_MAX;
+}
+
+function registerFailedAttempt_(key = RATE_LIMIT_KEY) {
+  const cache = CacheService.getScriptCache();
+  const count = Number(cache.get(key)) || 0;
+  cache.put(key, String(count + 1), RATE_LIMIT_WINDOW_SECONDS);
 }
 
 function findGuestRow_(column, value) {
@@ -398,6 +443,8 @@ function columnsFor_(tabName) {
       return FRAGEN_COLUMNS;
     case SHEET_NAMES.personen:
       return PERSONEN_COLUMNS;
+    case SHEET_NAMES.ueberraschungenOffen:
+      return UEBERRASCHUNGEN_OFFEN_COLUMNS;
     case GEHEIM_SHEET_NAMES.ueberraschungen:
       return UEBERRASCHUNGEN_COLUMNS;
     case GEHEIM_SHEET_NAMES.trauzeugen:
