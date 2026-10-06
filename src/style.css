@@ -498,7 +498,7 @@ details[data-card][open] [data-chev] {
   display: inline-block;
 }
 
-/* Watercolour garlands left and right of the big section headings. */
+/* Watercolour garlands left and right of the big section headings — removed per request, keep the one at the page bottom (newflowers.svg). */
 .flower-divider {
   display: flex !important;
   align-items: center;
@@ -511,18 +511,10 @@ details[data-card][open] [data-chev] {
 }
 .flower-divider::before,
 .flower-divider::after {
-  content: '';
-  flex: 0 10 190px; /* the garlands give way first; the text only wraps once they're down to their minimum */
-  min-width: 40px;
-  aspect-ratio: 2.5;
-  background: center / contain no-repeat;
-  filter: saturate(0.85) sepia(0.05) opacity(0.95); /* muted, so the watercolours sit back behind the heading */
+  display: none;
 }
-.flower-divider::before {
-  background-image: url('/assets/flowers/Links.svg');
-  transform: translateY(8%);
-}
-.flower-divider::after {
-  background-image: url('/assets/flowers/Rechts.svg');
-  transform: translateY(-12%);
+
+/* Decorative side flowers (the [data-grow] stems next to section content) — removed per request, keep the one at the page bottom. */
+[data-grow] {
+  display: none !important;
 }
