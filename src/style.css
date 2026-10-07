@@ -563,3 +563,13 @@ div:has(> section > img[data-bq]) {
   overflow-x: clip !important;
   overflow-y: visible !important;
 }
+
+/* Phones: the side pieces of section 07 start below the intro text so they do not sit on top of it. */
+@media (max-width: 600px) {
+  img[src$='side-links.svg'] {
+    top: calc(var(--col-half, 187px) * 0.95) !important;
+  }
+  img[src$='side-rechts.svg'] {
+    top: calc(var(--col-half, 187px) * 0.8) !important;
+  }
+}
