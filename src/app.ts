@@ -400,6 +400,83 @@ function setColumnVar(): void {
   document.documentElement.style.setProperty('--col-half', `${(w / 2).toFixed(1)}px`);
 }
 
+/**
+ * Phones only (<= 600px): decorative bouquets must never sit on top of text. For every bouquet
+ * the visible artwork box (the SVGs have empty margins, so the element box is shrunk a bit) is
+ * tested against the real line boxes of all visible text. Where they overlap the bouquet is
+ * made smaller step by step (it stays anchored to its edge) and hidden only if even the
+ * smallest size still touches text. On wider screens everything is reset to the original size.
+ */
+function fitBouquetsForPhone(): void {
+  const imgs = Array.from(root.querySelectorAll<HTMLImageElement>('img[data-bq], img[data-bloom]'));
+  imgs.forEach((el) => {
+    if (el.dataset.w0 === undefined) el.dataset.w0 = el.style.width;
+    el.style.width = el.dataset.w0;
+    el.style.display = '';
+    el.style.filter = '';
+  });
+  if (window.innerWidth > 600) return;
+
+  const sx = window.scrollX;
+  const sy = window.scrollY;
+  const texts: { l: number; r: number; t: number; b: number }[] = [];
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const range = document.createRange();
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+    if (!n.nodeValue || !n.nodeValue.trim()) continue;
+    const p = n.parentElement;
+    if (!p || p.closest('[data-envelope-overlay], script, style') || p.getClientRects().length === 0) continue;
+    range.selectNodeContents(n);
+    for (const q of Array.from(range.getClientRects())) {
+      if (q.width > 2 && q.height > 2) texts.push({ l: q.left + sx, r: q.right + sx, t: q.top + sy, b: q.bottom + sy });
+    }
+  }
+
+  // inset: how much of the element box is treated as empty margin (the SVGs have transparent borders)
+  const touchesText = (el: HTMLElement, insetX = 0.2, insetY = 0.14): boolean => {
+    // measure the final (fully grown) size, not the half-grown size mid-animation
+    const prevTransition = el.style.transition;
+    const prevScale = el.style.scale;
+    el.style.transition = 'none';
+    el.style.scale = '1';
+    const r = el.getBoundingClientRect();
+    el.style.scale = prevScale;
+    void el.offsetWidth;
+    el.style.transition = prevTransition;
+    const ax = r.width * insetX;
+    const ay = r.height * insetY;
+    const box = { l: r.left + ax + sx, r: r.right - ax + sx, t: r.top + ay + sy, b: r.bottom - ay + sy };
+    return texts.some(
+      (t) => Math.min(box.r, t.r) - Math.max(box.l, t.l) > 6 && Math.min(box.b, t.b) - Math.max(box.t, t.t) > 6
+    );
+  };
+
+  // After resizing, bouquets whose artwork still comes close to text (looser test) are made
+  // translucent so the text stays readable and calm — via filter, because opacity drives the grow-in.
+  const softenIfNearText = (el: HTMLElement) => {
+    el.style.filter = touchesText(el, 0.08, 0.05) ? 'opacity(0.4)' : '';
+  };
+
+  imgs.forEach((el) => {
+    if (el.offsetParent === null) return;
+    // 05 + 07 keep their full-size bouquets; their text gets a paper halo in CSS instead.
+    if (el.closest('#wunschliste, #ueberraschung')) return;
+    if (!touchesText(el)) {
+      softenIfNearText(el);
+      return;
+    }
+    const w0 = el.offsetWidth;
+    for (const f of [0.8, 0.65, 0.5]) {
+      el.style.width = `${Math.round(w0 * f)}px`;
+      if (!touchesText(el)) {
+        softenIfNearText(el);
+        return;
+      }
+    }
+    el.style.display = 'none';
+  });
+}
+
 function layoutAblaufLine(): void {
   layoutConnectorLine('data-ablauf-items', 'data-ablauf-line');
 }
@@ -1440,6 +1517,16 @@ export function boot(container: HTMLElement): void {
   setTimeout(layoutAblaufLine, 1200);
   setTimeout(layoutStoryLine, 260);
   setTimeout(layoutStoryLine, 1200);
+  // Phone: keep bouquets off the text. Run once the layout has settled (fonts, story rows,
+  // guest tier) and again after the late story-line layout.
+  document.fonts?.ready.then(() => setTimeout(fitBouquetsForPhone, 900));
+  setTimeout(fitBouquetsForPhone, 1800);
+  setTimeout(fitBouquetsForPhone, 4000);
+  let fitTimer = 0;
+  window.addEventListener('resize', () => {
+    window.clearTimeout(fitTimer);
+    fitTimer = window.setTimeout(fitBouquetsForPhone, 300);
+  });
   window.addEventListener('resize', () => {
     applyResponsive();
     setColumnVar();

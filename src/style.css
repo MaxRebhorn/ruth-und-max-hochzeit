@@ -564,12 +564,24 @@ div:has(> section > img[data-bq]) {
   overflow-y: visible !important;
 }
 
-/* Phones: the side pieces of section 07 start below the intro text so they do not sit on top of it. */
+
+/* Phones, sections 05 + 07: bouquets stay full size next to the text; heading and intro lines get the same soft paper patch as the story text (.line-halo), so the flowers fade out behind the letters. */
 @media (max-width: 600px) {
-  img[src$='side-links.svg'] {
-    top: calc(var(--col-half, 187px) * 0.95) !important;
+  #wunschliste > h2 > span,
+  #wunschliste > p > span,
+  #ueberraschung > h2 > span,
+  #ueberraschung > p > span {
+    background: rgba(243, 238, 228, 0.92);
+    box-shadow: 0 0 10px 6px rgba(243, 238, 228, 0.92);
+    border-radius: 6px;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
   }
-  img[src$='side-rechts.svg'] {
-    top: calc(var(--col-half, 187px) * 0.8) !important;
+}
+
+/* Phones: the green/rose cards of section 07 are translucent; a paper layer on top keeps bouquets from showing through the card text (the tint stays visible). */
+@media (max-width: 600px) {
+  #wunschliste > div > div {
+    background-image: linear-gradient(rgba(246, 241, 231, 0.82), rgba(246, 241, 231, 0.82));
   }
 }
