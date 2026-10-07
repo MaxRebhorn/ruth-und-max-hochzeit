@@ -388,6 +388,18 @@ function layoutConnectorLine(itemsAttr: string, lineAttr: string): void {
   if (path) path.setAttribute('d', d || 'M0 0');
 }
 
+/**
+ * Publishes half the width of the paper column as --col-half. The edge bouquets anchor to
+ * `50% - var(--col-half)` (the left/right edge of the column, not of the screen), so on a wide
+ * window they sit on the paper instead of out on the dark backdrop.
+ */
+function setColumnVar(): void {
+  let el: HTMLElement | null = root.querySelector<HTMLElement>('#home');
+  while (el && getComputedStyle(el).backgroundImage === 'none') el = el.parentElement;
+  const w = el && el !== document.body && el !== document.documentElement ? el.getBoundingClientRect().width : window.innerWidth;
+  document.documentElement.style.setProperty('--col-half', `${(w / 2).toFixed(1)}px`);
+}
+
 function layoutAblaufLine(): void {
   layoutConnectorLine('data-ablauf-items', 'data-ablauf-line');
 }
@@ -456,6 +468,44 @@ function initReveal(): void {
     { threshold: 0, rootMargin: '0px 0px -8% 0px' }
   );
   hosts.forEach((el) => growIo.observe(el));
+
+  // Section bouquets (img[data-bq]) bloom up when they scroll into view. Uses the separate
+  // `scale` property so the inline rotate/mirror transform of each bouquet stays untouched.
+  // The RSVP corner flowers (data-corner) are deliberately left out. Hero bouquets (data-bloom)
+  // bloom once the opening letter is gone, so the animation is actually seen.
+  const bouquets = Array.from(root.querySelectorAll<HTMLElement>('img[data-bq], img[data-bloom]'));
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    bouquets.forEach((el, i) => {
+      el.style.scale = '0.4';
+      el.style.opacity = '0';
+      el.style.transition = `opacity 1.2s ease ${(i % 3) * 140}ms, scale 2s cubic-bezier(.2,.9,.25,1) ${(i % 3) * 140}ms`;
+    });
+    const bloom = (el: HTMLElement) => {
+      el.style.scale = '1';
+      el.style.opacity = '1';
+    };
+    const bqIo = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          bloom(entry.target as HTMLElement);
+          bqIo.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.05, rootMargin: '0px 0px -6% 0px' }
+    );
+    const heroBlooms = bouquets.filter((el) => el.hasAttribute('data-bloom'));
+    bouquets.filter((el) => !el.hasAttribute('data-bloom')).forEach((el) => bqIo.observe(el));
+    if (heroBlooms.length) {
+      const poll = window.setInterval(() => {
+        const overlay = root.querySelector<HTMLElement>('[data-envelope-overlay]');
+        const gone = !overlay || parseFloat(getComputedStyle(overlay).opacity) < 0.3;
+        if (!gone) return;
+        window.clearInterval(poll);
+        heroBlooms.forEach(bloom);
+      }, 250);
+    }
+  }
   requestAnimationFrame(() =>
     grows.forEach((el) => {
       const r = el.getBoundingClientRect();
@@ -1380,6 +1430,7 @@ export function boot(container: HTMLElement): void {
 
   applyLang(root, 'de');
   applyResponsive();
+  setColumnVar();
   const guestReady = loadConfig().then(() => {
     loadRemoteCakes();
     return initGuest();
@@ -1391,6 +1442,7 @@ export function boot(container: HTMLElement): void {
   setTimeout(layoutStoryLine, 1200);
   window.addEventListener('resize', () => {
     applyResponsive();
+    setColumnVar();
     layoutAblaufLine();
     layoutStoryLine();
   });

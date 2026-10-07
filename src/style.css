@@ -518,3 +518,48 @@ details[data-card][open] [data-chev] {
 [data-grow] {
   display: none !important;
 }
+
+/* Section numbers: ornament - 01 - ornament above each heading. Counter skips sections hidden for a guest tier (display:none). */
+#app { counter-reset: secnum; }
+.sec-num {
+  counter-increment: secnum;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 2.6vw, 16px);
+  margin: 26px auto 16px;
+  max-width: 480px;
+  color: #5b2a10;
+}
+.sec-n::before {
+  content: counter(secnum, decimal-leading-zero);
+  font: 400 36px/1 Caveat, cursive;
+  letter-spacing: 0.08em;
+}
+.sec-orn {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 200px;
+  height: auto;
+  pointer-events: none;
+}
+.sec-orn-r {
+  transform: scaleX(-1);
+}
+
+/* Watercolour bouquets at the section edges (like the hero). Own stacking layer per section so the bouquets sit behind the text but above the paper. */
+section:has(> img[data-bq]) {
+  isolation: isolate;
+  overflow: visible !important; /* the page wrapper still clips at the screen edge */
+}
+
+/* Edge bouquets are anchored to the edge of the page column (--col-half is set in app.ts); the column itself clips what hangs past it. */
+#app {
+  overflow-x: clip;
+}
+
+/* The left bouquet piece runs from section 07 down into section 08: the wrapper still clips sideways at the page column but lets bouquets hang over vertically. */
+div:has(> section > img[data-bq]) {
+  overflow-x: clip !important;
+  overflow-y: visible !important;
+}

@@ -89,7 +89,20 @@ function langSpans(text: LangText): string {
 const PRIMARY_SIZE = 230; // the "hero" fan-stack — same footprint the mockup's own 9 entries always used
 const EXTRA_SIZE = 108; // extra photos beyond the first 3 read as small flat thumbnails, so 3+ fit per row even on mobile
 
+function langSpansLang(text: LangText): string {
+  return `<span data-de="1" lang="de">${text.de}</span><span data-en="1" lang="en" style="display:none">${text.en}</span><span data-sv="1" lang="sv" style="display:none">${text.sv}</span>`;
+}
+
+/** The closing "…" entry has no photos: a centred, wider, justified text block instead of a photo + narrow column. */
+function renderClosingRow(entry: StoryEntry): string {
+  return `
+<div data-reveal="1" style="position:relative;display:flex;justify-content:center;padding:30px 0 14px"><div style="position:absolute;left:50%;top:12px;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#f6f1e7;border:2.4px solid rgba(91,42,16,.55)"></div>
+<div style="width:min(100%,640px);text-align:center"><p class="story-label" style="margin:0;font:400 60px/.9 Caveat,cursive"><span class="line-halo">${entry.label}</span></p><p class="story-text" style="margin:12px 0 0;font:300 15px/1.7 Karla,sans-serif;text-align:justify;text-justify:inter-word;hyphens:auto;-webkit-hyphens:auto"><span class="line-halo">${langSpansLang(entry.text)}</span></p></div>
+</div>`;
+}
+
 function renderRow(entry: StoryEntry, index: number): string {
+  if (entry.photos.length === 0 && index === storyEntries.length - 1) return renderClosingRow(entry);
   const flip = index % 2 === 1;
   const dir = flip ? 'l' : 'r';
   const primaryPhotos = entry.photos.slice(0, 3);
