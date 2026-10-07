@@ -461,6 +461,11 @@ function fitBouquetsForPhone(): void {
     if (el.offsetParent === null) return;
     // 05 + 07 keep their full-size bouquets; their text gets a paper halo in CSS instead.
     if (el.closest('#wunschliste, #ueberraschung')) return;
+    // Hero bouquets stay at full strength, just a little smaller on phones.
+    if (el.hasAttribute('data-bloom')) {
+      el.style.width = `${Math.round(el.offsetWidth * 0.85)}px`;
+      return;
+    }
     if (!touchesText(el)) {
       softenIfNearText(el);
       return;
