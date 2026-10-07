@@ -1,10 +1,12 @@
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
 
-// Project-page hosting on GitHub Pages (https://<user>.github.io/hochzeitswebsite/).
-// Change to '/' if this ever moves to a user/org root page or a custom domain.
+// Default: project-page hosting on GitHub Pages (https://<user>.github.io/hochzeitswebsite/),
+// which is also what the local WSL tunnel serves.
+// Hosts that serve the site at the root (Cloudflare Pages, a custom domain, ...) set the
+// environment variable SITE_BASE=/ for the build — no code change needed.
 export default defineConfig({
-  base: '/hochzeitswebsite/',
+  base: process.env.SITE_BASE ?? '/hochzeitswebsite/',
   // Second page: the password-protected QR page at /hochzeitswebsite/qr/.
   build: {
     rollupOptions: {
