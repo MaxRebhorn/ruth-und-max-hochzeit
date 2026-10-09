@@ -940,8 +940,58 @@ function persistRsvp(form: HTMLFormElement): void {
   });
 }
 
+const RSVP_ERRORS = {
+  de: { name: 'Bitte trag deinen Namen ein.', contact: 'Bitte gib eine E-Mail-Adresse oder eine Telefonnummer an.', both: 'Bitte trag deinen Namen und eine E-Mail-Adresse oder Telefonnummer ein.' },
+  en: { name: 'Please enter your name.', contact: 'Please enter an email address or a phone number.', both: 'Please enter your name and an email address or phone number.' },
+  sv: { name: 'Fyll i ditt namn.', contact: 'Fyll i en e-postadress eller ett telefonnummer.', both: 'Fyll i ditt namn och en e-postadress eller ett telefonnummer.' }
+};
+
+/** Name is required, plus an email OR a phone number (at least one of the two). Returns false and shows a hint if not. */
+function validateRsvp(form: HTMLFormElement): boolean {
+  const inputs = form.querySelectorAll<HTMLInputElement>('input:not([name])');
+  const nameEl = inputs[0];
+  const emailEl = inputs[1];
+  const phoneEl = inputs[2];
+  if (!nameEl || !emailEl || !phoneEl) return true;
+
+  const line = 'rgba(91,42,16,.45)';
+  const bad = '#b5453a';
+  const reset = () => {
+    [nameEl, emailEl, phoneEl].forEach((el) => (el.style.borderBottomColor = line));
+    form.querySelector('[data-rsvp-error]')?.remove();
+  };
+  reset();
+
+  const nameOk = nameEl.value.trim().length > 0;
+  const emailOk = /^\S+@\S+\.\S+$/.test(emailEl.value.trim());
+  const phoneOk = (phoneEl.value.match(/\d/g) ?? []).length >= 5;
+  const contactOk = emailOk || phoneOk;
+  if (nameOk && contactOk) return true;
+
+  const msgs = RSVP_ERRORS[state.lang] ?? RSVP_ERRORS.de;
+  if (!nameOk) nameEl.style.borderBottomColor = bad;
+  if (!contactOk) {
+    emailEl.style.borderBottomColor = bad;
+    phoneEl.style.borderBottomColor = bad;
+  }
+  const msg = document.createElement('p');
+  msg.setAttribute('data-rsvp-error', '1');
+  msg.setAttribute('role', 'alert');
+  msg.style.cssText = 'margin:-6px 0 0;font:400 18px/1.3 Caveat,cursive;color:#b5453a;text-align:center';
+  msg.textContent = !nameOk && !contactOk ? msgs.both : !nameOk ? msgs.name : msgs.contact;
+  (phoneEl.closest('label') ?? phoneEl).after(msg);
+
+  // typing in any of the three fields clears the hint again
+  const clear = () => reset();
+  [nameEl, emailEl, phoneEl].forEach((el) => el.addEventListener('input', clear, { once: true }));
+  (nameOk ? emailEl : nameEl).focus({ preventScroll: true });
+  (nameOk ? emailEl : nameEl).scrollIntoView({ block: 'center', behavior: 'smooth' });
+  return false;
+}
+
 function submit(e: Event): void {
   e.preventDefault();
+  if (!validateRsvp(e.target as HTMLFormElement)) return;
   persistRsvp(e.target as HTMLFormElement);
   const card = root.querySelector<HTMLElement>('[data-rsvp-card]');
   const env = root.querySelector<HTMLElement>('[data-rsvp-env]');

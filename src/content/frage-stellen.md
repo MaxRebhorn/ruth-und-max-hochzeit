@@ -1,5 +1,5 @@
-titel: nichts dabei?
-intro: Stell deine Frage — wir antworten und nehmen sie hier mit auf.
+titel: Nichts dabei?
+intro: Stell deine Frage einfach hier:
 frage: deine Frage
 frageplatzhalter: Gibt es vegane Optionen beim Essen?
 antwortan: wohin dürfen wir antworten?
@@ -11,7 +11,7 @@ donebutton: noch eine Frage
 
 ---en---
 titel: not covered?
-intro: Ask your question — we'll answer and add it here.
+intro: Just ask your question here:
 frage: your question
 frageplatzhalter: Are there vegan options at dinner?
 antwortan: where should we reply?
@@ -22,7 +22,7 @@ donebutton: another question
 
 ---sv---
 titel: inget som passar?
-intro: Ställ din fråga — vi svarar och lägger till den här.
+intro: Ställ din fråga bara här:
 frage: din fråga
 frageplatzhalter: Finns det veganska alternativ till maten?
 antwortan: vart ska vi skicka svaret?

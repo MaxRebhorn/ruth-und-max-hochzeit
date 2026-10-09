@@ -18,13 +18,16 @@ export const faqEntries: FaqEntry[] = splitEntries(raw).map((chunk) => {
   };
 });
 
+/** Line breaks inside an answer become visible paragraph gaps. */
+const br = (s: string) => s.replace(/\n+/g, '<br><br>');
+
 function renderCard(entry: FaqEntry, index: number): string {
   const rotate = index % 2 === 0 ? -0.5 : 0.5;
   const hinweisHtml = entry.hinweis
     ? `<p style="margin:6px 0 0;text-align:center;font:400 11px/1.5 ui-monospace,Menlo,monospace;color:#a8562f">${entry.hinweis}</p>`
     : '';
   return `
-<details data-card="1" style="background:#fffdf8;border:1px solid rgba(91,42,16,.18);padding:15px 20px 17px;transform:rotate(${rotate}deg)"><summary style="font:400 25px/1.2 Caveat,cursive;display:flex;align-items:center;justify-content:center;gap:12px"><span>${langSpans(entry.frage.de, entry.frage.en, entry.frage.sv)}</span><span data-chev="1" style="opacity:.5;font-size:26px;line-height:.8;transform-origin:50% 55%">›</span></summary><p style="margin:8px 0 0;text-align:center;font:300 13.5px/1.7 Karla,sans-serif">${langSpans(entry.antwort.de, entry.antwort.en, entry.antwort.sv)}</p>${hinweisHtml}</details>`;
+<details data-card="1" style="background:#fffdf8;border:1px solid rgba(91,42,16,.18);padding:15px 20px 17px;transform:rotate(${rotate}deg)"><summary style="font:400 25px/1.2 Caveat,cursive;display:flex;align-items:center;justify-content:center;gap:12px"><span>${langSpans(entry.frage.de, entry.frage.en, entry.frage.sv)}</span><span data-chev="1" style="opacity:.5;font-size:26px;line-height:.8;transform-origin:50% 55%">›</span></summary><p style="margin:8px 0 0;text-align:center;font:300 13.5px/1.7 Karla,sans-serif">${langSpans(br(entry.antwort.de), br(entry.antwort.en), br(entry.antwort.sv))}</p>${hinweisHtml}</details>`;
 }
 
 export function renderFaqCards(): string {

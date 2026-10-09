@@ -1,62 +1,64 @@
 frage: Was ziehe ich an?
 
-Festlich schick, gern bunt. Kein Weiß — das ist für einen Tag reserviert.
+Festlich schick. Gerne bunt, z. B. in Pastellen. Kein Weiß – das ist für diesen Tag schon reserviert ;)
 
 ---en---
 frage: What should I wear?
 
-Festive and smart, colour welcome. No white — that one's reserved for a day.
+Festive and smart. Colourful is welcome, e.g. pastels. No white – that's already reserved for this day ;)
 
 ---sv---
 frage: Vad ska jag ha på mig?
 
-Festligt och snyggt, gärna färgglatt. Inget vitt — det är reserverat för en dag.
+Festligt och snyggt. Gärna färgglatt, t.ex. i pastellfärger. Inget vitt – det är redan reserverat för den här dagen ;)
 
 ====
 
 frage: Sind Kinder willkommen?
 
-Ja — sag uns nur bei der Anmeldung, wie viele mitkommen.
+Natürlich! Meldet sie trotzdem bitte mit an.
 
 ---en---
 frage: Are kids welcome?
 
-Yes — just tell us how many are coming when you RSVP.
+Of course! Please still include them in your RSVP.
 
 ---sv---
 frage: Är barn välkomna?
 
-Ja — säg bara hur många ni blir när du svarar på inbjudan.
+Självklart! Anmäl dem ändå gärna med.
 
 ====
 
 frage: Wo kann ich parken?
-hinweis: [Details ergänzen]
 
-Am Hof gibt es Plätze direkt an der Zufahrt.
+Für die Trauung in Mylau sind Parkplätze rund um die Kirche frei. 3 Minuten Fußweg von der Kirche steht auch ein Aldi mit noch mehr Parkplätzen.
+In Lauschgrün ist direkt ein Parkplatz vor der Location.
 
 ---en---
 frage: Where can I park?
 
-There is parking right by the farm entrance.
+For the ceremony in Mylau there is free parking around the church. A 3-minute walk from the church there is also an Aldi with even more parking spaces.
+In Lauschgrün there is a car park right in front of the venue.
 
 ---sv---
 frage: Var kan jag parkera?
 
-Det finns parkering direkt vid infarten till gården.
+Till vigseln i Mylau finns det fria parkeringsplatser runt kyrkan. Tre minuters promenad från kyrkan ligger också en Aldi med ännu fler parkeringsplatser.
+I Lauschgrün finns en parkering direkt framför lokalen.
 
 ====
 
-frage: Bis wann soll ich zusagen?
+frage: Bis wann soll ich eine Rückmeldung geben?
 
-Bitte bis zum 01.05.2027 — dann können wir gut planen.
+Bitte spätestens bis zum 01. Mai 2027.
 
 ---en---
-frage: When should I reply by?
+frage: When should I let you know?
 
-By 1 May 2027, so we can plan properly.
+Please reply by 1 May 2027 at the latest.
 
 ---sv---
-frage: När ska jag svara senast?
+frage: När ska jag ge besked?
 
-Senast den 1 maj 2027 — då kan vi planera ordentligt.
+Senast den 1 maj 2027, tack.

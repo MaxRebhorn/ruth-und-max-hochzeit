@@ -582,6 +582,17 @@ div:has(> section > img[data-bq]) {
 /* Phones: the green/rose cards of section 07 are translucent; a paper layer on top keeps bouquets from showing through the card text (the tint stays visible). */
 @media (max-width: 600px) {
   #wunschliste > div > div {
-    background-image: linear-gradient(rgba(246, 241, 231, 0.82), rgba(246, 241, 231, 0.82));
+    background-image: linear-gradient(rgba(246, 241, 231, 0.93), rgba(246, 241, 231, 0.93)) !important;
+  }
+}
+
+/* The rhyme: balanced line breaks everywhere, a little smaller on phones so most lines fit on one row. */
+[data-poem] {
+  text-wrap: balance;
+}
+@media (max-width: 600px) {
+  [data-poem] {
+    font-size: 21px !important;
+    padding: 22px 14px 20px !important;
   }
 }
