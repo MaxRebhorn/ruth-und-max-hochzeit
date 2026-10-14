@@ -40,7 +40,7 @@ function renderCard(entry: VogtlandEntry, index: number): string {
     ? `<img src="${entry.photo}" alt="${entry.ort}" style="width:100%;height:100%;object-fit:cover">`
     : `<div class="raw-photo-placeholder" style="width:100%;height:100%">noch kein Bild</div>`;
   const mapsLink = entry.karte
-    ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(entry.karte)}" target="_blank" rel="noreferrer" style="display:inline-block;margin-top:8px;font:500 10.5px/1 Karla,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#a8562f;border-bottom:1.5px solid rgba(168,86,47,.5);padding:13px 6px 4px;margin:-13px -6px -2px;text-decoration:none">${langSpans('Route', 'route', 'vägen')}</a>`
+    ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(entry.karte)}" target="_blank" rel="noreferrer" style="display:inline-block;margin-top:8px;font:500 10.5px/1 Karla,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#a8562f;border-bottom:1.5px solid rgba(168,86,47,.5);padding:20px 6px 11px;margin:-20px -6px -9px;text-decoration:none">${langSpans('Route', 'route', 'vägen')}</a>`
     : '';
 
   return `

@@ -459,6 +459,28 @@ details[data-card][open] [data-chev] {
    a narrow phone they read as oversized and crowd the text next to them.
    Cap them smaller on narrow viewports only; desktop/tablet stay untouched. */
 @media (max-width: 600px) {
+  /* Every form control is styled inline with font sizes under 16px (13.5-15px),
+     which makes iOS Safari auto-zoom the whole page on focus — and the zoom
+     often doesn't reset when the field blurs. 16px is the documented iOS
+     threshold that disables that auto-zoom. Fields are also only ~24-28px
+     tall (padding:5px/6px/7px around the text); Apple's touch target
+     guideline is 44px, so pad them out without changing their visible
+     appearance (border/background/placeholder text stay as-is). */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+    min-height: 44px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Checkboxes should keep their small 14-16px visual square (changing that
+     would look wrong next to their label text) — only the textual inputs
+     above get taller. */
+  input[type='checkbox'] {
+    min-height: 0 !important;
+  }
+
   [data-grow] img {
     width: min(38px, 9vw) !important;
   }
@@ -481,6 +503,45 @@ details[data-card][open] [data-chev] {
      of just brushing in from the edge. Cap it much smaller on mobile. */
   [data-surprise-hand-wrap] {
     width: min(210%, 330px) !important;
+  }
+}
+
+/* The three language flags and the menu button are 34x23-34x28px — under
+   Apple's 44px touch-target guideline. Their *visible* size must not change
+   (bigger flags/hamburger bars would look wrong), so the hit area grows via
+   padding instead, with background-origin:content-box keeping each flag's
+   background graphic locked to its original 34x23 box instead of stretching
+   into the new padding. The page sets `* { box-sizing: border-box }`
+   (src/style.css:19), so padding alone would shrink the *content* box
+   inside the existing explicit width/height instead of growing the total
+   hit area — the explicit width/height has to grow by the same amount the
+   padding adds, so the visible content box nets back out to the original
+   34x23/34x28 size. */
+@media (max-width: 600px) {
+  [data-lang-btn] {
+    width: 44px !important;
+    height: 44px !important;
+    padding: 10.5px 5px !important;
+    background-origin: content-box !important;
+    background-clip: content-box !important;
+  }
+
+  /* The menu button's width is also explicit (34px) under border-box, so
+     horizontal padding would squeeze its three bars narrower — only grow
+     vertical padding here, which is also the dimension the audit actually
+     measured as short (~28px tall). */
+  button[aria-label='Menü'] {
+    padding: 13px 2px !important;
+  }
+
+  /* Every RSVP/Kuchenbuffet/Überraschung checkbox is wrapped in a <label>
+     that already toggles the box when its text is tapped (native label
+     behavior) — but the label's own box is only as tall as one line of
+     13.5px/12px text (~18-20px). Pad the label itself so the full tappable
+     row is close to 44px, without resizing the checkbox square itself. */
+  label:has(> input[type='checkbox']) {
+    min-height: 44px !important;
+    padding-block: 6px !important;
   }
 }
 
@@ -511,7 +572,14 @@ details[data-card][open] [data-chev] {
 }
 .flower-divider::before,
 .flower-divider::after {
-  display: none;
+  content: '';
+  flex: 0 10 110px;
+  min-width: 28px;
+  aspect-ratio: 3.71;
+  background: url('/assets/flowers/trenner-rechts.svg') center / contain no-repeat;
+}
+.flower-divider::before {
+  transform: scaleX(-1);
 }
 
 /* Decorative side flowers (the [data-grow] stems next to section content) — removed per request, keep the one at the page bottom. */
@@ -548,7 +616,7 @@ details[data-card][open] [data-chev] {
 }
 
 /* Watercolour bouquets at the section edges (like the hero). Own stacking layer per section so the bouquets sit behind the text but above the paper. */
-section:has(> img[data-bq]) {
+section:has(> [data-bq]) {
   isolation: isolate;
   overflow: visible !important; /* the page wrapper still clips at the screen edge */
 }
@@ -559,7 +627,7 @@ section:has(> img[data-bq]) {
 }
 
 /* The left bouquet piece runs from section 07 down into section 08: the wrapper still clips sideways at the page column but lets bouquets hang over vertically. */
-div:has(> section > img[data-bq]) {
+div:has(> section > [data-bq]) {
   overflow-x: clip !important;
   overflow-y: visible !important;
 }

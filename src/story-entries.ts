@@ -52,7 +52,7 @@ let fanCounter = 0;
 function renderLeaf(src: string, leaf: number, toggleLabel: string | null, clickable: boolean): string {
   const inner = `<img class="raw-photo" src="${src}" alt="">${
     toggleLabel !== null
-      ? `<button type="button" data-fan-toggle-btn style="position:absolute;left:0;right:0;bottom:0;height:26px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font:400 17px/1 Caveat,cursive;color:rgba(91,42,16,.6);letter-spacing:.04em"><span data-fanoc="open">${toggleLabel}</span><span data-fanoc="more">&#187;</span><span data-fanoc="close">&#215;</span></button>`
+      ? `<button type="button" data-fan-toggle-btn style="position:absolute;left:0;right:0;bottom:0;height:44px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font:400 17px/1 Caveat,cursive;color:rgba(91,42,16,.6);letter-spacing:.04em"><span data-fanoc="open">${toggleLabel}</span><span data-fanoc="more">&#187;</span><span data-fanoc="close">&#215;</span></button>`
       : ''
   }`;
   const cursor = clickable ? 'cursor:pointer;' : '';
@@ -102,7 +102,7 @@ function langSpansLang(text: LangText): string {
 /** The closing "…" entry has no photos: a centred, wider, justified text block instead of a photo + narrow column. */
 function renderClosingRow(entry: StoryEntry): string {
   return `
-<div data-reveal="1" style="position:relative;display:flex;justify-content:center;padding:30px 0 14px"><div style="position:absolute;left:50%;top:12px;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#f6f1e7;border:2.4px solid rgba(91,42,16,.55)"></div>
+<div data-row="1" data-reveal="1" style="position:relative;display:flex;justify-content:center;padding:30px 0 14px"><div style="position:absolute;left:50%;top:12px;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#f6f1e7;border:2.4px solid rgba(91,42,16,.55)"></div>
 <div style="width:min(100%,640px);text-align:center"><p class="story-label" style="margin:0;font:400 60px/.9 Caveat,cursive"><span class="line-halo">${entry.label}</span></p><p class="story-text" style="margin:12px 0 0;font:300 15px/1.7 Karla,sans-serif;text-align:justify;text-justify:inter-word;hyphens:auto;-webkit-hyphens:auto"><span class="line-halo">${langSpansLang(paragraphs(entry.text))}</span></p></div>
 </div>`;
 }
@@ -133,10 +133,10 @@ function renderRow(entry: StoryEntry, index: number): string {
     : primaryStack;
 
   return `
-<div data-reveal="1" style="position:relative;display:flex;justify-content:${justify};padding-bottom:14px"><div style="position:absolute;${dotSide}:30.5%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#f6f1e7;border:2.4px solid rgba(91,42,16,.55)"></div>
+<div data-row="1" style="position:relative;display:flex;justify-content:${justify};padding-bottom:14px"><div style="position:absolute;${dotSide}:30.5%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#f6f1e7;border:2.4px solid rgba(91,42,16,.55)"></div>
 <div style="width:min(100%,540px);display:flex;flex-wrap:wrap;flex-direction:${flexDir};align-items:center;gap:22px;text-align:${textAlign}">
 ${cluster}
-<div style="flex:1 1 190px;min-width:0"><p class="story-label" style="margin:0;font:400 60px/.9 Caveat,cursive"><span class="line-halo">${entry.label}</span></p><p class="story-text" style="margin:8px 0 0;font:300 14px/1.65 Karla,sans-serif;text-wrap:pretty"><span class="line-halo">${langSpans(entry.text)}</span></p></div>
+<div data-reveal="1" style="flex:1 1 190px;min-width:0"><p class="story-label" style="margin:0;font:400 60px/.9 Caveat,cursive"><span class="line-halo">${entry.label}</span></p><p class="story-text" style="margin:8px 0 0;font:300 14px/1.65 Karla,sans-serif;text-wrap:pretty"><span class="line-halo">${langSpans(entry.text)}</span></p></div>
 </div>
 </div>`;
 }

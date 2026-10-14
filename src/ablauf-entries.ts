@@ -102,14 +102,19 @@ function renderRow(entry: AblaufEntry, index: number): string {
   const flip = index % 2 === 1;
   const tierAttr = entry.tier === 'party' ? ' data-tier="party"' : entry.tier === 'ganzer-tag' ? ' data-tier="alles"' : '';
   const icon = entry.icons.length ? renderIcons(entry.icons, entry.ort, entry.tanzt) : `<div class="raw-photo raw-photo-placeholder" style="aspect-ratio:1;width:100%">noch kein Bild</div>`;
-  const iconWidth = entry.tanzt ? 'min(196px,42%)' : entry.slug === '2-ankommen' ? 'min(300px,57%)' : 'min(180px,34%)';
+  // The tanzt icon now lives inside the icon+player group (its own auto-sized flex container, see
+  // below), not directly in the row — a `%` width there would resolve against that auto-sized
+  // group, which itself needs to know the icon's width first: a circular dependency that made the
+  // group balloon to the full row width in testing. `vw` sizes against the viewport instead, so it
+  // has no such dependency while still shrinking on narrow screens like the `%` value did.
+  const iconWidth = entry.tanzt ? 'clamp(150px,46vw,230px)' : entry.slug === '2-ankommen' ? 'min(300px,57%)' : 'min(180px,34%)';
   const iconWrapAttrs = entry.doves ? ` data-doves-trigger style="position:relative;flex:none;width:${iconWidth};cursor:pointer"` : ` style="flex:none;width:${iconWidth}${entry.tanzt ? ';display:flex;flex-direction:column;align-items:center' : ''}"`;
   const iconBlock = `<div${iconWrapAttrs}>${icon}${entry.doves ? renderDoves() : ''}</div>`;
 
   const linkHref = entry.link || (entry.karte ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(entry.karte)}` : '');
   const linkAttrs = entry.link ? '' : ' target="_blank" rel="noreferrer"';
   const linkHtml = linkHref
-    ? `<a href="${linkHref}"${linkAttrs} style="display:inline-block;margin-top:6px;font:500 11px/1 Karla,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:13px 6px 4px;margin:-13px -6px -2px;border-bottom:1.5px solid rgba(168,86,47,.5)"><span class="line-halo">${langSpans(entry.linktext.de, entry.linktext.en, entry.linktext.sv)}</span></a>`
+    ? `<a href="${linkHref}"${linkAttrs} style="display:inline-block;margin-top:6px;font:500 11px/1 Karla,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:20px 6px 11px;margin:-20px -6px -9px;border-bottom:1.5px solid rgba(168,86,47,.5)"><span class="line-halo">${langSpans(entry.linktext.de, entry.linktext.en, entry.linktext.sv)}</span></a>`
     : '';
 
   // Items with a time show it big (34px script) + title small (15px sans);
@@ -120,10 +125,25 @@ function renderRow(entry: AblaufEntry, index: number): string {
 <p style="margin:4px 0 0;font:400 15px/1.35 Karla,sans-serif"><span class="line-halo">${langSpans(entry.titel.de, entry.titel.en, entry.titel.sv)}</span></p>`
     : `<p style="margin:0;font:400 clamp(24px,6vw,32px)/1.05 Caveat,cursive"><span class="line-halo">${langSpans(entry.titel.de, entry.titel.en, entry.titel.sv)}</span></p>`;
 
+  // The dancers + tape player must always share one visual ground line, never wrap apart onto
+  // separate rows (that reads as the deck "floating" far below the dancers with a huge empty gap).
+  // Grouping them in their own nowrap/flex-end row — itself one item in the outer wrapping row —
+  // keeps that pairing intact while still letting the text block wrap below the group as usual.
+  // This group's own internal order must mirror the outer row's row-reverse: as a direct child of
+  // the (possibly reversed) outer row, the icon and the player used to swap sides automatically with
+  // it. Grouped in their own nested flex container, that container needs the same flip, or the
+  // player always renders on the icon's trailing side regardless of which side `flip` wants it on.
+  // data-line-anchor-inner tells layoutConnectorLine (src/app.ts) to anchor its dotted curve to
+  // *this* group's own first child (the dancers, in DOM order regardless of the reverse above) —
+  // without it, the connector would anchor to the whole group's much wider box instead, throwing
+  // the curve off to one side.
+  const iconAndPlayer = entry.tanzt
+    ? `<div data-line-anchor-inner="1" style="display:flex;flex-wrap:nowrap;align-items:flex-end;justify-content:center;gap:14px${flip ? ';flex-direction:row-reverse' : ''}">${iconBlock}${renderTapePlayer()}</div>`
+    : iconBlock;
+
   return `
 <div data-reveal="1"${tierAttr} style="position:relative;display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start${flip ? ';flex-direction:row-reverse' : ''}">
-${iconBlock}
-${entry.tanzt ? renderTapePlayer() : ''}
+${iconAndPlayer}
 <div style="flex:1 1 150px;min-width:0;padding-top:4px${flip ? ';text-align:right' : ''}">
 ${headline}
 ${entry.hinweis.de ? `<p style="margin:4px 0 0;font:400 11px/1.5 ui-monospace,Menlo,monospace;color:#a8562f;background:rgba(243,220,147,.4);padding:3px 6px;display:inline-block">${langSpans(entry.hinweis.de, entry.hinweis.en, entry.hinweis.sv)}</p>` : ''}

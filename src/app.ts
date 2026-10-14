@@ -359,19 +359,26 @@ function applyResponsive(): void {
  * mount points, since the story timeline's row count is now dynamic instead
  * of a fixed 9 that a static S-curve path could assume.
  */
-function layoutConnectorLine(itemsAttr: string, lineAttr: string): void {
+function layoutConnectorLine(itemsAttr: string, lineAttr: string, rowAttr = 'data-reveal'): void {
   const svg = root.querySelector<SVGSVGElement>(`[${lineAttr}]`);
   const wrap = root.querySelector<HTMLElement>(`[${itemsAttr}]`);
   if (!svg || !wrap) return;
   const box = wrap.getBoundingClientRect();
   const items = Array.from(wrap.children).filter(
-    (el): el is HTMLElement => el instanceof HTMLElement && el.hasAttribute('data-reveal') && el.offsetParent !== null && getComputedStyle(el).display !== 'none'
+    (el): el is HTMLElement => el instanceof HTMLElement && el.hasAttribute(rowAttr) && el.offsetParent !== null && getComputedStyle(el).display !== 'none'
   );
+  // A row's first child is normally the anchor itself — but data-line-anchor-inner marks a wrapper
+  // (e.g. the Afterparty row's dancers+tape-player group, src/ablauf-entries.ts) whose own box is
+  // too wide/off-center to anchor to; drill one level further to its first child instead.
+  const anchorOf = (row: HTMLElement): HTMLElement | null => {
+    const first = row.firstElementChild as HTMLElement | null;
+    return first?.hasAttribute('data-line-anchor-inner') ? (first.firstElementChild as HTMLElement | null) : first;
+  };
   const vb = `0 0 ${Math.max(1, box.width).toFixed(0)} ${Math.max(1, box.height).toFixed(0)}`;
   let d = '';
   for (let i = 0; i < items.length - 1; i++) {
-    const a = items[i].firstElementChild as HTMLElement | null;
-    const b = items[i + 1].firstElementChild as HTMLElement | null;
+    const a = anchorOf(items[i]);
+    const b = anchorOf(items[i + 1]);
     if (!a || !b) continue;
     const ra = a.getBoundingClientRect();
     const rb = b.getBoundingClientRect();
@@ -408,7 +415,7 @@ function setColumnVar(): void {
  * smallest size still touches text. On wider screens everything is reset to the original size.
  */
 function fitBouquetsForPhone(): void {
-  const imgs = Array.from(root.querySelectorAll<HTMLImageElement>('img[data-bq], img[data-bloom]'));
+  const imgs = Array.from(root.querySelectorAll<HTMLElement>('[data-bq], [data-bloom]'));
   imgs.forEach((el) => {
     if (el.dataset.w0 === undefined) el.dataset.w0 = el.style.width;
     el.style.width = el.dataset.w0;
@@ -487,7 +494,7 @@ function layoutAblaufLine(): void {
 }
 
 function layoutStoryLine(): void {
-  layoutConnectorLine('data-story-items', 'data-story-line');
+  layoutConnectorLine('data-story-items', 'data-story-line', 'data-row');
 }
 
 // -- scroll reveal (matches initReveal()) ------------------------------------
@@ -555,16 +562,29 @@ function initReveal(): void {
   // `scale` property so the inline rotate/mirror transform of each bouquet stays untouched.
   // The RSVP corner flowers (data-corner) are deliberately left out. Hero bouquets (data-bloom)
   // bloom once the opening letter is gone, so the animation is actually seen.
-  const bouquets = Array.from(root.querySelectorAll<HTMLElement>('img[data-bq], img[data-bloom]'));
+  const bouquets = Array.from(root.querySelectorAll<HTMLElement>('[data-bq], [data-bloom]'));
   if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    // Three levels, three jobs, deliberately kept apart:
+    //  - the observed `el` (position/size from body.raw.html) never animates, so its geometry stays
+    //    stable for the IntersectionObserver below — if it shrank toward its own edge, the shrunk box
+    //    could retreat off-screen and never cross the observer's threshold, a self-defeating loop.
+    //  - the middle div (`firstElementChild`) carries the grow-in scale/opacity, from an edge origin.
+    //  - the innermost <img> carries only the static rotate/mirror art direction. It must NOT also
+    //    carry the edge transform-origin: rotating around an off-center origin swings a 90°-rotated
+    //    box to a very different (often off-screen) position than rotating around its center.
     bouquets.forEach((el, i) => {
-      el.style.scale = '0.4';
-      el.style.opacity = '0';
-      el.style.transition = `opacity 1.2s ease ${(i % 3) * 140}ms, scale 2s cubic-bezier(.2,.9,.25,1) ${(i % 3) * 140}ms`;
+      const grow = el.firstElementChild as HTMLElement | null;
+      if (!grow) return;
+      grow.style.transformOrigin = el.style.right ? '100% 50%' : '0% 50%';
+      grow.style.scale = '0.4';
+      grow.style.opacity = '0';
+      grow.style.transition = `opacity 1.2s ease ${(i % 3) * 140}ms, scale 2s cubic-bezier(.2,.9,.25,1) ${(i % 3) * 140}ms`;
     });
     const bloom = (el: HTMLElement) => {
-      el.style.scale = '1';
-      el.style.opacity = '1';
+      const grow = el.firstElementChild as HTMLElement | null;
+      if (!grow) return;
+      grow.style.scale = '1';
+      grow.style.opacity = '1';
     };
     const bqIo = new IntersectionObserver(
       (entries) => {
@@ -783,6 +803,7 @@ function setupLoadingSeal(guestReady: Promise<unknown>): void {
     ...imgs.map((img) => settle(img)),
     settle(undefined, 'assets/paper.png'),
     settle(undefined, 'assets/siegel.jpg'),
+    settle(undefined, 'assets/flowers/trenner-rechts.svg'),
     document.readyState === 'complete' ? Promise.resolve() : new Promise((r) => window.addEventListener('load', r, { once: true })), // CSS backgrounds, scripts
     document.fonts?.ready ?? Promise.resolve(),
     guestReady.catch(() => undefined)

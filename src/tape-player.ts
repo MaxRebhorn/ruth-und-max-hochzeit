@@ -43,24 +43,44 @@ const CSS = `
 [data-cassette]:hover{transform:rotate(0deg) translateY(-3px)!important}
 `;
 
-const CASSETTE_W = 62;
+// Everything below is sized off the mockup's original 150x124 deck button at SIZE_SCALE — shrink
+// that one number to make the whole player (button, cassettes, dock) smaller together.
+const SIZE_SCALE = 0.85;
+const CASSETTE_W = 62 * SIZE_SCALE;
 
-// The opened deck art is drawn ~19 % larger and further left than the closed one. The closed deck is shown at
-// the opened size and spot, so opening it for a cassette doesn't make it jump (measured from both SVGs' ink).
-const CLOSED_FIT = 'translate(-28.3px,-21.4px) scale(1.191)';
+// The opened deck art is drawn ~19 % larger and further left/up than the closed one. The closed deck is
+// sized and positioned (not transform:scale'd — its own box then always matches what's actually drawn,
+// instead of visually overflowing a 150x124 box that layout code elsewhere measures) to the opened art's
+// scale and spot, so swapping between them for a cassette doesn't make the deck jump. The closed fit's
+// left/top are a measured offset at the original 150x124 size, so they scale by SIZE_SCALE too.
+const DECK_W = 150 * SIZE_SCALE;
+const DECK_H = 124 * SIZE_SCALE;
+const CLOSED_SCALE = 1.191;
+const OPEN_FIT = { left: '0', top: '0', width: `${DECK_W}px`, height: `${DECK_H}px` };
+const CLOSED_FIT = {
+  left: `${(-28.3 * SIZE_SCALE).toFixed(2)}px`,
+  top: `${(-21.4 * SIZE_SCALE).toFixed(2)}px`,
+  width: `${(DECK_W * CLOSED_SCALE).toFixed(2)}px`,
+  height: `${(DECK_H * CLOSED_SCALE).toFixed(2)}px`
+};
+const CLOSED_FIT_CSS = `left:${CLOSED_FIT.left};top:${CLOSED_FIT.top};width:${CLOSED_FIT.width};height:${CLOSED_FIT.height}`;
 
-/** Deck with a dock for the guests' song cassettes on its left. */
+/**
+ * Deck with a dock for the guests' song cassettes above it. `data-tape-wrap` (also `[data-tape]`
+ * for the JS below and the existing CSS hooks) is a fixed 150px — the deck's own width — and never
+ * changes size: the dock is taken out of the flex flow with position:absolute, so it can hold zero,
+ * one, or several waiting cassettes without ever affecting the player's own layout box. That in turn
+ * keeps the dancers-plus-player group (src/ablauf-entries.ts) a fixed width too, so on narrow
+ * screens they always share one row and one ground line instead of sometimes wrapping apart.
+ */
 export function renderTapePlayer(): string {
   return `<style>${CSS}</style>
-<div style="flex:0 1 auto;max-width:100%;display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:110px 0 0">
-<div data-tape-dock style="display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:flex-end;gap:8px 6px;max-width:${CASSETTE_W * 3 + 12}px;padding-bottom:30px"></div>
-<div data-tape="1" style="flex:0 0 auto;width:150px;display:flex;flex-direction:column;align-items:center;gap:4px">
-<div data-tape-stage style="width:94px;height:62px;display:flex;align-items:center;justify-content:center"></div>
-<button data-tape-play type="button" disabled aria-label="Play/Stop" style="width:150px;height:124px;position:relative;border:none;background:none;padding:0;cursor:pointer;opacity:.5">
-<img data-tape-deck src="${asset('tape-player.svg')}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform-origin:0 0;transform:${CLOSED_FIT}">
+<div data-tape-wrap data-tape="1" style="position:relative;flex:0 0 auto;width:${DECK_W}px;display:flex;flex-direction:column;align-items:center;gap:4px">
+<div data-tape-dock style="position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:4px;display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:8px 6px;max-width:${CASSETTE_W * 3 + 12}px"></div>
+<button data-tape-play type="button" disabled aria-label="Play/Stop" style="width:${DECK_W}px;height:${DECK_H}px;position:relative;border:none;background:none;padding:0;cursor:pointer;opacity:.5">
+<img data-tape-deck src="${asset('tape-player.svg')}" alt="" style="position:absolute;object-fit:contain;${CLOSED_FIT_CSS}">
 </button>
 <span data-tape-status style="font:400 11px/1.2 Karla,sans-serif;color:${INK};opacity:.75;min-width:0;text-align:center">—</span>
-</div>
 </div>`;
 }
 
@@ -294,7 +314,7 @@ export function setupTapePlayer(root: HTMLElement): TapeHandle | void {
     const previous = inserted ? cassettes.get(inserted) : null;
     inserted = label;
     deckImg.src = asset('tape-player-opened.svg');
-    deckImg.style.transform = 'none';
+    Object.assign(deckImg.style, OPEN_FIT);
     if (!reducedMotion()) {
       const g = ghostOf(entry.el);
       const to = playBtn.getBoundingClientRect();
@@ -316,7 +336,7 @@ export function setupTapePlayer(root: HTMLElement): TapeHandle | void {
     entry.el.style.visibility = '';
     if (previous) previous.el.style.display = ''; // the old cassette goes back on the shelf
     deckImg.src = asset('tape-player.svg');
-    deckImg.style.transform = CLOSED_FIT;
+    Object.assign(deckImg.style, CLOSED_FIT);
     if (inserted !== label) return; // another cassette was tapped meanwhile
     status.textContent = `${label} · sucht Hörprobe …`;
     // Plain-text wishes get one more search try here, in case Apple Music was down when they were typed.
