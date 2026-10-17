@@ -229,7 +229,7 @@ function setupSongSearch(tape: TapeHandle | void): void {
       hits.querySelectorAll<HTMLButtonElement>('[data-hit]').forEach((b) =>
         b.addEventListener('click', () => {
           const tr = tracks[Number(b.dataset.hit)];
-          const label = `${tr.title} – ${tr.artist}`;
+          const label = `${tr.title}, ${tr.artist}`;
           known.set(label, tr);
           finish(label);
         })
@@ -803,7 +803,6 @@ function setupLoadingSeal(guestReady: Promise<unknown>): void {
     ...imgs.map((img) => settle(img)),
     settle(undefined, 'assets/paper.png'),
     settle(undefined, 'assets/siegel.jpg'),
-    settle(undefined, 'assets/flowers/trenner-rechts.svg'),
     document.readyState === 'complete' ? Promise.resolve() : new Promise((r) => window.addEventListener('load', r, { once: true })), // CSS backgrounds, scripts
     document.fonts?.ready ?? Promise.resolve(),
     guestReady.catch(() => undefined)

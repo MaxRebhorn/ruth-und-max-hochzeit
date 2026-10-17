@@ -9,10 +9,10 @@ Schöne Wälder, Berge und eine Skisprungschanze hat dieser Ort im oberen Vogtla
 titel: almost in Czechia
 distanz: approx. 45 min · forests, mountains, ski jump
 
-Beautiful forests, mountains and a ski jump — this town in the Upper Vogtland has it all. Klingenthal lies just before the German-Czech border.
+Beautiful forests, mountains and a ski jump: this town in the Upper Vogtland has it all. Klingenthal lies just before the German-Czech border.
 
 ---sv---
 titel: nästan i Tjeckien
 distanz: ca 45 min · skog, berg, hoppbacke
 
-Vackra skogar, berg och en hoppbacke — den här orten i övre Vogtland har allt. Klingenthal ligger strax före den tysk-tjeckiska gränsen.
+Vackra skogar, berg och en hoppbacke: den här orten i övre Vogtland har allt. Klingenthal ligger strax före den tysk-tjeckiska gränsen.

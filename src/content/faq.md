@@ -1,16 +1,22 @@
 frage: Was ziehe ich an?
 
-Festlich schick. Gerne bunt, z. B. in Pastellen. Kein Weiß – das ist für diesen Tag schon reserviert ;)
+Festlich schick. Gerne bunt, z. B. in Pastellen. Kein Weiß, das ist für diesen Tag schon reserviert ;)
+
+Männer bitte mit Kragen, ob Polohemd oder richtiges Hemd ist egal.
 
 ---en---
 frage: What should I wear?
 
-Festive and smart. Colourful is welcome, e.g. pastels. No white – that's already reserved for this day ;)
+Festive and smart. Colourful is welcome, e.g. pastels. No white, that's already reserved for this day ;)
+
+Men, please wear a collared shirt, a polo or a proper shirt both work.
 
 ---sv---
 frage: Vad ska jag ha på mig?
 
-Festligt och snyggt. Gärna färgglatt, t.ex. i pastellfärger. Inget vitt – det är redan reserverat för den här dagen ;)
+Festligt och snyggt. Gärna färgglatt, t.ex. i pastellfärger. Inget vitt, det är redan reserverat för den här dagen ;)
+
+Män får gärna ha skjorta med krage, pikétröja eller vanlig skjorta funkar båda.
 
 ====
 

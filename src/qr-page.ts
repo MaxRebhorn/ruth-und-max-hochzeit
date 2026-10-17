@@ -82,7 +82,7 @@ async function main(): Promise<void> {
       const data = (await res.json()) as Guest[] | { error: string };
       if (!Array.isArray(data)) {
         status.textContent =
-          data.error === 'forbidden' ? 'Passwort falsch.' : data.error === 'rate limited' ? 'Zu viele Versuche — eine Minute warten.' : `Fehler: ${data.error}`;
+          data.error === 'forbidden' ? 'Passwort falsch.' : data.error === 'rate limited' ? 'Zu viele Versuche, eine Minute warten.' : `Fehler: ${data.error}`;
         return;
       }
       guests = data;

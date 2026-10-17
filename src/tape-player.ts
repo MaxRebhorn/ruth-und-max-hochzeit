@@ -80,7 +80,7 @@ export function renderTapePlayer(): string {
 <button data-tape-play type="button" disabled aria-label="Play/Stop" style="width:${DECK_W}px;height:${DECK_H}px;position:relative;border:none;background:none;padding:0;cursor:pointer;opacity:.5">
 <img data-tape-deck src="${asset('tape-player.svg')}" alt="" style="position:absolute;object-fit:contain;${CLOSED_FIT_CSS}">
 </button>
-<span data-tape-status style="font:400 11px/1.2 Karla,sans-serif;color:${INK};opacity:.75;min-width:0;text-align:center">—</span>
+<span data-tape-status style="font:400 11px/1.2 Karla,sans-serif;color:${INK};opacity:.75;min-width:0;text-align:center">·</span>
 </div>`;
 }
 
@@ -304,7 +304,7 @@ export function setupTapePlayer(root: HTMLElement): TapeHandle | void {
     bytes = null;
     playBtn.disabled = true;
     playBtn.style.opacity = '.5';
-    status.textContent = cassettes.size ? 'Kassette antippen' : '—';
+    status.textContent = cassettes.size ? 'Kassette antippen' : '·';
   }
 
   async function insert(label: string): Promise<void> {
@@ -389,7 +389,7 @@ export function setupTapePlayer(root: HTMLElement): TapeHandle | void {
         el.style.visibility = '';
       });
     });
-    if (!inserted) status.textContent = cassettes.size ? 'Kassette antippen' : '—';
+    if (!inserted) status.textContent = cassettes.size ? 'Kassette antippen' : '·';
     relayout();
   }
 
