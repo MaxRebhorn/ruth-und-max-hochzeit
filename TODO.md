@@ -16,10 +16,10 @@ Erledigtes abhaken (`[x]`), nicht löschen.
 
 ## P1 — Inhalt muss stimmen, bevor Gäste die Seite sehen
 
-- [ ] **KI-Platzhaltertexte überall ersetzen.** Sie klingen schlecht. Jede Sektion durchgehen
+- [x] **KI-Platzhaltertexte überall ersetzen.** Sie klingen schlecht. Jede Sektion durchgehen
       (Story, Ablauf, FAQ, Vogtland, Wunschliste, Formulare) und in Ruths und Maxens Stimme neu schreiben.
-- [ ] **Story: Bilder finalisieren.** Alle Jahre prüfen (2019–2027): richtige Bilder, Reihenfolge, Größe.
-- [ ] **Kuchenbuffet: Platzhalter-Kuchen im Stapel ersetzen.** Das Stapel-Element zeigt noch Beispielkuchen.
+- [x] **Story: Bilder finalisieren.** Alle Jahre prüfen (2019–2027): richtige Bilder, Reihenfolge, Größe.
+- [x] **Kuchenbuffet: Platzhalter-Kuchen im Stapel ersetzen.** Das Stapel-Element zeigt noch Beispielkuchen.
 - [ ] **Fotobox fertigstellen.**
   - [ ] Ruths Google Drive verknüpfen (Zielordner für die Uploads).
   - [ ] Absichern: Upload nur mit gültigem Gast-Token, nur Bilder und Videos, Größen- und Mengenlimit.

@@ -98,10 +98,29 @@ function renderDoves(): string {
   return `<div data-flock="1" aria-hidden="true" style="position:absolute;left:46%;top:calc(86% + 3px);width:0;height:0;pointer-events:none;z-index:3">${DOVE_SPECS.map(renderDove).join('')}</div>`;
 }
 
+// The couple in front of the Hof building (src/photos/ablauf/2-ankommen/lauschgruener-hof.svg) is
+// masked out of that drawing (see the file itself) and replaced here by the "anstoßen" drawing,
+// positioned over the same spot the masked-out couple used to occupy.
+function renderHofToast(icons: string[], alt: string): string {
+  const building = icons.find((u) => u.includes('lauschgruener'));
+  const couple = icons.find((u) => u.includes('anstossen'));
+  if (!building || !couple) return renderIcons(icons, alt, false);
+  return `<div style="position:relative">
+<img src="${building}" alt="${alt}" style="width:100%;height:auto;display:block;object-fit:contain;mix-blend-mode:multiply">
+<div style="position:absolute;left:54.68%;top:55.8%;width:21.87%;height:18.5%;pointer-events:none">
+<img src="${couple}" alt="" style="position:absolute;left:50%;bottom:0;width:auto;height:100%;transform:translateX(-50%)">
+</div>
+</div>`;
+}
+
 function renderRow(entry: AblaufEntry, index: number): string {
   const flip = index % 2 === 1;
   const tierAttr = entry.tier === 'party' ? ' data-tier="party"' : entry.tier === 'ganzer-tag' ? ' data-tier="alles"' : '';
-  const icon = entry.icons.length ? renderIcons(entry.icons, entry.ort, entry.tanzt) : `<div class="raw-photo raw-photo-placeholder" style="aspect-ratio:1;width:100%">noch kein Bild</div>`;
+  const icon = entry.slug === '2-ankommen' && entry.icons.length === 2
+    ? renderHofToast(entry.icons, entry.ort)
+    : entry.icons.length
+      ? renderIcons(entry.icons, entry.ort, entry.tanzt)
+      : `<div class="raw-photo raw-photo-placeholder" style="aspect-ratio:1;width:100%">noch kein Bild</div>`;
   // The tanzt icon now lives inside the icon+player group (its own auto-sized flex container, see
   // below), not directly in the row — a `%` width there would resolve against that auto-sized
   // group, which itself needs to know the icon's width first: a circular dependency that made the

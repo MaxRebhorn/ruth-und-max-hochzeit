@@ -598,6 +598,7 @@ details[data-card][open] [data-chev] {
   flex-direction: column;
   align-items: center;
   gap: 2px;
+  min-width: 0;
 }
 .sec-head-col h2 {
   margin: 0 !important;
@@ -609,13 +610,19 @@ details[data-card][open] [data-chev] {
 }
 .sec-orn {
   flex: 1 1 0;
-  min-width: 0;
+  min-width: 60px; /* long headings wrap instead of squeezing the vines to nothing */
   max-width: 130px;
   height: auto;
   pointer-events: none;
 }
 .sec-orn-r {
   transform: scaleX(-1);
+}
+/* Phones: set by fitSecHeads (app.ts) while it shrinks a heading onto one line. */
+.sec-fit,
+.sec-fit > span {
+  white-space: nowrap;
+  text-wrap: nowrap;
 }
 
 /* Watercolour bouquets at the section edges (like the hero). Own stacking layer per section so the bouquets sit behind the text but above the paper. */
@@ -652,7 +659,7 @@ div:has(> section > [data-bq]) {
 
 /* Phones: the green/rose cards of section 07 are translucent; a paper layer on top keeps bouquets from showing through the card text (the tint stays visible). */
 @media (max-width: 600px) {
-  #wunschliste > div > div {
+  [data-wish-card] {
     background-image: linear-gradient(rgba(246, 241, 231, 0.93), rgba(246, 241, 231, 0.93)) !important;
   }
 }

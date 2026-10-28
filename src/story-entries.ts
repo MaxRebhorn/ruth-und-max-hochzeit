@@ -69,7 +69,23 @@ function renderStack(photos: string[], dir: 'r' | 'l', seed: number, size: numbe
     count > 1 ? renderLeaf(photos[1], 1, null, clickable) : '',
     renderLeaf(photos[0], 0, count > 1 ? `+${count - 1}` : null, clickable)
   ].join('');
-  return `<div data-stack="1" data-dir="${dir}" data-open="0" data-fan-id="${fanCounter}" style="flex:none;width:min(${size}px,42%);aspect-ratio:196/244;position:relative;transform:rotate(${rotate}deg)">${leaves}</div>`;
+  // The stack itself still owns the tilt/fan-out transform (the open-state CSS resets it to
+  // rotate(0) !important) — the hint below needs to stay unrotated, so it's a sibling positioned
+  // against this outer, never-rotated wrapper instead of a child of the stack.
+  const stack = `<div data-stack="1" data-dir="${dir}" data-open="0" data-fan-id="${fanCounter}" style="position:absolute;inset:0;transform:rotate(${rotate}deg)">${leaves}</div>`;
+  const hint = clickable ? renderStackHint() : '';
+  return `<div style="flex:none;width:min(${size}px,42%);aspect-ratio:196/244;position:relative">${stack}${hint}</div>`;
+}
+
+/** Nudges first-time visitors that the photo stack fans out on click/tap — easy to miss otherwise
+ * (confirmed in user testing: "the '+2' underneath, I don't get what that means"). Appears once this
+ * stack scrolls into view (data-reveal, same mechanism as everywhere else) and is hidden again the
+ * moment its stack is actually opened (setupStoryFanToggles in app.ts). */
+function renderStackHint(): string {
+  return `<div data-stack-hint="1" data-reveal="1" aria-hidden="true" style="position:absolute;left:-8px;bottom:-30px;z-index:5;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:1px">
+<div style="animation:bob 1.6s ease-in-out infinite"><svg width="20" height="24" viewBox="0 0 20 24" fill="none" style="display:block;transform:rotate(22deg)"><path d="M10 23V2M10 2 4 8M10 2l6 6" stroke="#a8562f" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<span style="font:400 13px/1 Caveat,cursive;color:#a8562f;white-space:nowrap"><span data-de="1">antippen</span><span data-en="1" style="display:none">tap</span><span data-sv="1" style="display:none">tryck</span></span>
+</div>`;
 }
 
 /** A photo-less entry (e.g. the future-facing closing row) — an empty frame instead of a stack, no photo yet. */

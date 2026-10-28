@@ -6,6 +6,20 @@
  * Previews come from the iTunes Search API (CORS-open, 30 s clips).
  */
 
+/** Status texts in the page language (applyLang keeps <html lang> current). */
+const TXT = {
+  noPreview: { de: 'Vorschau konnte nicht geladen werden', en: 'preview could not be loaded', sv: 'förhandsvisningen kunde inte laddas' },
+  noSound: { de: 'Ton nicht abspielbar', en: 'sound cannot be played', sv: 'ljudet kan inte spelas' },
+  tap: { de: 'Kassette antippen', en: 'tap a cassette', sv: 'tryck på en kassett' },
+  searching: { de: 'sucht Hörprobe …', en: 'looking for a preview …', sv: 'letar efter en provlyssning …' },
+  notFound: { de: 'keine Hörprobe gefunden', en: 'no preview found', sv: 'ingen provlyssning hittades' },
+  insert: { de: 'Kassette einlegen', en: 'insert cassette', sv: 'sätt i kassetten' }
+};
+const tx = (k: keyof typeof TXT): string => {
+  const l = document.documentElement.lang;
+  return TXT[k][l === 'en' || l === 'sv' ? l : 'de'];
+};
+
 export interface Track {
   title: string;
   artist: string;
@@ -89,7 +103,7 @@ function escHtml(s: string): string {
 }
 
 function cassetteHtml(label: string, tilt: number): string {
-  return `<button type="button" data-cassette aria-label="Kassette einlegen: ${escHtml(label)}" title="${escHtml(label)}" style="flex:none;width:${CASSETTE_W}px;border:none;padding:0;background:none;cursor:pointer;transform:rotate(${tilt}deg);transition:transform .2s">
+  return `<button type="button" data-cassette aria-label="${tx('insert')}: ${escHtml(label)}" title="${escHtml(label)}" style="flex:none;width:${CASSETTE_W}px;border:none;padding:0;background:none;cursor:pointer;transform:rotate(${tilt}deg);transition:transform .2s">
 <img src="${asset('tape-cassette.svg')}" alt="" style="display:block;width:100%;aspect-ratio:1592/999">
 <span style="display:block;max-width:100%;margin-top:1px;font:400 12px/1.1 Caveat,cursive;color:${INK};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(label)}</span>
 </button>`;
@@ -204,7 +218,7 @@ export function setupTapePlayer(root: HTMLElement): TapeHandle | void {
     decoded = null;
     tempo = null;
     bytes = fetch(t.preview).then((r) => r.arrayBuffer());
-    bytes.catch(() => (status.textContent = 'Vorschau konnte nicht geladen werden'));
+    bytes.catch(() => (status.textContent = tx('noPreview')));
     status.textContent = `${t.title} · ${t.artist}`;
     playBtn.disabled = false;
     playBtn.style.opacity = '1';
@@ -238,7 +252,7 @@ export function setupTapePlayer(root: HTMLElement): TapeHandle | void {
       await ctx.resume();
       decoded ??= await ctx.decodeAudioData(await bytes);
     } catch (err) {
-      status.textContent = `Ton nicht abspielbar (${err instanceof Error ? err.message : err})`;
+      status.textContent = `${tx('noSound')} (${err instanceof Error ? err.message : err})`;
       return;
     }
     source = ctx.createBufferSource();
@@ -304,7 +318,7 @@ export function setupTapePlayer(root: HTMLElement): TapeHandle | void {
     bytes = null;
     playBtn.disabled = true;
     playBtn.style.opacity = '.5';
-    status.textContent = cassettes.size ? 'Kassette antippen' : '·';
+    status.textContent = cassettes.size ? tx('tap') : '·';
   }
 
   async function insert(label: string): Promise<void> {
@@ -338,7 +352,7 @@ export function setupTapePlayer(root: HTMLElement): TapeHandle | void {
     deckImg.src = asset('tape-player.svg');
     Object.assign(deckImg.style, CLOSED_FIT);
     if (inserted !== label) return; // another cassette was tapped meanwhile
-    status.textContent = `${label} · sucht Hörprobe …`;
+    status.textContent = `${label} · ${tx('searching')}`;
     // Plain-text wishes get one more search try here, in case Apple Music was down when they were typed.
     entry.song.track ??= await searchTracks(label).then((r) => r[0], () => undefined);
     if (inserted !== label) return;
@@ -347,7 +361,7 @@ export function setupTapePlayer(root: HTMLElement): TapeHandle | void {
       bytes = null;
       playBtn.disabled = true;
       playBtn.style.opacity = '.5';
-      status.textContent = `${label} · keine Hörprobe gefunden`;
+      status.textContent = `${label} · ${tx('notFound')}`;
     }
   }
 
@@ -389,7 +403,7 @@ export function setupTapePlayer(root: HTMLElement): TapeHandle | void {
         el.style.visibility = '';
       });
     });
-    if (!inserted) status.textContent = cassettes.size ? 'Kassette antippen' : '·';
+    if (!inserted) status.textContent = cassettes.size ? tx('tap') : '·';
     relayout();
   }
 

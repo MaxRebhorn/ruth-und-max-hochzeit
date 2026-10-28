@@ -22,6 +22,7 @@ formintro: So nothing overlaps: note briefly what you're planning. We'll coordin
 geheim: the couple must not know about this
 vonwem: from whom?
 kontakt: email or phone
+kontaktplatzhalter: ruth@example.com · 0170 1234567
 kontakthinweis: only for follow-up questions, nobody else sees it
 idee: the idea
 ideeplatzhalter: Four of us will sing, we need 5 minutes and a mic.
@@ -38,6 +39,7 @@ formintro: Så att inget krockar: skriv kort vad du planerar. Vi samordnar i bak
 geheim: brudparet får inte veta något om det här
 vonwem: från vem?
 kontakt: e-post eller telefon
+kontaktplatzhalter: ruth@exempel.se · 0170 1234567
 kontakthinweis: bara för följdfrågor, ingen annan ser det
 idee: idén
 ideeplatzhalter: Vi sjunger fyra stycken, behöver 5 minuter och en mikrofon.

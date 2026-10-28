@@ -97,4 +97,10 @@ export function applyLang(root: ParentNode, lang: 'de' | 'en' | 'sv'): void {
     const hasSv = e.parentElement && e.parentElement.querySelector(':scope > [data-sv]');
     e.style.display = lang === 'de' || (lang === 'sv' && !hasSv) ? '' : 'none';
   });
+  // Placeholders: data-ph-en / data-ph-sv hold the translations, the German original is kept in data-ph-de.
+  root.querySelectorAll<HTMLInputElement>('[data-ph-en], [data-ph-sv]').forEach((e) => {
+    e.dataset.phDe ??= e.placeholder;
+    e.placeholder = (lang === 'en' ? e.dataset.phEn : lang === 'sv' ? e.dataset.phSv : '') || e.dataset.phDe;
+  });
+  document.documentElement.lang = lang;
 }

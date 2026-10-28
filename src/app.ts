@@ -121,7 +121,7 @@ function addPersonRow(name = ''): void {
   if (!mount) return;
   const row = document.createElement('div');
   row.style.cssText = 'display:flex;flex-direction:column;gap:6px;border-left:2px solid rgba(91,42,16,.25);padding-left:10px;position:relative';
-  const ph = state.lang === 'en' ? ['Name', 'food / allergies'] : ['Name', 'Essen / Allergien'];
+  const ph = state.lang === 'en' ? ['Name', 'food / allergies'] : state.lang === 'sv' ? ['Namn', 'mat / allergier'] : ['Name', 'Essen / Allergien'];
   row.innerHTML =
     `<input type="text" name="person-name" placeholder="${ph[0]}" style="${PERSON_INPUT_STYLE}">` +
     `<input type="text" name="person-allergy" data-allergy data-tier="alles" placeholder="${ph[1]}" style="${PERSON_INPUT_STYLE}">` +
@@ -229,7 +229,8 @@ function setupSongSearch(tape: TapeHandle | void): void {
       hits.querySelectorAll<HTMLButtonElement>('[data-hit]').forEach((b) =>
         b.addEventListener('click', () => {
           const tr = tracks[Number(b.dataset.hit)];
-          const label = `${tr.title}, ${tr.artist}`;
+          // No commas in the label: the field splits songs at commas, so "Title, Artist" became two cassettes.
+          const label = `${tr.title} – ${tr.artist}`.replace(/,/g, '');
           known.set(label, tr);
           finish(label);
         })
@@ -305,6 +306,7 @@ function setLang(lang: Lang): void {
   root.querySelectorAll<HTMLElement>('[data-lang-btn]').forEach((el) => {
     el.style.opacity = el.dataset.langBtn === lang ? '1' : '.4';
   });
+  fitSecHeads();
 }
 
 // -- nav ------------------------------------------------------------------
@@ -383,9 +385,9 @@ function layoutConnectorLine(itemsAttr: string, lineAttr: string, rowAttr = 'dat
     const ra = a.getBoundingClientRect();
     const rb = b.getBoundingClientRect();
     const x1 = ra.left + ra.width / 2 - box.left;
-    const y1 = ra.bottom - box.top - ra.height * 0.22;
+    const y1 = ra.bottom - box.top - ra.height * 0.34;
     const x2 = rb.left + rb.width / 2 - box.left;
-    const y2 = rb.top - box.top + rb.height * 0.22;
+    const y2 = rb.top - box.top + rb.height * 0.3;
     if (y2 - y1 < 10) continue;
     const dy = Math.max(26, (y2 - y1) * (items.length <= 2 ? 0.92 : 0.62));
     d += `M${x1.toFixed(1)} ${y1.toFixed(1)} C ${x1.toFixed(1)} ${(y1 + dy).toFixed(1)} ${x2.toFixed(1)} ${(y2 - dy).toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)} `;
@@ -414,7 +416,23 @@ function setColumnVar(): void {
  * made smaller step by step (it stays anchored to its edge) and hidden only if even the
  * smallest size still touches text. On wider screens everything is reset to the original size.
  */
+/** Phones: section headings stay on one line next to their vines (.sec-orn, min 60px in CSS);
+ * a heading that is too wide gets a smaller font size until it fits. */
+function fitSecHeads(): void {
+  root.querySelectorAll<HTMLElement>('.sec-head h2').forEach((h) => {
+    if (h.dataset.css0 === undefined) h.dataset.css0 = h.style.cssText;
+    h.style.cssText = h.dataset.css0;
+    h.classList.remove('sec-fit');
+    if (window.innerWidth > 600 || !h.offsetParent) return;
+    h.classList.add('sec-fit');
+    const head = h.closest<HTMLElement>('.sec-head')!;
+    const free = head.clientWidth - 2 * 60 - 2 * (parseFloat(getComputedStyle(head).columnGap) || 0);
+    if (h.scrollWidth > free) h.style.fontSize = `${Math.floor((parseFloat(getComputedStyle(h).fontSize) * free) / h.scrollWidth)}px`;
+  });
+}
+
 function fitBouquetsForPhone(): void {
+  fitSecHeads();
   const imgs = Array.from(root.querySelectorAll<HTMLElement>('[data-bq], [data-bloom]'));
   imgs.forEach((el) => {
     if (el.dataset.w0 === undefined) el.dataset.w0 = el.style.width;
@@ -599,13 +617,10 @@ function initReveal(): void {
     const heroBlooms = bouquets.filter((el) => el.hasAttribute('data-bloom'));
     bouquets.filter((el) => !el.hasAttribute('data-bloom')).forEach((el) => bqIo.observe(el));
     if (heroBlooms.length) {
-      const poll = window.setInterval(() => {
-        const overlay = root.querySelector<HTMLElement>('[data-envelope-overlay]');
-        const gone = !overlay || parseFloat(getComputedStyle(overlay).opacity) < 0.3;
-        if (!gone) return;
-        window.clearInterval(poll);
+      triggerHeroBloom = () => {
         heroBlooms.forEach(bloom);
-      }, 250);
+        triggerHeroBloom = null;
+      };
     }
   }
   requestAnimationFrame(() =>
@@ -637,6 +652,8 @@ function setupStoryFanToggles(): void {
     e.stopPropagation();
     const stack = (btn ?? leaf)?.closest<HTMLElement>('[data-stack]');
     if (!stack) return;
+    const hint = stack.parentElement?.querySelector<HTMLElement>('[data-stack-hint]');
+    if (hint) hint.style.display = 'none';
     const cur = Number(stack.dataset.open || '0');
     if (cur === 2) {
       stack.dataset.open = '1';
@@ -762,6 +779,11 @@ function countPop(): void {
 
 let envelopeTimers: number[] = [];
 
+/** Set by initReveal() once the hero flowers are ready to bloom; fired by open() itself (see there)
+ * instead of waiting for the overlay to fully fade, so the bloom starts while the flap is still
+ * swinging open rather than after the envelope is already gone. */
+let triggerHeroBloom: (() => void) | null = null;
+
 /** The seal stays grey and inert until the page is really ready, filling red top→bottom as things arrive. */
 let sealReady = false;
 
@@ -870,17 +892,21 @@ function open(): void {
   envelopeTimers.push(
     window.setTimeout(() => {
       if (flapL) flapL.style.transform = 'rotateY(-108deg)';
-    }, 380)
+    }, 190)
   );
   envelopeTimers.push(
     window.setTimeout(() => {
       if (flapR) flapR.style.transform = 'rotateY(112deg)';
-    }, 1450)
+    }, 725)
   );
+  // The right flap (started at 725ms, .525s swing) is still visibly mid-rotation here, well before
+  // the overlay even starts fading — the hero flowers bloom while the letter is still opening
+  // instead of only once it's fully gone.
+  envelopeTimers.push(window.setTimeout(() => triggerHeroBloom?.(), 820));
   envelopeTimers.push(
     window.setTimeout(() => {
       if (overlay) overlay.style.pointerEvents = 'none';
-    }, 2300)
+    }, 1150)
   );
   envelopeTimers.push(
     window.setTimeout(() => {
@@ -888,7 +914,7 @@ function open(): void {
       if (overlay) overlay.style.opacity = '0';
       document.body.style.overflow = '';
       window.scrollTo(0, 0);
-    }, 2750)
+    }, 1375)
   );
 }
 
@@ -1179,9 +1205,57 @@ function setupSurprise(): void {
 
 // -- Frage stellen / die Trauzeugen --------------------------------------------
 
+const ASK_ERRORS = {
+  de: { question: 'Bitte trag deine Frage ein.', contact: 'Das sieht nicht nach einer E-Mail-Adresse oder Telefonnummer aus.' },
+  en: { question: 'Please enter your question.', contact: "That doesn't look like an email address or phone number." },
+  sv: { question: 'Fyll i din fråga.', contact: 'Det ser inte ut som en e-postadress eller ett telefonnummer.' }
+};
+
+/** Question is required; contact stays optional (anonymous questions are fine) but if filled in must
+ * look like an email or phone number — otherwise junk like "hallo" silently promised a reply it can't get. */
+function validateAsk(form: HTMLFormElement): boolean {
+  const questionEl = form.elements.namedItem('question') as HTMLTextAreaElement | null;
+  const contactEl = form.elements.namedItem('askcontact') as HTMLInputElement | null;
+  if (!questionEl || !contactEl) return true;
+
+  const textareaLine = 'rgba(91,42,16,.3)';
+  const inputLine = 'rgba(91,42,16,.45)';
+  const bad = '#b5453a';
+  const reset = () => {
+    questionEl.style.borderColor = textareaLine;
+    contactEl.style.borderBottomColor = inputLine;
+    form.querySelector('[data-ask-error]')?.remove();
+  };
+  reset();
+
+  const questionOk = questionEl.value.trim().length > 0;
+  const contact = contactEl.value.trim();
+  const emailOk = /^\S+@\S+\.\S+$/.test(contact);
+  const phoneOk = (contact.match(/\d/g) ?? []).length >= 5;
+  const contactOk = contact.length === 0 || emailOk || phoneOk;
+  if (questionOk && contactOk) return true;
+
+  const msgs = ASK_ERRORS[state.lang] ?? ASK_ERRORS.de;
+  if (!questionOk) questionEl.style.borderColor = bad;
+  if (!contactOk) contactEl.style.borderBottomColor = bad;
+  const msg = document.createElement('p');
+  msg.setAttribute('data-ask-error', '1');
+  msg.setAttribute('role', 'alert');
+  msg.style.cssText = 'margin:-4px 0 0;font:400 16px/1.3 Caveat,cursive;color:#b5453a;text-align:center';
+  msg.textContent = !questionOk ? msgs.question : msgs.contact;
+  (contactEl.closest('label') ?? contactEl).after(msg);
+
+  const clear = () => reset();
+  [questionEl, contactEl].forEach((el) => el.addEventListener('input', clear, { once: true }));
+  (questionOk ? contactEl : questionEl).focus({ preventScroll: true });
+  (questionOk ? contactEl : questionEl).scrollIntoView({ block: 'center', behavior: 'smooth' });
+  return false;
+}
+
 function submitAsk(e: Event): void {
   e.preventDefault();
   const form = e.target as HTMLFormElement;
+  if (!validateAsk(form)) return;
   submitFrage(config, {
     question: (form.elements.namedItem('question') as HTMLTextAreaElement)?.value ?? '',
     contact: (form.elements.namedItem('askcontact') as HTMLInputElement)?.value ?? ''
@@ -1215,16 +1289,32 @@ function resetWitness(): void {
 
 // -- Kuchenbuffet ---------------------------------------------------------------
 
-function cakeLayerStyle(c: Cake, i: number, _total: number): string {
+function cakeMetaText(c: Cake): string {
+  return [c.who, c.slices ? c.slices + ' Stücke' : ''].filter(Boolean).join(' · ');
+}
+
+function cakeTitleText(c: Cake): string {
+  const meta = cakeMetaText(c);
+  return meta ? `${c.name} — ${meta}` : c.name;
+}
+
+function cakeLayerStyle(c: Cake, i: number, total: number): string {
   const [sponge, filling] = CAKE_TYPES[c.kind] ?? ['#ecd8b4', '#c07a44'];
-  const maxSlices = Math.max(1, ...state.cakes.map((k) => k.slices || 0));
-  const w = 46 + ((c.slices || 0) / maxSlices) * 54; // wider bar = more slices, 46%–100%
   const rot = (i % 2 ? 0.6 : -0.6) * (1 + (i % 3) * 0.25);
+  // Rendered newest-first (top) to oldest-last (bottom), like a real tiered cake: tiers grow wider
+  // toward the base. The bottom tier (365px) slightly overhangs the 340px plate below. Width is
+  // position only now — a long name doesn't widen or wrap its tier, it's ellipsis-truncated to one
+  // line instead (see makeCakeLayerEl/the sc-for template) with the full text in a hover title.
+  const t = total <= 1 ? 1 : i / (total - 1); // 0 = top tier, 1 = bottom tier
+  const w = 150 + t * (365 - 150);
   return (
-    'display:flex;align-items:baseline;justify-content:center;gap:9px;box-sizing:border-box;padding:8px 12px 0;' +
-    `width:${w.toFixed(1)}%;max-width:340px;height:36px;border-radius:7px 7px 5px 5px;` +
+    'display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-sizing:border-box;padding:7px 14px;' +
+    `width:${w.toFixed(0)}px;max-width:100%;border-radius:7px 7px 5px 5px;` +
     'border:1.2px solid rgba(91,42,16,.26);box-shadow:0 2px 6px rgba(91,42,16,.13);' +
-    `background:linear-gradient(${sponge} 0 64%,${filling} 64% 78%,${sponge} 78% 100%);` +
+    // The filling stripe used to sit mid-height, which worked for one short baseline-aligned line but
+    // now cuts through the two stacked text lines (dark text on a dark stripe is unreadable). Pinned
+    // to a thin band at the very bottom instead, like a cake board, so it never touches the text.
+    `background:linear-gradient(${sponge} 0 86%,${filling} 86% 100%);` +
     `transform:rotate(${rot.toFixed(2)}deg);animation:layerIn .55s cubic-bezier(.34,1.56,.64,1) both`
   );
 }
@@ -1238,9 +1328,10 @@ function cakeCountLabel(): string {
 function makeCakeLayerEl(cake: Cake, i: number, total: number): HTMLDivElement {
   const div = document.createElement('div');
   div.setAttribute('style', cakeLayerStyle(cake, i, total));
+  div.title = cakeTitleText(cake);
   div.innerHTML =
-    `<span style="font:500 13px/1 Karla,sans-serif;letter-spacing:.01em;color:#4a2109;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cake.name}</span>` +
-    `<span style="font:400 10.5px/1 Karla,sans-serif;color:rgba(74,33,9,.72);white-space:nowrap">${[cake.who, cake.slices ? cake.slices + ' Stücke' : ''].filter(Boolean).join(' · ')}</span>`;
+    `<span style="display:block;max-width:100%;font:500 13px/1.3 Karla,sans-serif;letter-spacing:.01em;color:#4a2109;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cake.name}</span>` +
+    `<span style="display:block;max-width:100%;font:400 10.5px/1.3 Karla,sans-serif;color:rgba(74,33,9,.72);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cakeMetaText(cake)}</span>`;
   return div;
 }
 
@@ -1258,12 +1349,54 @@ function refreshCakeTower(): void {
   root.querySelectorAll<HTMLElement>('[data-cake-count]').forEach((el) => (el.textContent = cakeCountLabel()));
 }
 
+const CAKE_ERRORS = {
+  de: { who: 'Bitte trag deinen Namen ein.', what: 'Bitte trag ein, was du mitbringst.', both: 'Bitte trag deinen Namen und ein, was du mitbringst.' },
+  en: { who: 'Please enter your name.', what: "Please enter what you're bringing.", both: "Please enter your name and what you're bringing." },
+  sv: { who: 'Fyll i ditt namn.', what: 'Fyll i vad du tar med.', both: 'Fyll i ditt namn och vad du tar med.' }
+};
+
+/** Name and what-I'm-bringing are both required — otherwise empty submissions land in the cake tower as a nameless "Überraschungskuchen". */
+function validateCake(form: HTMLFormElement): boolean {
+  const whoEl = form.elements.namedItem('who') as HTMLInputElement | null;
+  const whatEl = form.elements.namedItem('what') as HTMLInputElement | null;
+  if (!whoEl || !whatEl) return true;
+
+  const line = 'rgba(91,42,16,.45)';
+  const bad = '#b5453a';
+  const reset = () => {
+    [whoEl, whatEl].forEach((el) => (el.style.borderBottomColor = line));
+    form.querySelector('[data-cake-error]')?.remove();
+  };
+  reset();
+
+  const whoOk = whoEl.value.trim().length > 0;
+  const whatOk = whatEl.value.trim().length > 0;
+  if (whoOk && whatOk) return true;
+
+  const msgs = CAKE_ERRORS[state.lang] ?? CAKE_ERRORS.de;
+  if (!whoOk) whoEl.style.borderBottomColor = bad;
+  if (!whatOk) whatEl.style.borderBottomColor = bad;
+  const msg = document.createElement('p');
+  msg.setAttribute('data-cake-error', '1');
+  msg.setAttribute('role', 'alert');
+  msg.style.cssText = 'margin:-6px 0 0;font:400 18px/1.3 Caveat,cursive;color:#b5453a;text-align:center';
+  msg.textContent = !whoOk && !whatOk ? msgs.both : !whoOk ? msgs.who : msgs.what;
+  (whatEl.closest('label') ?? whatEl).after(msg);
+
+  const clear = () => reset();
+  [whoEl, whatEl].forEach((el) => el.addEventListener('input', clear, { once: true }));
+  (whoOk ? whatEl : whoEl).focus({ preventScroll: true });
+  (whoOk ? whatEl : whoEl).scrollIntoView({ block: 'center', behavior: 'smooth' });
+  return false;
+}
+
 function submitCake(e: Event): void {
   e.preventDefault();
   const form = e.target as HTMLFormElement;
+  if (!validateCake(form)) return;
   const what = ((form.elements.namedItem('what') as HTMLInputElement)?.value || '').trim();
   const cake: Cake = {
-    name: what || 'Überraschungskuchen',
+    name: what,
     who: ((form.elements.namedItem('who') as HTMLInputElement)?.value || '').trim(),
     slices: parseInt((form.elements.namedItem('slices') as HTMLInputElement)?.value, 10) || 0,
     kind: (form.elements.namedItem('kind') as HTMLSelectElement)?.value || 'Kuchen'
@@ -1348,7 +1481,7 @@ function buildInitialValues(): Values {
   const cakeLayers = state.cakes
     .slice()
     .reverse()
-    .map((c, i) => ({ style: cakeLayerStyle(c, i, state.cakes.length), name: c.name, meta: [c.who, c.slices ? c.slices + ' Stücke' : ''].filter(Boolean).join(' · ') }));
+    .map((c, i) => ({ style: cakeLayerStyle(c, i, state.cakes.length), name: c.name, meta: cakeMetaText(c), title: cakeTitleText(c) }));
 
   const values: Values = {
     cardMax: d ? '1180px' : '100%',
