@@ -24,7 +24,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Project pages live at /<repo-name>/, so the base path follows the repo name (still right after a rename).
       - run: npm run build
+        env:
+          SITE_BASE: /${{ github.event.repository.name }}/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
