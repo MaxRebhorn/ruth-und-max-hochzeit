@@ -26,7 +26,7 @@ Erledigtes abhaken (`[x]`), nicht löschen.
         Der Ordner bleibt privat. Die Seite legt darin nur Dateien ab und zeigt fremde Fotos nicht an.
   - [ ] Auf dem Handy mit echten Fotos testen.
 - [ ] **Gästeliste importieren** (`import-guests`), dann echte QR-Codes erzeugen (`qr-batch` mit echter URL).
-- [ ] **Familien verknüpfen:** `Gehört zu` für Stöckers und Kinder von Hand. Platzhalter wie `1 Stöcker` löschen oder benennen.
+- [ ] **Familien verknüpfen:** `Gehört zu` für Familien und Kinder von Hand. Platzhalter-Zeilen (Nachname ohne Vorname) löschen oder benennen.
 
 ## P2 — Testen
 

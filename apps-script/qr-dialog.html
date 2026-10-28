@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <base target="_top" />
+    <meta charset="UTF-8" />
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Karla:wght@300;400;500&display=swap" rel="stylesheet" />
+    <!-- QR codes are made here in the window: the tokens never go to a QR web service. Pinned version + integrity hash. -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"
+      integrity="sha384-mZT2gIty7ZDdOGkxfP6joZcYdMW1Jvj9dRlfpTmaJAKKXTqzygtB22k7FLe+KZC1"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <style>
+      :root { --ink: #5b2a10; --paper: #f6f1e7; --card: #fffdf8; --line: rgba(91, 42, 16, 0.3); }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--paper); color: var(--ink); font: 300 14px/1.5 Karla, sans-serif; }
+      main { padding: 16px 16px 40px; }
+      input, button { font: inherit; color: inherit; }
+      input { width: 100%; border: none; border-bottom: 1.5px solid var(--line); background: transparent; padding: 6px 2px; outline: none; }
+      button { cursor: pointer; border: 1.5px solid var(--ink); background: transparent; padding: 7px 14px; }
+      .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin: 0 0 14px; }
+      .row > label { flex: 1 1 220px; }
+      .note { font-size: 12.5px; opacity: 0.75; margin: 0 0 12px; }
+      .warn { color: #a8562f; opacity: 1; font-weight: 500; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+      .card { background: var(--card); border: 1px solid var(--line); padding: 14px; text-align: center; break-inside: avoid; }
+      .card svg { display: block; width: 100%; height: auto; }
+      .card h2 { margin: 6px 0 0; font: 400 24px/1.1 Caveat, cursive; }
+      .card .meta { font-size: 12px; opacity: 0.75; }
+      .card .code { font: 500 15px/1 ui-monospace, Menlo, monospace; letter-spacing: 0.15em; margin-top: 4px; }
+      .card button { margin-top: 8px; padding: 4px 10px; font-size: 12px; }
+      [hidden] { display: none !important; }
+      @media print {
+        body { background: #fff; }
+        .no-print { display: none !important; }
+        main { padding: 0; }
+        .grid { grid-template-columns: repeat(3, 1fr); gap: 8mm; }
+        .card { border: 1px dashed #bbb; }
+        .card button { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="row no-print">
+        <label>Link im QR-Code<input type="text" id="site" /></label>
+        <label>Suchen<input type="search" id="filter" placeholder="Name …" /></label>
+        <button type="button" id="print">Drucken</button>
+      </div>
+      <p id="site-warn" class="note warn no-print" hidden></p>
+      <p id="status" class="note no-print" role="status">lädt …</p>
+      <div id="cards" class="grid"></div>
+    </main>
+
+    <script>
+      const STUFE = { trauung: 'Trauung', party: 'Trauung + Party', alles: 'ganzer Tag' };
+      const $ = (id) => document.getElementById(id);
+      const esc = (s) => String(s).replace(/[&<>"]/g, (c) => '&#' + c.charCodeAt(0) + ';');
+      let guests = [];
+      let realSite = '';
+
+      const qrUrl = (g) => $('site').value.trim().replace(/\/?$/, '/') + '?t=' + encodeURIComponent(g.token);
+
+      /** QR matrix for a link (error correction M, size picked by the library). */
+      function matrix(url) {
+        const qr = qrcode(0, 'M');
+        qr.addData(url);
+        qr.make();
+        return qr;
+      }
+
+      /** SVG with a 1-module quiet zone: sharp at every size, also in print. */
+      function svgFor(url) {
+        const qr = matrix(url);
+        const n = qr.getModuleCount();
+        let d = '';
+        for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) d += 'M' + (c + 1) + ' ' + (r + 1) + 'h1v1h-1z';
+        return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + (n + 2) + ' ' + (n + 2) + '" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="' + d + '" fill="#000"/></svg>';
+      }
+
+      /** 1024 px PNG with a 2-module quiet zone, drawn straight from the matrix. */
+      function pngFor(url) {
+        const qr = matrix(url);
+        const n = qr.getModuleCount() + 4;
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = 1024;
+        const ctx = canvas.getContext('2d');
+        const cell = 1024 / n;
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, 1024, 1024);
+        ctx.fillStyle = '#000';
+        for (let r = 0; r < n - 4; r++)
+          for (let c = 0; c < n - 4; c++) if (qr.isDark(r, c)) ctx.fillRect(Math.floor((c + 2) * cell), Math.floor((r + 2) * cell), Math.ceil(cell), Math.ceil(cell));
+        return canvas.toDataURL('image/png');
+      }
+
+      function checkSite() {
+        const v = $('site').value.trim();
+        const warn = $('site-warn');
+        let msg = '';
+        if (!v) msg = 'Achtung: Keine Website-Adresse. Bitte die Script-Property SITE_URL setzen.';
+        else if (/localhost|127\.0\.0\.1|trycloudflare/.test(v)) msg = 'Achtung: Das ist nicht die echte Website. Gedruckte QR-Codes mit dieser Adresse funktionieren später nicht.';
+        else if (realSite && v !== realSite) msg = 'Hinweis: Adresse nur für dieses Fenster geändert (SITE_URL ist ' + realSite + ').';
+        warn.textContent = msg;
+        warn.hidden = !msg;
+      }
+
+      function render() {
+        const q = $('filter').value.trim().toLowerCase();
+        const shown = guests.filter((g) => !q || [g.name].concat(g.mitglieder).some((n) => n.toLowerCase().includes(q)));
+        const hasSite = !!$('site').value.trim();
+        $('cards').innerHTML = shown
+          .map(
+            (g, i) =>
+              '<div class="card">' + (hasSite ? svgFor(qrUrl(g)) : '') +
+              '<h2>' + esc(g.name) + '</h2>' +
+              (g.mitglieder.length ? '<div class="meta">+ ' + esc(g.mitglieder.join(', ')) + '</div>' : '') +
+              '<div class="meta">' + esc(STUFE[g.stufe] || g.stufe) + ' · ' + esc(g.id) + '</div>' +
+              (g.code ? '<div class="code">' + esc(g.code) + '</div>' : '') +
+              (hasSite ? '<button type="button" data-png="' + i + '">PNG speichern</button>' : '') +
+              '</div>'
+          )
+          .join('');
+        $('cards').querySelectorAll('[data-png]').forEach((b) =>
+          b.addEventListener('click', () => {
+            const g = shown[Number(b.dataset.png)];
+            const a = document.createElement('a');
+            a.href = pngFor(qrUrl(g));
+            a.download = g.id + '-' + g.name.replace(/[^\p{L}\p{N}]+/gu, '-') + '.png';
+            a.click();
+          })
+        );
+        $('status').textContent = shown.length + ' von ' + guests.length + ' Einladungen';
+      }
+
+      google.script.run
+        .withSuccessHandler((data) => {
+          guests = data.guests;
+          realSite = data.siteUrl;
+          $('site').value = data.siteUrl;
+          checkSite();
+          render();
+        })
+        .withFailureHandler((err) => ($('status').textContent = 'Fehler: ' + (err && err.message ? err.message : err)))
+        .qrData();
+
+      $('site').addEventListener('input', () => {
+        checkSite();
+        render();
+      });
+      $('filter').addEventListener('input', render);
+      $('print').addEventListener('click', () => window.print());
+    </script>
+  </body>
+</html>

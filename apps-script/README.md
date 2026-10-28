@@ -15,7 +15,7 @@ If this ever moves to a fresh/bound project, that step isn't needed; a plain
 `onOpen()` just works there.
 
 Guests are identified by a per-invitation token (QR link `?t=<token>`) or a
-4-digit fallback code, looked up against the `Gäste` tab — see
+6-character fallback code, looked up against the `Gäste` tab — see
 `technical-spec.md` §1 for the full design. RSVP upserts by the matched
 guest's `Einladung-ID` (merge-only, never blanks a previously-filled field);
 Kuchenbuffet/Fragen/Überraschungen/Trauzeugen-Nachrichten stay append-only.
@@ -66,7 +66,7 @@ their IDs here, not pre-build every tab by hand.
    neue Gäste erzeugen**. Fills `Einladung-ID`, `Token`, and `Code` for any
    row missing them — safe to re-run any time you add new rows.
 3. Build each guest's QR link as `https://<site>/?t=<their-token>`, or give
-   them the site URL + their 4-digit `Code` to type into the gate manually.
+   them the site URL + their 6-character `Code` to type into the gate manually.
 
 `E-Mail`, `Telefon`, and `RSVP-Status` on this tab fill in automatically
 once a guest submits the RSVP form — no need to enter those yourself ahead

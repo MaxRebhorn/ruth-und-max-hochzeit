@@ -44,6 +44,7 @@ export interface KuchenPayload {
 }
 
 export interface SurprisePayload {
+  token: string;
   who: string;
   contact: string;
   idea: string;
@@ -51,11 +52,13 @@ export interface SurprisePayload {
 }
 
 export interface FragePayload {
+  token: string;
   question: string;
   contact: string;
 }
 
 export interface TrauzeugenPayload {
+  token: string;
   towhom: string;
   name: string;
   contact: string;
@@ -66,10 +69,11 @@ function isConfigured(config: Config): boolean {
   return !!config.appsScriptUrl && !config.appsScriptUrl.includes('CHANGE-ME');
 }
 
-export async function listKuchen(config: Config): Promise<KuchenEntry[] | null> {
-  if (!isConfigured(config)) return null;
+/** Needs the guest's token: the Apps Script only lists cakes for invited guests. */
+export async function listKuchen(config: Config, token: string): Promise<KuchenEntry[] | null> {
+  if (!isConfigured(config) || !token) return null;
   try {
-    const url = `${config.appsScriptUrl}?${new URLSearchParams({ action: 'kuchen_list' })}`;
+    const url = `${config.appsScriptUrl}?${new URLSearchParams({ action: 'kuchen_list', t: token })}`;
     const res = await fetch(url);
     if (!res.ok) return null;
     return (await res.json()) as KuchenEntry[];

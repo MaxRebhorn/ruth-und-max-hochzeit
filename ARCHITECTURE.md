@@ -37,7 +37,7 @@ Spreadsheet-Dateien über ihre IDs (Script Properties
 | `Name` | manuell | wird bei Token-/Code-Treffer an den Browser zurückgegeben |
 | `Stufe` | manuell | `trauung` \| `party` \| `alles` — steuert, was der Gast sieht |
 | `Token` | Menü, `Utilities.getUuid()` | im QR-Link (`?t=…`), nicht rate-limitiert (praktisch unerratbar) |
-| `Code` | Menü, 4-stellig zufällig | manueller Fallback, hinter globalem Rate-Limit |
+| `Code` | Menü, 6-stellig zufällig | manueller Fallback, hinter globalem Rate-Limit |
 | `E-Mail` | Rückschreibung durch RSVP-Submit | informativ, kein Zugriffs-Schlüssel |
 | `Telefon` | Rückschreibung durch RSVP-Submit | informativ |
 | `RSVP-Status` | Rückschreibung durch RSVP-Submit | letzter `Teilnahme`-Wert, auf einen Blick sichtbar |
@@ -96,7 +96,7 @@ sequenceDiagram
     Note over B: initGuest() beim Laden,<br/>oder gateSubmit() bei manueller Eingabe
     alt QR-Link (?t=token)
         B->>A: GET ?action=guest_lookup&t=<token>
-    else 4-stelliger Code
+    else 6-stelliger Code
         B->>A: GET ?action=guest_lookup&code=<code>
         Note over A: globaler CacheService-Zähler –<br/>nach 10 Fehlversuchen kurz gesperrt
     end

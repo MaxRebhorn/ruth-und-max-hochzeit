@@ -6,7 +6,7 @@
  * README.md.
  *
  * Guests are identified by a per-invitation token (QR link `?t=<token>`)
- * or a 4-digit fallback code, looked up against the `Gäste` tab — see
+ * or a 6-character fallback code, looked up against the `Gäste` tab — see
  * technical-spec.md §1. RSVP upserts by the resulting `Einladung-ID`;
  * everything else (Kuchenbuffet, Fragen, Überraschungen,
  * Trauzeugen-Nachrichten) stays append-only, same as before.
@@ -20,7 +20,7 @@
  *
  * Script properties required (Project Settings > Script properties):
  *   HOCHZEIT_SHEET_ID, HOCHZEIT_GEHEIM_SHEET_ID, ADMIN_KEY,
- *   QR_PASSWORD (password for the QR page /qr/ — without it, guest_list stays closed)
+ *   SITE_URL (website address for the QR codes in the sheet's QR window)
  */
 
 const PROPS = PropertiesService.getScriptProperties();
@@ -58,10 +58,13 @@ const UEBERRASCHUNGEN_OFFEN_COLUMNS = ['Zeit', 'Von', 'Kontakt', 'Idee'];
 const TRAUZEUGEN_COLUMNS = ['Zeit', 'An', 'Name', 'Kontakt', 'Nachricht'];
 
 const RATE_LIMIT_KEY = 'code_fail_count';
-// Own counter for the QR page, so someone hammering its password can't lock guests out of the 4-digit code gate.
-const QR_RATE_LIMIT_KEY = 'qr_fail_count';
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_SECONDS = 60;
+// Writes per invitation token, so one guest (or a stolen token) can't flood the sheets.
+const WRITE_LIMIT_MAX = 30;
+const WRITE_LIMIT_WINDOW_SECONDS = 600;
+// Form submissions: only accepted with a valid invitation token.
+const WRITE_TYPES = ['rsvp', 'kuchen', 'frage', 'ueberraschung', 'trauzeugen'];
 
 const MAX_FIELD_LENGTH = 500;
 
@@ -70,14 +73,21 @@ function doGet(e) {
   try {
     switch (action) {
       case 'kuchen_list':
-        return json_(listSheetRows_(mainSheet_(SHEET_NAMES.kuchen), KUCHEN_COLUMNS));
+        // Guests only, and only what the cake tower shows (no Einladung-ID).
+        if (!guestRow_(e.parameter.t)) return json_({ error: 'forbidden' });
+        return json_(
+          listSheetRows_(mainSheet_(SHEET_NAMES.kuchen), KUCHEN_COLUMNS).map((r) => ({
+            Name: r['Name'], Beitrag: r['Beitrag'], Stücke: r['Stücke'], Art: r['Art']
+          }))
+        );
       case 'guest_lookup':
         return json_(guestLookup_(e.parameter.t, e.parameter.code));
       default:
         return json_({ error: 'unknown action' });
     }
   } catch (err) {
-    return json_({ error: String(err) });
+    console.error(err); // details stay in the Apps Script log, the caller only sees a generic error
+    return json_({ error: 'server error' });
   }
 }
 
@@ -85,6 +95,10 @@ function doPost(e) {
   try {
     const body = JSON.parse(e.postData.contents);
     if (body.honeypot) return json_({ ok: true }); // silently swallow bot submissions
+    if (WRITE_TYPES.includes(body.type)) {
+      if (!guestRow_(body.token)) return json_({ error: 'forbidden' });
+      if (writeLimited_(body.token)) return json_({ error: 'rate limited' });
+    }
 
     switch (body.type) {
       case 'rsvp':
@@ -117,18 +131,6 @@ function doPost(e) {
           new Date(), clean_(body.towhom), clean_(body.name), clean_(body.contact), clean_(body.message)
         ]);
         return json_({ ok: true });
-      case 'guest_list': {
-        // Every guest with their token, for the QR page (/qr/). The site is static, so this password check is
-        // the only real protection. Sent in the POST body (not the URL), and wrong passwords count into the
-        // global throttle as the 4-digit codes use, but with its own counter.
-        if (isRateLimited_(QR_RATE_LIMIT_KEY)) return json_({ error: 'rate limited' });
-        const password = PROPS.getProperty('QR_PASSWORD');
-        if (!password || body.password !== password) {
-          registerFailedAttempt_(QR_RATE_LIMIT_KEY);
-          return json_({ error: 'forbidden' });
-        }
-        return json_(guestList_());
-      }
       case 'add_guest': {
         // Guarded by a secret that lives only in Script Properties (ADMIN_KEY) + the local .env — never shipped to browsers.
         const key = PROPS.getProperty('ADMIN_KEY');
@@ -146,7 +148,8 @@ function doPost(e) {
         return json_({ error: 'unknown type' });
     }
   } catch (err) {
-    return json_({ error: String(err) });
+    console.error(err); // details stay in the Apps Script log, the caller only sees a generic error
+    return json_({ error: 'server error' });
   }
 }
 
@@ -154,8 +157,8 @@ function doPost(e) {
 
 /**
  * `t` (token, from a QR link) is effectively unguessable (122-bit UUID) and
- * isn't rate-limited. `code` (4-digit, typed in by hand) is short and
- * guessable by design, so it's the one behind the rate limiter. Apps Script
+ * isn't rate-limited. `code` (6 characters, typed in by hand) is shorter and
+ * stays behind the rate limiter (about 887 million combinations at 10 wrong tries a minute). Apps Script
  * web apps don't expose the caller's IP, so this is a *global* throttle —
  * see technical-spec.md §1.5.
  */
@@ -166,7 +169,7 @@ function guestLookup_(token, code) {
   }
   if (code) {
     if (isRateLimited_()) return { error: 'rate limited' };
-    const row = findGuestRow_('Code', code);
+    const row = findGuestRow_('Code', String(code).trim().toUpperCase());
     if (!row) {
       registerFailedAttempt_();
       return { error: 'not found' };
@@ -347,7 +350,26 @@ function installOnOpenTrigger_() {
 }
 
 function onOpen() {
-  SpreadsheetApp.getUi().createMenu('Hochzeit').addItem('Tokens & Codes für neue Gäste erzeugen', 'generateGuestTokens').addItem('Essens-Auszählung erzeugen', 'countTags').addToUi();
+  SpreadsheetApp.getUi()
+    .createMenu('Hochzeit')
+    .addItem('Tokens & Codes für neue Gäste erzeugen', 'generateGuestTokens')
+    .addItem('QR-Codes anzeigen', 'showQrDialog')
+    .addItem('Essens-Auszählung erzeugen', 'countTags')
+    .addToUi();
+}
+
+/** QR window (qr-dialog.html): one printable card per invitation. Replaces the old public /qr/ page. */
+function showQrDialog() {
+  const html = HtmlService.createHtmlOutputFromFile('qr-dialog').setWidth(1100).setHeight(750);
+  SpreadsheetApp.getUi().showModalDialog(html, 'QR-Codes');
+}
+
+/**
+ * Data for the QR window, called via google.script.run. Deliberately not reachable through
+ * doGet/doPost: only people who can open the sheet's menu (editors) get the tokens.
+ */
+function qrData() {
+  return { siteUrl: PROPS.getProperty('SITE_URL') || '', guests: guestList_() };
 }
 
 /** Fills blank Einladung-ID/Token/Code cells on the Gäste tab — safe to run repeatedly, only ever fills gaps. */
@@ -377,7 +399,7 @@ function generateGuestTokens() {
     if (!row[codeCol] && !linked) {
       let code;
       do {
-        code = String(Math.floor(1000 + Math.random() * 9000));
+        code = newGuestCode_();
       } while (usedCodes.has(code));
       usedCodes.add(code);
       sheet.getRange(i + 1, codeCol + 1).setValue(code);
@@ -459,6 +481,29 @@ function appendRow_(sheet, row) {
 }
 
 // --- helpers -------------------------------------------------------------
+
+/** The Gäste row for a token, or null. Tokens are random UUIDs, so this is the guest check for every write. */
+function guestRow_(token) {
+  return token ? findGuestRow_('Token', String(token)) : null;
+}
+
+/** True once a token has sent WRITE_LIMIT_MAX writes within WRITE_LIMIT_WINDOW_SECONDS; counts this write. */
+function writeLimited_(token) {
+  const cache = CacheService.getScriptCache();
+  const key = 'w_' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(token)));
+  const count = Number(cache.get(key)) || 0;
+  if (count >= WRITE_LIMIT_MAX) return true;
+  cache.put(key, String(count + 1), WRITE_LIMIT_WINDOW_SECONDS);
+  return false;
+}
+
+/** Hand-typed fallback code: 6 characters without look-alikes (no 0/O, 1/I/L), about 887 million combinations. */
+function newGuestCode_() {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+  return code;
+}
 
 /** Guards against spreadsheet formula injection and caps field length. */
 function clean_(value) {

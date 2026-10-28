@@ -50,7 +50,7 @@ const state = {
 
 let root: HTMLElement;
 let config: Config = { appsScriptUrl: '', siteUrl: '' };
-/** The current guest's invitation token — set once the gate resolves (QR `?t=` or the 4-digit code), then rides along on every form submission as the upsert key. */
+/** The current guest's invitation token — set once the gate resolves (QR `?t=` or the 6-character code), then rides along on every form submission as the upsert key. */
 let guestToken = '';
 let guestMembers: string[] = [];
 
@@ -245,6 +245,7 @@ function applyGuest(tier: Tier | null): void {
   state.guest = tier;
   prefillMitkommende();
   setConditional(root, 'gateOpen', !tier);
+  if (tier && guestToken) void loadRemoteCakes(); // the cake list needs the guest's token
   refreshAdminPanel();
   setTimeout(layoutAblaufLine, 60);
 }
@@ -1172,6 +1173,7 @@ function submitSurprise(e: Event): void {
   const form = e.target as HTMLFormElement;
   if (!(form.elements.namedItem('idea') as HTMLTextAreaElement)?.value.trim()) return; // only spaces: nothing to send
   apiSubmitSurprise(config, {
+    token: guestToken,
     who: (form.elements.namedItem('who') as HTMLInputElement)?.value ?? '',
     contact: (form.elements.namedItem('contact') as HTMLInputElement)?.value ?? '',
     idea: (form.elements.namedItem('idea') as HTMLTextAreaElement)?.value ?? '',
@@ -1257,6 +1259,7 @@ function submitAsk(e: Event): void {
   const form = e.target as HTMLFormElement;
   if (!validateAsk(form)) return;
   submitFrage(config, {
+    token: guestToken,
     question: (form.elements.namedItem('question') as HTMLTextAreaElement)?.value ?? '',
     contact: (form.elements.namedItem('askcontact') as HTMLInputElement)?.value ?? ''
   });
@@ -1273,6 +1276,7 @@ function submitWitness(e: Event): void {
   e.preventDefault();
   const form = e.target as HTMLFormElement;
   submitTrauzeugenMsg(config, {
+    token: guestToken,
     towhom: (form.elements.namedItem('towhom') as HTMLSelectElement)?.value ?? '',
     name: (form.elements.namedItem('wname') as HTMLInputElement)?.value ?? '',
     contact: (form.elements.namedItem('wcontact') as HTMLInputElement)?.value ?? '',
@@ -1330,8 +1334,8 @@ function makeCakeLayerEl(cake: Cake, i: number, total: number): HTMLDivElement {
   div.setAttribute('style', cakeLayerStyle(cake, i, total));
   div.title = cakeTitleText(cake);
   div.innerHTML =
-    `<span style="display:block;max-width:100%;font:500 13px/1.3 Karla,sans-serif;letter-spacing:.01em;color:#4a2109;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cake.name}</span>` +
-    `<span style="display:block;max-width:100%;font:400 10.5px/1.3 Karla,sans-serif;color:rgba(74,33,9,.72);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cakeMetaText(cake)}</span>`;
+    `<span style="display:block;max-width:100%;font:500 13px/1.3 Karla,sans-serif;letter-spacing:.01em;color:#4a2109;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(cake.name)}</span>` +
+    `<span style="display:block;max-width:100%;font:400 10.5px/1.3 Karla,sans-serif;color:rgba(74,33,9,.72);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(cakeMetaText(cake))}</span>`;
   return div;
 }
 
@@ -1431,7 +1435,7 @@ function submitCake(e: Event): void {
 async function gateSubmit(e: Event): Promise<void> {
   e.preventDefault();
   const form = e.target as HTMLFormElement;
-  const code = ((form.elements.namedItem('code') as HTMLInputElement)?.value || '').trim();
+  const code = ((form.elements.namedItem('code') as HTMLInputElement)?.value || '').trim().toUpperCase();
   if (!code) return;
 
   state.gateError = '';
@@ -1481,7 +1485,7 @@ function buildInitialValues(): Values {
   const cakeLayers = state.cakes
     .slice()
     .reverse()
-    .map((c, i) => ({ style: cakeLayerStyle(c, i, state.cakes.length), name: c.name, meta: cakeMetaText(c), title: cakeTitleText(c) }));
+    .map((c, i) => ({ style: cakeLayerStyle(c, i, state.cakes.length), name: escHtml(c.name), meta: escHtml(cakeMetaText(c)), title: escHtml(cakeTitleText(c)) }));
 
   const values: Values = {
     cardMax: d ? '1180px' : '100%',
@@ -1664,7 +1668,7 @@ async function loadConfig(): Promise<void> {
 
 /** Real Kuchen submissions, fetched in the background — the tower starts empty and fills in once this resolves. */
 async function loadRemoteCakes(): Promise<void> {
-  const real = await listKuchen(config);
+  const real = await listKuchen(config, guestToken);
   if (real) {
     state.cakes = real.filter((k) => k.Beitrag).map((k) => ({ name: k.Beitrag, who: k.Name, slices: k.Stücke, kind: k.Art }));
     refreshCakeTower();
@@ -1716,10 +1720,7 @@ export function boot(container: HTMLElement): void {
   applyLang(root, 'de');
   applyResponsive();
   setColumnVar();
-  const guestReady = loadConfig().then(() => {
-    loadRemoteCakes();
-    return initGuest();
-  });
+  const guestReady = loadConfig().then(initGuest);
   initReveal();
   setTimeout(layoutAblaufLine, 260);
   setTimeout(layoutAblaufLine, 1200);

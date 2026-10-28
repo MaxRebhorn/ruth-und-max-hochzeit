@@ -20,7 +20,7 @@ Git-Historie, falls die alte Fassung interessiert). Umgesetzt ist stattdessen:
     (`GUEST_CODES`-Konzept in `src/app.ts`, wird durch das Folgende ersetzt).
 -   **Ein Token pro Einladung** (nicht pro Stufe) — identifiziert Gast *und*
     Stufe in einem Schritt, keine Namens-/E-Mail-Eingabe nötig.
--   Ein 4-stelliger Code (auf der physischen Einladung gedruckt) ist der
+-   Ein 6-stelliger Code (auf der physischen Einladung gedruckt) ist der
     Rückfallweg für Gäste ohne funktionierenden QR-Code.
 -   Beides führt zur selben Identität, die anschließend als Upsert-Schlüssel
     für alle Formulare (RSVP, Kuchenbuffet, Überraschung, Fragen,
@@ -40,9 +40,12 @@ RSVP-Formular, das schon eine „Anzahl"-Angabe hat):
     Google Sheets erzeugt — kein externes Tool nötig.
 -   `Token`: `Utilities.getUuid()` (lang, nicht erratbar, wandert in den
     QR-Link).
--   `Code`: 4-stellig, zufällig, für die manuelle Eingabe — der Zahlenraum
-    ist bewusst klein und dadurch tippbar; Schutz kommt über die
-    Ratenbegrenzung (siehe 1.5), nicht über die Codelänge.
+-   `Code`: 6 Zeichen aus Großbuchstaben und Ziffern ohne leicht
+    verwechselbare Zeichen (kein 0/O, 1/I/L), zufällig, für die manuelle
+    Eingabe. Etwa 887 Millionen Kombinationen; zusammen mit der
+    Ratenbegrenzung (siehe 1.5) lassen sich die Codes nicht durchprobieren.
+    (Früher 4 Ziffern: 9.000 Möglichkeiten waren in ca. 15 Stunden
+    durchprobiert.)
 -   `E-Mail`/`Telefon`/`RSVP-Status` werden vom Backend zurückgeschrieben,
     sobald der Gast etwas einreicht — informativ, keine Zugriffsprüfung.
 
@@ -51,7 +54,7 @@ RSVP-Formular, das schon eine „Anzahl"-Angabe hat):
 -   QR-Code enthält ausschließlich `?t=<token>`, keine weiteren
     personenbezogenen Daten in der URL.
 -   URL-Format: `https://<site>/?t=<einladungs-token>`
--   Ein Link ohne Token zeigt stattdessen das Gate mit dem 4-stelligen
+-   Ein Link ohne Token zeigt stattdessen das Gate mit dem 6-stelligen
     Code-Feld.
 
 ### 1.4 Zugriffswege
@@ -62,7 +65,7 @@ Stufe wird freigegeben, `{ token, name, stufe }` landet in `localStorage`
 (ersetzt das bisherige reine `rm-guest`-Stufen-Flag) — bei Wiederbesuch auf
 demselben Gerät ist kein erneuter Call nötig.
 
-**Direkter Link ohne Token** — Gate zeigt ein Feld für den 4-stelligen Code.
+**Direkter Link ohne Token** — Gate zeigt ein Feld für den 6-stelligen Code.
 `doGet(?action=guest_lookup&code=…)`, gleiche Antwortform, gleiches
 `localStorage`-Verhalten bei Treffer. Bei Fehlversuch: Fehlermeldung, keine
 Sperre nach einem einzelnen Fehlversuch (siehe Ratenbegrenzung für den
@@ -77,7 +80,7 @@ Identifikation außerhalb von `localStorage` auf dem Gerät des Gasts selbst.
 -   Der Apps-Script-Call kann 1–3 Sekunden dauern und fehlschlagen —
     während der Anfrage ein Ladezustand, bei Fehler/Timeout bleibt die Seite
     gesperrt (Neuladen oder erneuter QR-Scan als Hinweis).
--   Ratenbegrenzung für den 4-stelligen Code: Apps-Script-Web-Apps erhalten
+-   Ratenbegrenzung für den 6-stelligen Code: Apps-Script-Web-Apps erhalten
     keine Aufrufer-IP, ein Schutz pro Angreifer ist technisch nicht möglich.
     Stattdessen ein **globaler** Zähler über `CacheService` — nach z. B. 10
     fehlgeschlagenen Code-Versuchen von irgendwem innerhalb eines kurzen
@@ -192,7 +195,7 @@ wie bisher, keine Upsert-Logik nötig.
 
 -   `?action=kuchen_list` — wie bisher, liefert die Kuchenliste für die
     Live-Anzeige der Kuchentorte.
--   `?action=guest_lookup&t=<token>` **oder** `&code=<4-stellig>` —
+-   `?action=guest_lookup&t=<token>` **oder** `&code=<6-stellig>` —
     Antwort: `{ name, stufe }` bei Treffer, `{ error }` sonst. Der
     `code`-Zweig läuft hinter der globalen Ratenbegrenzung aus §1.5.
 

@@ -1,9 +1,13 @@
-import { randomUUID } from 'node:crypto';
+import { randomUUID, randomInt } from 'node:crypto';
 import { writeFile, mkdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import QRCode from 'qrcode';
 import { slugify } from './slugify.mjs';
 import { resolveSiteUrl } from './site-url.mjs';
+
+/** Hand-typed fallback code: 6 characters without look-alikes (no 0/O, 1/I/L). About 887 million combinations. */
+const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+export const newGuestCode = () => Array.from({ length: 6 }, () => CODE_CHARS[randomInt(CODE_CHARS.length)]).join('');
 
 const STUFE_BY_LEVEL = { 1: 'trauung', 2: 'party', 3: 'alles' };
 
@@ -36,7 +40,7 @@ export async function generateQr({ _: args = [], base }) {
   const siteUrl = await resolveSiteUrl(base);
 
   const token = randomUUID();
-  const code = String(Math.floor(1000 + Math.random() * 9000));
+  const code = newGuestCode();
   const url = `${siteUrl.replace(/\/?$/, '/')}?t=${encodeURIComponent(token)}`;
 
   await mkdir('transfer', { recursive: true });

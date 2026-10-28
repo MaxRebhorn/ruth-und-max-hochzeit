@@ -1,6 +1,6 @@
 # QR-Codes direkt im Google Sheet erzeugen
 
-Status: Plan, noch nicht gebaut.
+Status: gebaut (`apps-script/qr-dialog.html`, `showQrDialog()`, `qrData()` in `apps-script.gs`). Die Seite `/qr/` und `guest_list` sind entfernt. Live erst nach dem Neu-Deployen, siehe `apps-script/REDEPLOY-FOR-CLAUDE.md`.
 
 Dieses Dokument beschreibt, wie das QR-Code-Fenster im Google Sheet
 funktionieren soll. Es ersetzt die öffentliche QR-Seite `/qr/` der Website.
@@ -15,8 +15,8 @@ Die Website muss dafür keine Gästedaten mehr ausliefern.
 
 ## Warum
 
-Heute holt die Seite `/qr/` alle Tokens über das Apps Script (`guest_list`).
-Ein Passwort schützt den Zugang. Das hat Schwächen:
+Früher holte die Seite `/qr/` alle Tokens über das Apps Script (`guest_list`).
+Ein Passwort schützte den Zugang. Das hatte Schwächen:
 
 - Jeder im Internet kann Passwörter raten (10 Versuche pro Minute).
 - Wer absichtlich falsche Passwörter schickt, sperrt alle für eine Minute aus.
@@ -47,7 +47,7 @@ den Tokens mehr.
 | Mitkommende   | Namen der Zeilen, deren `Gehört zu` auf diese Einladung zeigt |
 | Stufe         | Spalte `Stufe` (Trauung / Trauung + Party / ganzer Tag) |
 | Einladung-ID  | Spalte `Einladung-ID`                                  |
-| Code          | Spalte `Code` (4-stellig, für die Eingabe von Hand)    |
+| Code          | Spalte `Code` (6 Zeichen, für die Eingabe von Hand)    |
 
 Nur Zeilen mit Token bekommen eine Karte. Verknüpfte Personen ohne eigenen
 Token stehen als Mitkommende auf der Karte der Haupteinladung. Das ist dieselbe
@@ -137,7 +137,7 @@ Adresse funktionieren später nicht."
 
 ## Was danach wegfällt
 
-Diese Teile sind dann nicht mehr nötig und kommen weg:
+Diese Teile sind entfernt:
 
 | Teil                          | Datei                                  |
 | ----------------------------- | -------------------------------------- |

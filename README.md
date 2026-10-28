@@ -59,7 +59,7 @@ adding an E-Mail/Telefon field to RSVP (see below) — everything else is a
 the full design; short version:
 
 - Guests are identified by a **per-invitation token**, not a shared
-  tier-word. A QR link (`?t=<token>`) or a 4-digit fallback code (typed
+  tier-word. A QR link (`?t=<token>`) or a 6-character fallback code (typed
   into the gate) both resolve to `{ name, stufe, token }` via Apps Script's
   `guest_lookup` action — see `src/app.ts`'s `initGuest()`/`gateSubmit()`.
   That token then rides along on every submission as the upsert key.
