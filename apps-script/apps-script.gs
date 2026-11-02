@@ -508,7 +508,7 @@ function newGuestCode_() {
 /** Guards against spreadsheet formula injection and caps field length. */
 function clean_(value) {
   let s = String(value ?? '').slice(0, MAX_FIELD_LENGTH);
-  if (/^[=+\-@]/.test(s)) s = "'" + s;
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; // OWASP CSV-injection lead characters
   return s;
 }
 

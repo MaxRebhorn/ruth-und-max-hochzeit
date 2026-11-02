@@ -59,6 +59,7 @@ for (const type of ['rsvp', 'kuchen', 'frage', 'ueberraschung', 'trauzeugen']) {
 assert.deepEqual(post({ type: 'kuchen', token: TOKEN, who: 'Erika', what: '<img src=x onerror=alert(1)>', slices: 12, kind: 'k' }), { ok: true });
 assert.deepEqual(post({ type: 'frage', token: TOKEN, question: '=HYPERLINK("x")', contact: '' }), { ok: true });
 assert.equal(books.main['Fragen'].rows[1][1], '\'=HYPERLINK("x")', 'formula guard');
+assert.equal(ctx.clean_('\t=1+1'), "'\t=1+1", 'formula guard: leading tab');
 
 assert.deepEqual(get({ action: 'kuchen_list' }), { error: 'forbidden' }, 'cake list without token');
 const cakes = get({ action: 'kuchen_list', t: TOKEN });

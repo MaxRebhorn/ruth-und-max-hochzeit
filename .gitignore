@@ -9,3 +9,6 @@ dist/
 /transfer/
 /Gästeliste*.csv
 /originals/
+# guest exports and generated QR images (contain names and tokens)
+*.csv
+/qr/

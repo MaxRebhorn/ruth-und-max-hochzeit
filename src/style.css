@@ -674,3 +674,10 @@ div:has(> section > [data-bq]) {
     padding: 22px 14px 20px !important;
   }
 }
+
+/* "swipe down" only makes sense on touch screens. */
+@media (hover: hover) and (pointer: fine) {
+  .swipe-hint {
+    display: none;
+  }
+}

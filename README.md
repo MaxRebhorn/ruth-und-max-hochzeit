@@ -4,9 +4,7 @@ Static site (Vite + TypeScript, no UI framework), hosted on GitHub Pages.
 Google Apps Script + Google Sheets is the intended eventual backend. See
 `technical-spec.md` for the full feature spec, `ARCHITECTURE.md` for how the
 Sheets backend that exists today is actually laid out (data structures +
-request flows, with diagrams), and
-`/home/mrebhorn/.claude/plans/fancy-puzzling-deer.md` (or ask Claude) for the
-implementation plan this repo follows.
+request flows, with diagrams).
 
 ## Current phase: 1:1 mockup port
 
