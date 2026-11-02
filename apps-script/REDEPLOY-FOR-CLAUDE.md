@@ -40,7 +40,7 @@ Zahnrad links → **Projekteinstellungen** → **Script-Properties**.
 1. Prüfen, dass `HOCHZEIT_SHEET_ID`, `HOCHZEIT_GEHEIM_SHEET_ID` und
    `ADMIN_KEY` da sind. Nicht ändern.
 2. **Property hinzufügen** → Key: `SITE_URL`, Wert: die endgültige Adresse der
-   Website, zum Beispiel `https://maxrebhorn.github.io/WeddingWebsiteMain/`.
+   Website, zum Beispiel `https://maxrebhorn.github.io/ruth-und-max-hochzeit/`.
    Max/Ruth fragen, falls unklar.
 3. `QR_PASSWORD` löschen, falls vorhanden. Es wird nicht mehr gebraucht.
 

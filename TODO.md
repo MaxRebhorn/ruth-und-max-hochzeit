@@ -5,10 +5,9 @@ Erledigtes abhaken (`[x]`), nicht löschen.
 
 ## P0 — Blockiert den Start
 
-- [ ] **Adresse festlegen — bewusst zuletzt, direkt vor Live-Gang.** `siteUrl` in
-      `public/config/config.json` steht auf `CHANGE-ME`. `vite.config.ts` hat
-      `base: '/hochzeitswebsite/'`, der Git-Remote heißt aber `WeddingWebsiteMain`.
-      Pfad und Repo-Name (oder eigene Domain) müssen zusammenpassen.
+- [x] **Adresse festgelegt:** https://maxrebhorn.github.io/ruth-und-max-hochzeit/ (Repo `ruth-und-max-hochzeit`, GitHub Pages).
+      Der Build nimmt den Pfad aus dem Repo-Namen. Vor dem Drucken der Einladungen
+      nicht mehr ändern: Die Adresse steht in den QR-Codes.
 - [x] **Apps Script neu deployen** (neuer Code: `add_guest`, `Gehört zu`, `Personen`, `Tags`, Auszählung). In-place redeployt, `/exec`-URL unverändert, per `guest_lookup` getestet.
 - [x] `ADMIN_KEY` als Script-Property gesetzt (und `WEDDING_ADMIN_KEY` in `.env` — schon vorher lokal angelegt).
 - [x] **Sheet-Überschriften ergänzt:** `Gehört zu` (Gäste J1), `Mitkommende` (RSVP + RSVP-Log O1). `Tags` (Personen E1) legt das Script selbst an, sobald der Tab zum ersten Mal beschrieben wird — noch nicht getestet.
