@@ -284,10 +284,28 @@ async function initGuest(): Promise<void> {
     guestToken = cached.token;
     guestMembers = cached.mitglieder ?? [];
     applyGuest(cached.stufe);
+    void refreshCachedGuest(cached);
     return;
   }
 
   applyGuest(admin ? 'alles' : null);
+}
+
+/**
+ * The cached invitation opens the page at once; this then asks the sheet in the background. A tier changed
+ * in the sheet reaches guests who visited before, and an invitation that no longer exists (e.g. after a
+ * re-import with new tokens) sends the guest back to the gate. No answer at all (offline) changes nothing.
+ */
+async function refreshCachedGuest(cached: CachedGuest): Promise<void> {
+  const fresh = await guestLookup(config, { t: cached.token });
+  if (fresh === null) {
+    guestToken = '';
+    setGate();
+  } else if (fresh) {
+    storeCachedGuest({ token: fresh.token, name: fresh.name, stufe: fresh.stufe, mitglieder: fresh.mitglieder });
+    guestMembers = fresh.mitglieder ?? [];
+    if (fresh.stufe !== cached.stufe) applyGuest(fresh.stufe);
+  }
 }
 
 function refreshAdminPanel(): void {

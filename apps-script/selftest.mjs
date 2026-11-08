@@ -25,7 +25,7 @@ function fakeSheet(rows) {
 const cache = new Map();
 const ctx = {
   console,
-  PropertiesService: { getScriptProperties: () => ({ getProperty: (k) => ({ HOCHZEIT_SHEET_ID: 'main', HOCHZEIT_GEHEIM_SHEET_ID: 'geheim', SITE_URL: 'https://example.org/site/' })[k] ?? null }) },
+  PropertiesService: { getScriptProperties: () => ({ getProperty: (k) => ({ HOCHZEIT_SHEET_ID: 'main', HOCHZEIT_GEHEIM_SHEET_ID: 'geheim', ADMIN_KEY: 'k', SITE_URL: 'https://example.org/site/' })[k] ?? null }) },
   SpreadsheetApp: {
     openById: (id) => ({
       getSheetByName: (n) => books[id][n] ?? null,
@@ -72,6 +72,14 @@ assert.deepEqual(get({ action: 'guest_lookup', code: '1234' }), { error: 'not fo
 for (let i = 0; i < 40; i++) post({ type: 'frage', token: TOKEN, question: 'flood' });
 assert.deepEqual(post({ type: 'frage', token: TOKEN, question: 'one more' }), { error: 'rate limited' }, 'write limit');
 assert.ok(books.main['Fragen'].rows.length <= 31, 'flood capped');
+
+assert.deepEqual(post({ type: 'add_guest', adminKey: 'x', guests: [] }), { error: 'forbidden' }, 'add_guest needs ADMIN_KEY');
+assert.deepEqual(post({ type: 'add_guest', adminKey: 'k', guests: [
+  { name: 'Hans Test', stufe: 'party', token: 'T2', code: 'ABCDEF', notiz: 'Partner/in kommt mit (Name offen)' },
+  { name: 'Grete Test', stufe: 'party', zuName: 'Hans Test' }] }), { ok: true });
+const [hans, grete] = gaeste.rows.slice(-2);
+assert.equal(hans[8], 'Partner/in kommt mit (Name offen)', 'add_guest writes Notizen');
+assert.deepEqual([grete[3], grete[4], grete[9]], ['', '', hans[0]], 'linked guest: no token/code, Gehört zu = main ID');
 
 const code = ctx.newGuestCode_();
 assert.match(code, /^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{6}$/, 'new code format');

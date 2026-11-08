@@ -82,17 +82,21 @@ export async function listKuchen(config: Config, token: string): Promise<KuchenE
   }
 }
 
-/** `t`/`code` are mutually exclusive — pass whichever the gate has (QR token vs typed-in fallback code). */
-export async function guestLookup(config: Config, params: { t?: string; code?: string }): Promise<GuestLookup | null> {
-  if (!isConfigured(config)) return null;
+/**
+ * `t`/`code` are mutually exclusive — pass whichever the gate has (QR token vs typed-in fallback code).
+ * `null` = the backend answered "no such guest"; `undefined` = no answer (offline, server error).
+ */
+export async function guestLookup(config: Config, params: { t?: string; code?: string }): Promise<GuestLookup | null | undefined> {
+  if (!isConfigured(config)) return undefined;
   try {
     const url = `${config.appsScriptUrl}?${new URLSearchParams({ action: 'guest_lookup', ...params })}`;
     const res = await fetch(url);
-    if (!res.ok) return null;
+    if (!res.ok) return undefined;
     const data = (await res.json()) as GuestLookup | { error: string };
-    return 'error' in data ? null : data;
+    if (!('error' in data)) return data;
+    return data.error === 'not found' ? null : undefined;
   } catch {
-    return null;
+    return undefined;
   }
 }
 

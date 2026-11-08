@@ -138,9 +138,10 @@ function doPost(e) {
         const sheet = mainSheet_(SHEET_NAMES.gaeste);
         // Same 'E'+n scheme as generateGuestTokens (n = data-row index). `guests` = batch, else the body itself is one guest.
         // A guest with `zuName` is linked to that (already added) row instead of getting its own token/code.
+        // `notiz` lands in the Notizen column (e.g. "Partner/in kommt mit (Name offen)").
         (body.guests || [body]).forEach((g) => {
           const main = g.zuName && findRowByColumn_(sheet, 'Name', g.zuName);
-          appendRow_(sheet, ['E' + sheet.getLastRow(), g.name, g.stufe, main ? '' : g.token, main ? '' : g.code, '', '', '', '', main ? main.values[0] : '']);
+          appendRow_(sheet, ['E' + sheet.getLastRow(), g.name, g.stufe, main ? '' : g.token, main ? '' : g.code, '', '', '', g.notiz || '', main ? main.values[0] : '']);
         });
         return json_({ ok: true });
       }

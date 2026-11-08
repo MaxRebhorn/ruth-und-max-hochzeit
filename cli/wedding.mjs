@@ -13,7 +13,7 @@ if (!command || !(command in commands)) {
     `Usage: wedding <command> [options]\n\nCommands:\n` +
       `  qr --token <einladungs-token> --out <file.png>\n` +
       `  qr-batch --csv <gaeste-export.csv> [--outDir qr]\n` +
-      `  import-guests --csv <liste.csv> [--dry true] [--extra <Name>]\n` +
+      `  import-guests --csv <liste.csv> [--dry true]   (Spalten: Umschlag;Name;Stufe;Notiz)\n` +
       `  generate-qr <Name> <1|2|3> [--base <url>]   (1=trauung, 2=+party, 3=+alles)`
   );
   process.exit(1);
