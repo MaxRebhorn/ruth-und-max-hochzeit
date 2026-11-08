@@ -1,5 +1,5 @@
 /**
- * Help button: a small round "?" at the bottom left. Tapping it opens a card with the three most common
+ * Help button: a small round "?" in the header, left of the menu button. Tapping it opens a card with the three most common
  * questions in plain words; tapping a question types its answer out. If a guest stays in the RSVP section
  * for a while, the button wobbles once and says "Questions?", so people who get stuck find it.
  */
@@ -66,7 +66,14 @@ export function setupHelp(): void {
   <div class="help-list"></div>
 </div>
 <button type="button" class="help-fab" aria-expanded="false">?</button>`;
-  document.body.appendChild(wrap);
+  // Into the header next to the menu button, so it sits on the same line as the language flags.
+  const menu = document.querySelector('button[data-onclick="toggleNav"]');
+  if (menu) {
+    const group = document.createElement('div');
+    group.className = 'help-group';
+    menu.before(group);
+    group.append(wrap, menu);
+  } else document.body.appendChild(wrap);
 
   const fab = wrap.querySelector<HTMLButtonElement>('.help-fab')!;
   const panel = wrap.querySelector<HTMLElement>('.help-panel')!;
