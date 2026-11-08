@@ -43,7 +43,6 @@ const state = {
   knock: 0,
   desktop: false,
   guest: null as Tier | null,
-  admin: false,
   gateError: '',
   pops: 0,
   best: 0
@@ -247,7 +246,6 @@ function applyGuest(tier: Tier | null): void {
   prefillMitkommende();
   setConditional(root, 'gateOpen', !tier);
   if (tier && guestToken) void loadRemoteCakes(); // the cake list needs the guest's token
-  refreshAdminPanel();
   setTimeout(layoutAblaufLine, 60);
 }
 
@@ -259,14 +257,6 @@ function applyGuest(tier: Tier | null): void {
  * round-trips through Apps Script's `guest_lookup`.
  */
 async function initGuest(): Promise<void> {
-  let admin = false;
-  try {
-    if (localStorage.getItem('rm-admin') === '1') admin = true;
-  } catch {
-    /* private mode */
-  }
-  state.admin = admin;
-
   const urlToken = new URLSearchParams(location.search).get('t');
   const cached = loadCachedGuest();
 
@@ -289,7 +279,7 @@ async function initGuest(): Promise<void> {
     return;
   }
 
-  applyGuest(admin ? 'alles' : null);
+  applyGuest(null);
 }
 
 /**
@@ -307,15 +297,6 @@ async function refreshCachedGuest(cached: CachedGuest): Promise<void> {
     guestMembers = fresh.mitglieder ?? [];
     if (fresh.stufe !== cached.stufe) applyGuest(fresh.stufe);
   }
-}
-
-function refreshAdminPanel(): void {
-  const onAndSet = state.admin && !!state.guest;
-  setConditional(root, 'adminOn', onAndSet);
-  const ink = (t: Tier) => (state.guest === t ? '#a8562f' : 'rgba(91,42,16,.75)');
-  (['trauung', 'party', 'alles'] as Tier[]).forEach((t) => {
-    root.querySelectorAll<HTMLElement>(`[data-tier-color="${t}"]`).forEach((el) => (el.style.color = ink(t)));
-  });
 }
 
 // -- language -----------------------------------------------------------
@@ -1474,20 +1455,6 @@ async function gateSubmit(e: Event): Promise<void> {
   }
 }
 
-let secretHits = 0;
-function gateSecret(): void {
-  secretHits += 1;
-  if (secretHits >= 3) {
-    state.admin = true;
-    try {
-      localStorage.setItem('rm-admin', '1');
-    } catch {
-      /* private mode */
-    }
-    applyGuest('alles');
-  }
-}
-
 function setGate(): void {
   try {
     localStorage.removeItem('rm-guest');
@@ -1561,14 +1528,6 @@ function buildInitialValues(): Values {
     gateLoading: false,
     gateError: '',
     gateSubmit,
-    gateSecret,
-    adminOn: false,
-    cTrauung: 'rgba(91,42,16,.75)',
-    cParty: 'rgba(91,42,16,.75)',
-    cAlles: 'rgba(91,42,16,.75)',
-    setTrauung: () => applyGuest('trauung'),
-    setParty: () => applyGuest('party'),
-    setAlles: () => applyGuest('alles'),
     setGate,
     submitSurprise,
     resetSurprise,
