@@ -11,7 +11,7 @@ Erledigtes abhaken (`[x]`), nicht löschen.
 - [x] **Apps Script neu deployen** (neuer Code: `add_guest`, `Gehört zu`, `Personen`, `Tags`, Auszählung). In-place redeployt, `/exec`-URL unverändert, per `guest_lookup` getestet.
 - [x] `ADMIN_KEY` als Script-Property gesetzt (und `WEDDING_ADMIN_KEY` in `.env` — schon vorher lokal angelegt).
 - [x] **Sheet-Überschriften ergänzt:** `Gehört zu` (Gäste J1), `Mitkommende` (RSVP + RSVP-Log O1). `Tags` (Personen E1) legt das Script selbst an, sobald der Tab zum ersten Mal beschrieben wird — noch nicht getestet.
-- [ ] **Alles committen und pushen** (viele ungespeicherte Änderungen). GitHub Pages baut erst danach.
+- [x] **Alles committen und pushen** (viele ungespeicherte Änderungen). GitHub Pages baut erst danach.
 
 ## P1 — Inhalt muss stimmen, bevor Gäste die Seite sehen
 
@@ -33,7 +33,7 @@ Erledigtes abhaken (`[x]`), nicht löschen.
       RSVP mit Mitkommenden und Allergien senden, Zeilen in `RSVP` und `Personen` prüfen.
 - [ ] Tape-Player mit 3–4 Liedern testen (Tempo, Ausschlag, Spin).
 - [ ] Essens-Auszählung einmal im Sheet ausführen.
-- [ ] Englisch und Schwedisch: neue Elemente (Personenliste, Tape-Player) übersetzen.
+- [x] Englisch und Schwedisch: neue Elemente (Personenliste, Tape-Player) übersetzen.
 
 ## P3 — Nice to have
 
