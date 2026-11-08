@@ -63,4 +63,18 @@ export async function importGuests({ csv, dry }) {
   }
   if (!(await addGuests(guests))) process.exit(1);
   console.log(`${mainByEnv.size} Einladungen mit ${guests.length} Personen im Sheet angelegt.`);
+
+  // Check: every invitation is found by its token, with the right tier and the right people on the card.
+  const { appsScriptUrl } = JSON.parse(await readFile(new URL('../public/config/config.json', import.meta.url), 'utf8'));
+  let bad = 0;
+  for (const g of guests.filter((x) => x.token)) {
+    const r = await fetch(`${appsScriptUrl}?${new URLSearchParams({ action: 'guest_lookup', t: g.token })}`).then((x) => x.json());
+    const want = guests.filter((x) => x.zuName === g.name).map((x) => x.name).sort().join(', ');
+    const got = (r.mitglieder || []).slice().sort().join(', ');
+    if (r.name !== g.name || r.stufe !== g.stufe || got !== want) {
+      bad++;
+      console.error(`Abweichung bei ${g.name}: ${JSON.stringify(r)}`);
+    }
+  }
+  console.log(bad ? `${bad} Einladungen weichen ab, bitte prüfen.` : `Kontrolle: alle ${mainByEnv.size} Einladungen per Token gefunden, Stufe und Mitkommende stimmen.`);
 }
