@@ -2,6 +2,7 @@ import { setupTapePlayer, searchTracks, type Track, type TapeHandle } from './ta
 import { tagsFor, tagLabel, suggestTags } from './allergy-tags';
 import bodyRawHtml from './raw/body.raw.html?raw';
 import { render, bindEvents, applyLang, setConditional, type Values } from './dc-engine';
+import { setupHelp } from './help';
 import { submitRsvp, submitKuchen, submitSurprise as apiSubmitSurprise, submitFrage, submitTrauzeugenMsg, listKuchen, guestLookup } from './api';
 import type { Config } from './types';
 import { photoUrl } from './photos';
@@ -1734,6 +1735,7 @@ export function boot(container: HTMLElement): void {
   if (blacklistMount) blacklistMount.insertAdjacentHTML('beforeend', renderBlacklistItems());
 
   setupSurprise();
+  setupHelp();
 
   applyLang(root, 'de');
   applyResponsive();
